@@ -5,14 +5,14 @@ Story: Init database
 --------------------
 
 - The `init` command works
-- All the stuff in `io.clj` works except filelock and file-root-path
+- All the stuff in `session.clj` works except filelock and file-root-path
 
 Story: Install Package
 ----------------------
 
 - The `install` command works
-- All the stuff in `io.clj` works, including filelock and file-root-path
-- Functions:
+- All the stuff in `session.clj` works, including filelock and file-root-path
+- Functsessionns:
 
   - `zic.fs/download`
   - `zic.fs/unpack`
@@ -26,7 +26,7 @@ Story: Info on Package
 ----------------------
 
 - The `info` command works
-- Functions:
+- Functsessionns:
   - `zic.cli/info`
   - `zic.db/lookup-pkg`
   - `zic.db/deserialize-pkg`
@@ -35,26 +35,26 @@ Story: Files of a Package
 -------------------------
 
 - The `files` command works
-- Functions:
+- Functsessionns:
   - `zic.cli/files`
 
 Story: Verify a Package
 -----------------------
 
-- A column in the files section for sha256sum
-- Functions:
+- A column in the files sectsessionn for sha256sum
+- Functsessionns:
   - `zic.fs/hash-files` and its use in install-packages
   - `zic.cli/verify`
 
 Story: Install package next to existing packages
 ------------------------------------------------
 
-- Functions:
+- Functsessionns:
   - `zic.db/file-owned?`
   - `zic.db/list-archive-files`
   - `zic.package/packages-conflict?`
   - `zic.package/package-installable?`
-  
+
 
 Story: Install a Package that Already Exists
 --------------------------------------------
@@ -70,7 +70,7 @@ Story: Remove Package(s)
 ------------------------
 
 - The `remove` command works
-- Functions needed that aren't already done:
+- Functsessionns needed that aren't already done:
   - `zic.cli/remove`
   - `zic.package/remove-cascade`
   - `zic.db/used-by`
@@ -80,7 +80,7 @@ Story: List Orphans
 
 - The `orphans` command works
 - An `is_source` column in the package table
-- Functions:
+- Functsessionns:
   - `zic.package/graph-sources` and its use in install-packages
   - `zic.cli/orphans`
   - `zic.db/non-source-pkgs`
