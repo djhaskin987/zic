@@ -12,15 +12,22 @@ Story: Install Package
 
 - The `install` command works
 - All the stuff in `session.clj` works, including filelock and file-root-path
-- Functsessionns:
+- Functions:
 
-  - `zic.fs/download`
-  - `zic.fs/unpack`
-  - `zic.db/add-pkg`
-  - `zic.db/serialize-pkg`
-  - `zic.package/install-package`
-  - `zic.package/install-packages`
-  - `zic.cli/install`
+  - `zic.fs/download` : install downloads a package
+
+  - `zic.fs/unpack`: install unpacks it
+
+  - `zic.db/add-pkg`: Install adds to database
+  - `zic.db/serialize-pkg`: ditto
+
+  - `zic.package/install-package`: shell
+  - `zic.cli/install`: shell
+
+Story: Install a graph of packages
+----------------------------------
+- Functions:
+  - `zic.package/install-packages`: insert between install-package and install
 
 Story: Info on Package
 ----------------------
