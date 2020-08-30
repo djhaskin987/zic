@@ -28,6 +28,7 @@ Story: Install a graph of packages
 ----------------------------------
 - Functions:
   - `zic.package/install-packages`: insert between install-package and install
+  - `zic.package/packages-conflict?`
 
 Story: Info on Package
 ----------------------
@@ -42,7 +43,7 @@ Story: Files of a Package
 -------------------------
 
 - The `files` command works
-- Functsessionns:
+- Functions:
   - `zic.cli/files`
 
 Story: Verify a Package
@@ -59,7 +60,6 @@ Story: Install package next to existing packages
 - Functsessionns:
   - `zic.db/file-owned?`
   - `zic.db/list-archive-files`
-  - `zic.package/packages-conflict?`
   - `zic.package/package-installable?`
 
 

@@ -1,7 +1,12 @@
 (ns zic.cli
   (:require
-    [onecli.core :as onecli])
-  (:gen-class))
+    [onecli.core :as onecli]
+    [zic.db :as db]
+    [clojure.string :as string]
+    [zic.session :as session]
+    )
+  (:gen-class)
+  )
 
 (defn add!
   "
@@ -44,7 +49,16 @@
   "
 
   [options]
-  {:result :noop})
+  (session/with-database
+    (session/path-to-connection-string
+      (string/join
+        java.io.File/separator
+        [
+         (:start-directory options)
+         ".zic.sqlite3"
+         ]))
+    db/init-database!)
+  {:result :successful})
 
 (defn install!
   "

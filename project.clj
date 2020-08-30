@@ -8,6 +8,8 @@
   :dependencies [
                  ;;[serovers "1.6.2"]
                  [org.clojure/clojure "1.10.1"]
+                 [seancorfield/next.jdbc "1.0.10"]
+                 [org.xerial/sqlite-jdbc "3.28.0"]
                  [onecli "0.6.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
                  ]
   :main ^:skip-aot zic.cli

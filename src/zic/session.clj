@@ -1,5 +1,7 @@
 (ns zic.session
   (:require
+    [clojure.java.io :as io]
+    [clojure.string :as string]
     [next.jdbc :as jdbc]))
 
 (defprotocol OpenClose
@@ -63,3 +65,12 @@
             (if @problem
               (reset t)
               (close t))))))))
+
+(defn path-to-connection-string
+  [path]
+  (as-> path it
+    (io/file it)
+    (.toURI it)
+    (.toURL it)
+    (.toString it)
+    (string/replace it #"^file://" "jdbc:sqlite:")))

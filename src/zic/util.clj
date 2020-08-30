@@ -1,4 +1,4 @@
-﻿(ns zic.util)
+(ns zic.util)
 
 (defmacro dbg [body]
   `(let [x# ~body]
