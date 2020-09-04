@@ -1,8 +1,10 @@
 (ns zic.session
   (:require
-    [clojure.java.io :as io]
+    [zic.util :refer :all]
     [clojure.string :as string]
-    [next.jdbc :as jdbc]))
+    [next.jdbc :as jdbc])
+  (:import
+    (java.nio.file Paths Path)))
 
 (defprotocol OpenClose
   (open [this] "opens resource")
@@ -67,10 +69,6 @@
               (close t))))))))
 
 (defn path-to-connection-string
-  [path]
-  (as-> path it
-    (io/file it)
-    (.toURI it)
-    (.toURL it)
-    (.toString it)
-    (string/replace it #"^file://" "jdbc:sqlite:")))
+  [^Path path]
+  (str "jdbc:sqlite:"
+       (.toAbsolutePath path)))

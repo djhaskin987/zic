@@ -51,8 +51,7 @@
   [options]
   (session/with-database
     (session/path-to-connection-string
-      (string/join
-        java.io.File/separator
+      (Paths/get
         [
          (:start-directory options)
          ".zic.sqlite3"

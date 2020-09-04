@@ -4,6 +4,7 @@
 Story: Init database
 --------------------
 
+- Status: DONE
 - The `init` command works
 - All the stuff in `session.clj` works except filelock and file-root-path
 
@@ -11,7 +12,9 @@ Story: Install Package
 ----------------------
 
 - The `install` command works
-- All the stuff in `session.clj` works, including filelock and file-root-path
+- All the stuff in `session.clj` works, including filelock and file-root-path.
+  MEMBER to use java.nio FileLock
+
 - Functions:
 
   - `zic.fs/download` : install downloads a package
@@ -50,7 +53,7 @@ Story: Verify a Package
 -----------------------
 
 - A column in the files sectsessionn for sha256sum
-- Functsessionns:
+- Functions:
   - `zic.fs/hash-files` and its use in install-packages
   - `zic.cli/verify`
 
@@ -61,7 +64,6 @@ Story: Install package next to existing packages
   - `zic.db/file-owned?`
   - `zic.db/list-archive-files`
   - `zic.package/package-installable?`
-
 
 Story: Install a Package that Already Exists
 --------------------------------------------

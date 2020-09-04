@@ -14,5 +14,7 @@
                  ]
   :main ^:skip-aot zic.cli
   :target-path "target/%s"
+  :test-selectors {:default (complement :integration)
+                   :integration :integration}
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

@@ -13,6 +13,9 @@ pom.xml.asc
 .hgignore
 .hg/
 
+# testing
+.zic.sqlite3
+
 # editor files
 .*.sw[a-z]
 *~
