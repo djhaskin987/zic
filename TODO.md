@@ -8,8 +8,8 @@ Story: Init database
 - The `init` command works
 - All the stuff in `session.clj` works except filelock and file-root-path
 
-Story: Install Package
-----------------------
+Story: Install a Single Package on a Fresh Database
+---------------------------------------------------
 
 - The `install` command works
 - All the stuff in `session.clj` works, including filelock and file-root-path.

@@ -5,6 +5,8 @@
     [clojure.string :as string]
     [zic.session :as session]
     )
+  (:import
+    (java.nio.file Paths))
   (:gen-class)
   )
 
@@ -52,10 +54,11 @@
   (session/with-database
     (session/path-to-connection-string
       (Paths/get
-        [
-         (:start-directory options)
-         ".zic.sqlite3"
-         ]))
+        (:start-directory options)
+         (into-array
+           [
+            ".zic.sqlite3"
+            ])))
     db/init-database!)
   {:result :successful})
 

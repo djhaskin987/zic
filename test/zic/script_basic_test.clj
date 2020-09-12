@@ -6,7 +6,7 @@
     [zic.util :refer :all]
     )
   (:import
-    (java.nio.file Files Path Paths))
+    (java.nio.file Files Path Paths LinkOption))
   )
 
 (deftest ^:integration basic-tests
@@ -22,12 +22,13 @@
       ;; check that just running it doesn't crash
       (is (= 0 (:exit (sh "java" "-jar" jarfile))))
       ;; check that initializing the database actually creates the file
-      (let [db-path (Paths/get
-                      (System/getProperty "user.dir")
-                      ".zic.sqlite3")]
+      (let [db-path (dbg (Paths/get
+                           (System/getProperty "user.dir")
+                           (into-array [".zic.sqlite3"])
+                           ))]
         (Files/deleteIfExists db-path)
         (is (= 0 (:exit (dbg (sh "java" "-jar" jarfile "init")))))
-        (is (Files/exists db-path [])))
+        (is (Files/exists db-path (into-array LinkOption []))))
       )
     )
   )

@@ -13,5 +13,6 @@
           (dbg (path-to-connection-string
             (Paths/get
               ""
-              (into-array String []))))
+              (into-array String []))
+            ))
           "jdbc:sqlite:"))))
