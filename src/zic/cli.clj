@@ -1,8 +1,9 @@
 (ns zic.cli
   (:require
+    [clojure.string :as string]
     [onecli.core :as onecli]
     [zic.db :as db]
-    [clojure.string :as string]
+    [zic.fs :as fs]
     [zic.session :as session]
     )
   (:import
@@ -17,6 +18,9 @@
   are only installing a single package.
   "
   [options]
+
+
+
   {:result :noop})
 
 (defn files!
@@ -57,7 +61,7 @@
         (:start-directory options)
          (into-array
            [
-            ".zic.sqlite3"
+            ".zic.db"
             ])))
     db/init-database!)
   {:result :successful})
@@ -158,6 +162,21 @@
      {
       :start-directory (System/getProperty "user.dir")
       }
+     :setup
+     (fn [options]
+       (if (not (= (:commands options) ["init"]))
+         (if-let [marking-file
+                  (fs/find-marking-file
+                    (:start-directory options)
+                    ".zic.db")]
+           (-> options
+               (assoc
+                 :zic-db-connection-string
+                 (session/path-to-connection-string
+                   marking-file))
+               (assoc
+                 :root-path
+                 (.getParent marking-file))))))
      ;; when calling shell/sh, we need to use `shutdown-agents`
      ;; https://clojuredocs.org/clojure.core/future
      ;; https://clojuredocs.org/clojure.java.shell/sh

@@ -11,9 +11,10 @@ Story: Init database
 Story: Install a Single Package on a Fresh Database
 ---------------------------------------------------
 
+- Status: IN PROGRESS
 - The `install` command works
 - All the stuff in `session.clj` works, including filelock and file-root-path.
-  MEMBER to use java.nio FileLock
+  REMEMBER to use java.nio FileLock
 
 - Functions:
 
