@@ -2,6 +2,7 @@
   (:require
     [clojure.string :as string]
     [onecli.core :as onecli]
+    [zic.util :refer :all]
     [zic.db :as db]
     [zic.fs :as fs]
     [zic.session :as session]
@@ -11,6 +12,7 @@
   (:gen-class)
   )
 
+
 (defn add!
   "
   Add a package to the installation.
@@ -18,14 +20,20 @@
   are only installing a single package.
   "
   [options]
+  (fs/download options)
+
+  ;(session/with-database
+  ;  (:zic-db-connection-string options)
+  ;  (fn [c]
+  ;  ))
 
 
 
-  {:result :noop})
+
+  {:who (:zic-db-connection-string options)})
 
 (defn files!
   "
-  List the files owned by a particular package.
   Options:
 
   - `-k`, `--set-package`: Set package name for which to list files
@@ -165,18 +173,20 @@
      :setup
      (fn [options]
        (if (not (= (:commands options) ["init"]))
-         (if-let [marking-file
-                  (fs/find-marking-file
-                    (:start-directory options)
-                    ".zic.db")]
-           (-> options
-               (assoc
-                 :zic-db-connection-string
-                 (session/path-to-connection-string
-                   marking-file))
-               (assoc
-                 :root-path
-                 (.getParent marking-file))))))
+         (dbg (if-let [marking-file
+                       (fs/find-marking-file
+                         (:start-directory options)
+                         ".zic.db")]
+                (-> options
+                    (assoc
+                      :zic-db-connection-string
+                      (session/path-to-connection-string
+                        marking-file))
+                    (assoc
+                      :root-path
+                      (.getParent marking-file)))
+                options))
+         options))
      ;; when calling shell/sh, we need to use `shutdown-agents`
      ;; https://clojuredocs.org/clojure.core/future
      ;; https://clojuredocs.org/clojure.java.shell/sh

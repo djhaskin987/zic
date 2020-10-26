@@ -1,8 +1,12 @@
-﻿(ns zic.fs
+(ns zic.fs
   (:require
     [zic.util :refer :all])
   (:import
     (java.nio.file Paths Path Files)))
+
+(defn download [options]
+  (:staging-dir options)
+  (:package-location options)
 
 (defn list-files [p]
   (let [stream (Files/newDirectoryStream p)]
@@ -24,7 +28,7 @@
             (some
               #(if (= (str %) match) % nil)
               (list-files a)))
-          (all-parents start))]
+          (all-parents (dbg start)))]
     (if (or
           (nil? found)
           (nil? (.getParent found))

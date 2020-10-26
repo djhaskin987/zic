@@ -15,6 +15,7 @@ pom.xml.asc
 
 # testing
 .zic.sqlite3
+.zic.db
 
 # editor files
 .*.sw[a-z]
