@@ -1,12 +1,12 @@
 (ns zic.fs
   (:require
-    [zic.util :refer :all])
+   [zic.util :refer :all])
   (:import
-    (java.nio.file Paths Path Files)))
+   (java.nio.file Paths Path Files)))
 
 (defn download [options]
   (:staging-dir options)
-  (:package-location options)
+  (:package-location options))
 
 (defn list-files [p]
   (let [stream (Files/newDirectoryStream p)]
@@ -24,14 +24,17 @@
 (defn find-marking-file [start match]
   (let [found
         (some
-          (fn [a]
-            (some
-              #(if (= (str %) match) % nil)
-              (list-files a)))
-          (all-parents (dbg start)))]
+         (fn [a]
+           (some
+            #(if (= (str %) match) % nil)
+            (list-files a)))
+         (all-parents (dbg start)))]
     (if (or
-          (nil? found)
-          (nil? (.getParent found))
-          (nil? (.getParent (.getParent found))))
+         (nil? found)
+         (nil? (.getParent found))
+         (nil? (.getParent (.getParent found))))
       nil
       found)))
+
+(defn ensure-exists [place]
+  (Files/exists (Paths/get place (into-array []))))
