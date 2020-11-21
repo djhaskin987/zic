@@ -1,7 +1,7 @@
 (ns zic.db
   (:require
-    [next.jdbc :as jdbc]))
-
+   [cheshire.core :as json]
+   [next.jdbc :as jdbc]))
 
 (def ^:private init-statements
   ["
@@ -34,8 +34,44 @@
     )
     "])
 
-
 (defn init-database!
   [c]
   (doseq [statement init-statements]
     (jdbc/execute! c [statement])))
+
+(defn serialize-metadata
+  [metadata]
+  (if (nil? metadata)
+    metadata
+    (json/generate-string metadata)))
+
+(defn deserialize-metadata
+  [metadata]
+  (if (or (nil? metadata)
+          (empty? metadata))
+    nil
+    (json/parse-string metadata true)))
+
+(defn deserialize-package
+  [pkg]
+  {:name (:package/name pkg)
+   :version (:package/version pkg)
+   :location (:package/location pkg)
+   :metadata (deserialize-metadata (:package/metadata pkg))})
+
+(defn add-package!
+  [c {:keys [package-name
+             package-version
+             package-location
+             package-metadata]}]
+  (jdbc/execute! c
+                 ["
+                  INSERT INTO packages
+                  (name, version, location, metadata)
+                  VALUES
+                  (?,?,?,?)
+                  "
+                  package-name
+                  package-version
+                  package-location
+                  (serialize-metadata package-metadata)]))

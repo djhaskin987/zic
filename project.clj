@@ -12,7 +12,7 @@
                  [org.xerial/sqlite-jdbc "3.28.0"]
                  [seancorfield/next.jdbc "1.0.10"]
                  [onecli "0.6.0-SNAPSHOT" :exclusions [org.clojure/clojure]]]
-  :main ^:skip-aot zic.cli
+  :main zic.cli
   :target-path "target/%s"
   :test-selectors {:default (complement :integration)
                    :integration :integration}
