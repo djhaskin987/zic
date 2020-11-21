@@ -11,22 +11,31 @@ Story: Init database
 Story: Install a Single Package on a Fresh Database
 ---------------------------------------------------
 
-- Status: IN PROGRESS
-- The `install` command works
+- Status: CODE COMPLETE
+- The `add` command works
 - All the stuff in `session.clj` works, including filelock and file-root-path.
   REMEMBER to use java.nio FileLock
 
 - Functions:
 
   - `zic.fs/download` : install downloads a package
+  - TODO: TEST the above with mock, to ensure it gives http the proper options
 
   - `zic.fs/unpack`: install unpacks it
+  - TODO: TEST the above with integration/fs-level test.
 
   - `zic.db/add-pkg`: Install adds to database
+  - TODO: TEST the above with integration/fs-level test.
+
   - `zic.db/serialize-pkg`: ditto
+  - TODO: TEST the above unit-wise.
 
   - `zic.package/install-package`: shell
-  - `zic.cli/install`: shell
+  - TODO: TEST the above with black-box larger integration test.
+
+  - `zic.cli/add!`: shell
+  - TODO: test the above with integration test.
+
 
 Story: Install a graph of packages
 ----------------------------------
