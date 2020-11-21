@@ -12,6 +12,11 @@ Story: Install a Single Package on a Fresh Database
 ---------------------------------------------------
 
 - Status: CODE COMPLETE
+- Other stuff to do:
+  - [ ] linting, formatting
+  - [ ] Write tests, get them to pass
+  - [ ] Write docs rough draft
+
 - The `add` command works
 - All the stuff in `session.clj` works, including filelock and file-root-path.
   REMEMBER to use java.nio FileLock
