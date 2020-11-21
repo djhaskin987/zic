@@ -5,15 +5,13 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :plugins [[lein-licenses "0.2.2"]
             [lein-print "0.1.0"]
-            [lein-cljfmt "0.7.0"]
-            ]
-  :dependencies [
-                 ;;[serovers "1.6.2"]
+            [lein-cljfmt "0.7.0"]]
+  :dependencies [;;[serovers "1.6.2"]
                  [org.clojure/clojure "1.10.1"]
-                 [seancorfield/next.jdbc "1.0.10"]
+                 [org.martinklepsch/clj-http-lite "0.4.3"]
                  [org.xerial/sqlite-jdbc "3.28.0"]
-                 [onecli "0.6.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
-                 ]
+                 [seancorfield/next.jdbc "1.0.10"]
+                 [onecli "0.6.0-SNAPSHOT" :exclusions [org.clojure/clojure]]]
   :main ^:skip-aot zic.cli
   :target-path "target/%s"
   :test-selectors {:default (complement :integration)

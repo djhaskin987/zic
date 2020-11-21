@@ -1,46 +1,68 @@
 (ns zic.session
   (:require
-   [zic.util :refer :all]
-   [clojure.string :as string]
-   [next.jdbc :as jdbc])
+    [clojure.string :as string]
+    [next.jdbc :as jdbc]
+    [zic.util :refer :all])
   (:import
-   (java.nio.file Paths Path)))
+    (java.nio.file
+      Path
+      Paths)))
+
 
 (defprotocol OpenClose
-  (open [this] "opens resource")
-  (close [this] "closes resource"))
+
+  (open
+    [this]
+    "opens resource")
+
+  (close
+    [this]
+    "closes resource"))
+
 
 (defprotocol Reset
-  (reset [this] "resets resource"))
+
+  (reset
+    [this]
+    "resets resource"))
+
 
 (defrecord JdbcTransaction
-           [connection]
+  [connection]
+
   OpenClose
+
   (open
     [this]
     (jdbc/execute! (:connection this) ["
                                        BEGIN TRANSACTION
                                        "])
     this)
+
+
   (close
     [this]
     (jdbc/execute! (:connection this) ["
                                        COMMIT TRANSACTION
                                        "])
     this)
+
+
   Reset
+
   (reset
     [this]
     (jdbc/execute! (:connection this) ["ROLLBACK"])
 
     this))
 
+
 (defn with-database
   [connection-string
    f]
   (let [datasource
         (jdbc/get-datasource
-         {:jdbcUrl connection-string})]
+          {:jdbcUrl connection-string})]
     (with-open [c (jdbc/get-connection datasource)]
       (let [jt (->JdbcTransaction c)
             t (open jt)
@@ -54,6 +76,7 @@
             (if @problem
               (reset t)
               (close t))))))))
+
 
 (defn path-to-connection-string
   [^Path path]

@@ -1,6 +1,7 @@
 (ns zic.db
   (:require
-   [next.jdbc :as jdbc]))
+    [next.jdbc :as jdbc]))
+
 
 (def ^:private init-statements
   ["
@@ -32,6 +33,7 @@
       CONSTRAINT dependee_c FOREIGN KEY (dependee) REFERENCES packages(id)
     )
     "])
+
 
 (defn init-database!
   [c]
