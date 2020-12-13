@@ -1,12 +1,12 @@
 (ns zic.package
   (:require
    [zic.db :as db]
+   [zic.session :as session]
    [zic.fs :as fs])
   (:import
    (java.nio.file
     Files
-    Path
-    Paths)
+    Path)
    (java.util.zip
     ZipFile)))
 
@@ -14,8 +14,6 @@
   [{:keys [package-name
            package-version
            package-location
-           package-metadata
-           package-dependencies
            db-connection-string
            ^Path
            root-path
@@ -33,7 +31,7 @@
         download-dest (.resolve staging-path fname)
         auth (:download-authorizations options)]
     (when (not (Files/exists staging-path (into-array [])))
-      (Files/createDirectories staging-path (into-arrary [])))
+      (Files/createDirectories staging-path (into-array [])))
     (fs/download download-dest auth)
     (fs/unpack (ZipFile. (.toFile download-dest)) root-path))
   (session/with-database

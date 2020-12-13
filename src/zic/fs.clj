@@ -2,13 +2,12 @@
   (:require
    [clj-http.lite.client :as client]
    [clojure.java.io :as io]
-   [zic.util :refer :all])
+   [zic.util :as util])
   (:import
    (java.nio.file
     Files
     Path
-    Paths
-    StandardOpenOption)
+    Paths)
    (java.util.zip
     ZipFile)))
 
@@ -74,7 +73,7 @@
 
 (defn all-parents
   ([start-path]
-   (let [f (Paths/get start-path (into-array []))
+   (let [f (Paths/get start-path (into-array [""]))
          p (.getParent f)]
      (all-parents f p)))
   ([f p] (if (nil? p)
@@ -88,8 +87,8 @@
          (fn [a]
            (some
             #(if (= (str %) match) % nil)
-            (list-files a)))
-         (all-parents (dbg start)))]
+            (util/dbg (list-files a))))
+         (util/dbg (all-parents (util/dbg start))))]
     (if (or
          (nil? found)
          (nil? (.getParent found))

@@ -16,6 +16,11 @@ pom.xml.asc
 # testing
 .zic.sqlite3
 .zic.db
+lighttpd-environment/lighttpd.conf
+lighttpd-environment/wwwroot
+lighttpd-environment/lighttpd
+lighttpd-environment/test-data
+
 
 # editor files
 .*.sw[a-z]

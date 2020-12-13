@@ -4,6 +4,7 @@
   [body]
   `(let [x# ~body]
      (binding [*out* *err*]
-       (println "dbg:" '~body "=" (pr-str x#))
+       (println "dbg: type " '~body "=" (pr-str (type x#)))
+       (println "dbg: rep  " '~body "=" (pr-str x#))
        (flush)
        x#)))

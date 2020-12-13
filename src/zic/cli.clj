@@ -1,15 +1,14 @@
 (ns zic.cli
   (:gen-class)
   (:require
-   [clojure.string :as string]
    [onecli.core :as onecli]
-   [zic.session :as session]
+   [zic.db :as db]
+   [zic.util :as util]
+   [zic.fs :as fs]
    [zic.package :as package]
-   [zic.util :refer :all])
+   [zic.session :as session])
   (:import
    (java.nio.file
-    Files
-    Path
     Paths)))
 
 (defn add!
@@ -24,7 +23,7 @@
      package-dependencies:  Unsupported as of yet, but getting there!
   "
   [options]
-  (package/install-package! options)
+  (package/install-package! (util/dbg options))
   {:result :successful})
 
 (defn files!
@@ -34,7 +33,7 @@
   - `-k`, `--set-package`: Set package name for which to list files
 
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn info!
@@ -45,7 +44,7 @@
   - `-e`, `--set-package`: Set package name for which to list files
 
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn init!
@@ -58,12 +57,11 @@
   "
 
   [options]
-  (session/with-database
     (session/path-to-connection-string
      (Paths/get
       (:start-directory options)
       (into-array
-       [".zic.db"])))
+       [".zic.db"]))
     db/init-database!)
   {:result :successful})
 
@@ -77,49 +75,49 @@
     graph by providing a file. The file might be `-` meaning standard
     input.
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn list!
   "
   FIXME
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn orphans!
   "
   FIXME
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn remove!
   "
   FIXME
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn used!
   "
   FIXME
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn uses!
   "
   FIXME
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn verify!
   "
   FIXME
   "
-  [options]
+  [_]
   {:result :noop})
 
 (defn -main
@@ -160,9 +158,9 @@
     (fn [options]
       (if (not (= (:commands options) ["init"]))
         (if-let [marking-file
-                 (fs/find-marking-file
+                 (util/dbg (fs/find-marking-file
                   (:start-directory options)
-                  ".zic.db")]
+                  ".zic.db"))]
           (-> options
               (assoc
                :db-connection-string
@@ -175,8 +173,10 @@
                :staging-path
                (.resolve
                 (.getParent marking-file)
-                ".staging"))))))
+                ".staging")))
+          options)
+        options))
      ;; when calling shell/sh, we need to use `shutdown-agents`
      ;; https://clojuredocs.org/clojure.core/future
      ;; https://clojuredocs.org/clojure.java.shell/sh
-    :teardown (fn [options] (shutdown-agents))}))
+    :teardown (fn [_] (shutdown-agents))}))
