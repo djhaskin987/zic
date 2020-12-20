@@ -3,13 +3,14 @@
   (:require
    [onecli.core :as onecli]
    [zic.db :as db]
-   [zic.util :as util]
    [zic.fs :as fs]
    [zic.package :as package]
-   [zic.session :as session])
+   [zic.session :as session]
+   [zic.util :as util])
   (:import
    (java.nio.file
     Paths)))
+
 
 (defn add!
   "
@@ -23,8 +24,9 @@
      package-dependencies:  Unsupported as of yet, but getting there!
   "
   [options]
-  (package/install-package! (util/dbg options))
+  (package/install-package! options)
   {:result :successful})
+
 
 (defn files!
   "
@@ -35,6 +37,7 @@
   "
   [_]
   {:result :noop})
+
 
 (defn info!
   "
@@ -47,6 +50,7 @@
   [_]
   {:result :noop})
 
+
 (defn init!
   "
   Initialize database in the start directory.
@@ -57,13 +61,14 @@
   "
 
   [options]
-    (session/path-to-connection-string
-     (Paths/get
-      (:start-directory options)
-      (into-array
-       [".zic.db"]))
-    db/init-database!)
+  (session/path-to-connection-string
+   (Paths/get
+    (:start-directory options)
+    (into-array
+     [".zic.db"]))
+   db/init-database!)
   {:result :successful})
+
 
 (defn install!
   "
@@ -78,12 +83,14 @@
   [_]
   {:result :noop})
 
+
 (defn list!
   "
   FIXME
   "
   [_]
   {:result :noop})
+
 
 (defn orphans!
   "
@@ -92,12 +99,14 @@
   [_]
   {:result :noop})
 
+
 (defn remove!
   "
   FIXME
   "
   [_]
   {:result :noop})
+
 
 (defn used!
   "
@@ -106,6 +115,7 @@
   [_]
   {:result :noop})
 
+
 (defn uses!
   "
   FIXME
@@ -113,12 +123,14 @@
   [_]
   {:result :noop})
 
+
 (defn verify!
   "
   FIXME
   "
   [_]
   {:result :noop})
+
 
 (defn -main
   "
@@ -158,9 +170,13 @@
     (fn [options]
       (if (not (= (:commands options) ["init"]))
         (if-let [marking-file
-                 (util/dbg (fs/find-marking-file
-                  (:start-directory options)
-                  ".zic.db"))]
+                 (fs/find-marking-file
+                  (Paths/get
+                   (:start-directory options)
+                   (into-array
+                    java.lang.String
+                    []))
+                  ".zic.db")]
           (-> options
               (assoc
                :db-connection-string

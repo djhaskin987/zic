@@ -30,9 +30,13 @@
            ".zip"))
         download-dest (.resolve staging-path fname)
         auth (:download-authorizations options)]
-    (when (not (Files/exists staging-path (into-array [])))
-      (Files/createDirectories staging-path (into-array [])))
-    (fs/download download-dest auth)
+    (when (not (Files/exists staging-path (into-array
+                                           java.nio.file.LinkOption
+                                           [])))
+      (Files/createDirectories staging-path (into-array
+                                             java.nio.file.attribute.FileAttribute
+                                             [])))
+    (fs/download package-location download-dest auth)
     (fs/unpack (ZipFile. (.toFile download-dest)) root-path))
   (session/with-database
     db-connection-string

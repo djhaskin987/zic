@@ -11,6 +11,7 @@
    (java.util.zip
     ZipFile)))
 
+
 (defn archive-contents
   [^ZipFile zip-file]
   (->> zip-file
@@ -24,6 +25,7 @@
            :is-directory? (.isDirectory entry)
            :crc (.getCrc entry)}))
        (into [])))
+
 
 (defn download
   [^String resource ^Path dest auth]
@@ -48,6 +50,7 @@
                   dest
                   (into-array [])))))
 
+
 (defn unpack
   [^ZipFile zip-file ^Path dest]
   (->> zip-file
@@ -66,19 +69,21 @@
              :is-directory (.isDirectory entry)})))
        (into [])))
 
+
 (defn list-files
   [^Path p]
   (let [stream (Files/newDirectoryStream p)]
     (into [] (iterator-seq (.iterator stream)))))
 
+
 (defn all-parents
   ([start-path]
-   (let [f (Paths/get start-path (into-array [""]))
-         p (.getParent f)]
-     (all-parents f p)))
+   (let [p (.getParent start-path)]
+     (all-parents start-path p)))
   ([f p] (if (nil? p)
            '()
            (cons f (lazy-seq (all-parents p (.getParent p)))))))
+
 
 (defn find-marking-file
   [start match]
@@ -86,15 +91,16 @@
         (some
          (fn [a]
            (some
-            #(if (= (str %) match) % nil)
-            (util/dbg (list-files a))))
-         (util/dbg (all-parents (util/dbg start))))]
+            #(if (= (str (.getFileName %)) match) % nil)
+            (list-files a)))
+         (all-parents start))]
     (if (or
          (nil? found)
          (nil? (.getParent found))
          (nil? (.getParent (.getParent found))))
       nil
       found)))
+
 
 (defn ensure-exists
   [place]
