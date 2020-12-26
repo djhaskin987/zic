@@ -1,12 +1,9 @@
 (ns zic.session
   (:require
-   [clojure.string :as string]
-   [next.jdbc :as jdbc]
-   [zic.util :refer :all])
+   [next.jdbc :as jdbc])
   (:import
    (java.nio.file
-    Path
-    Paths)))
+    Path)))
 
 (defprotocol OpenClose
 
@@ -64,7 +61,7 @@
         (try
           (f (:connection t))
           (catch Exception e
-            (swap! problem (fn [x] true))
+            (swap! problem (fn [_] true))
             (throw e))
           (finally
             (if @problem
