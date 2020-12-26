@@ -13,6 +13,14 @@ pom.xml.asc
 .hgignore
 .hg/
 
+# IDE files
+/.vscode
+/.calva
+/.clj-kondo
+/.lsp
+/.staging
+/.classpath
+
 # testing
 .zic.sqlite3
 .zic.db
@@ -28,5 +36,3 @@ lighttpd-environment/test-data
 \#*
 .*#
 .#*
-/.idea
-/.calva
