@@ -28,6 +28,7 @@ lighttpd-environment/lighttpd.conf
 lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
+/a/
 
 
 # editor files

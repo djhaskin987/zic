@@ -4,12 +4,17 @@
    [clojure.java.io :as io]
    [zic.util :as util])
   (:import
+   (java.nio.file.attribute
+    FileAttribute)
    (java.nio.file
     Files
     Path
-    Paths)
+    Paths
+    CopyOption
+    LinkOption)
    (java.util.zip
-    ZipFile)))
+    ZipFile
+    ZipEntry)))
 
 
 (defn archive-contents
@@ -18,7 +23,7 @@
        (.entries)
        (enumeration-seq)
        (map
-        (fn [entry]
+        (fn [^ZipEntry entry]
           {:name (.getName entry)
            :size (.getSize entry)
            :time (.getTime entry)
@@ -29,26 +34,30 @@
 
 (defn download
   [^String resource ^Path dest auth]
-  (let [basic-args
-        (if (empty? auth)
-          {:as :stream}
-          (into {:as :stream}
-                (when-let [host (.getHost (io/as-url resource))]
-                  (when-let [auth-record (get auth host)]
-                    (cond (= (:type auth-record) :basic)
-                          [[:basic-auth
-                            [(:username auth-record)
-                             (:password auth-record)]]]
-                          (= (:type auth-record) :header)
-                          [[:headers (:headers auth-record)]]
-                          (= (:type auth-record) :oauth-token)
-                          [[:oauth-token (:oauth-token auth-record)]])))))]
-    (with-open
-     [in
-      (client/get resource basic-args)]
-      (Files/copy in
-                  dest
-                  (into-array [])))))
+  (if (Files/exists dest (into-array LinkOption []))
+    (Long/valueOf 0)
+    (let [basic-args
+          (if (empty? auth)
+            {:as :stream}
+            (into {:as :stream}
+                  (when-let [host (.getHost (io/as-url resource))]
+                    (when-let [auth-record (get auth (keyword host))]
+                      (cond (= (:type auth-record) "basic")
+                            [[:basic-auth
+                              [(:username auth-record)
+                               (:password auth-record)]]]
+                            (= (:type auth-record) "header")
+                            [[:headers (:headers auth-record)]]
+                            (= (:type auth-record) "oauth-token")
+                            [[:oauth-token (:oauth-token auth-record)]])))))]
+      (with-open
+       [in
+        (:body (client/get resource basic-args))]
+        (Files/copy in
+                    dest
+                    (into-array
+                     CopyOption
+                     []))))))
 
 
 (defn unpack
@@ -57,12 +66,15 @@
        (.entries)
        (enumeration-seq)
        (map
-        (fn [entry]
+        (fn [^ZipEntry entry]
           (let [dest-path (.resolve dest (.getName entry))]
             (if (.isDirectory entry)
-              (Files/createDirectories dest-path (into-array []))
-              (with-open [sf (.getInputStream zip-file entry)]
-                (Files/copy sf dest-path (into-array []))))
+              (Files/createDirectories dest-path (into-array FileAttribute []))
+              (do
+                ;; BULLDOZE LOLCATZ W00T
+                (Files/deleteIfExists dest-path)
+                (with-open [sf (.getInputStream zip-file entry)]
+                  (Files/copy sf dest-path (into-array CopyOption [])))))
             {:name (.getName entry)
              :crc (.getCrc entry)
              :size (.getSize entry)
@@ -100,9 +112,3 @@
          (nil? (.getParent (.getParent found))))
       nil
       found)))
-
-
-(defn ensure-exists
-  [place]
-  (Files/exists (Paths/get place (into-array []))
-                (into-array [])))

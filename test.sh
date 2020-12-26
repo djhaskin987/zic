@@ -8,6 +8,13 @@
 # where server.crt was just the certificate half of the server PEM file
 # password 'asdfasdf'
 
+rm -rf .zic.db
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    init
 
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \

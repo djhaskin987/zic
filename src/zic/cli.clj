@@ -5,8 +5,7 @@
    [zic.db :as db]
    [zic.fs :as fs]
    [zic.package :as package]
-   [zic.session :as session]
-   [zic.util :as util])
+   [zic.session :as session])
   (:import
    (java.nio.file
     Paths)))
@@ -61,12 +60,13 @@
   "
 
   [options]
-  (session/path-to-connection-string
-   (Paths/get
-    (:start-directory options)
-    (into-array
-     [".zic.db"]))
-   db/init-database!)
+  (session/with-database
+    (session/path-to-connection-string
+     (Paths/get
+      (:start-directory options)
+      (into-array
+       [".zic.db"])))
+    db/init-database!)
   {:result :successful})
 
 
