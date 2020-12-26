@@ -11,9 +11,9 @@ Story: Init database
 Story: Install a Single Package on a Fresh Database
 ---------------------------------------------------
 
-- Status: CODE COMPLETE
+- Status: BLACK BOX PASSING
 - Other stuff to do:
-  - [ ] linting, formatting
+  - [x] linting, formatting
   - [ ] Write tests, get them to pass
   - [ ] Write docs rough draft
 
