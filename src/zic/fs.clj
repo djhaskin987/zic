@@ -1,21 +1,18 @@
 (ns zic.fs
   (:require
    [clj-http.lite.client :as client]
-   [clojure.java.io :as io]
-   [zic.util :as util])
+   [clojure.java.io :as io])
   (:import
    (java.nio.file.attribute
     FileAttribute)
    (java.nio.file
     Files
     Path
-    Paths
     CopyOption
     LinkOption)
    (java.util.zip
     ZipFile
     ZipEntry)))
-
 
 (defn archive-contents
   [^ZipFile zip-file]
@@ -30,7 +27,6 @@
            :is-directory? (.isDirectory entry)
            :crc (.getCrc entry)}))
        (into [])))
-
 
 (defn download
   [^String resource ^Path dest auth]
