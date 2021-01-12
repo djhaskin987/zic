@@ -11,7 +11,7 @@
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [org.xerial/sqlite-jdbc "3.28.0"]
                  [seancorfield/next.jdbc "1.0.10"]
-                 [onecli "0.6.0-SNAPSHOT" :exclusions [org.clojure/clojure]]]
+                 [onecli "0.7.0-SNAPSHOT" :exclusions [org.clojure/clojure]]]
   :main zic.cli
   :target-path "target/%s"
   :test-selectors {:default (complement :integration)

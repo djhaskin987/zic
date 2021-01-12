@@ -12,6 +12,7 @@ pom.xml.asc
 /.prepl-port
 .hgignore
 .hg/
+/.cpcache/
 
 # IDE files
 /.vscode

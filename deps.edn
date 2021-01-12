@@ -1,0 +1,19 @@
+{
+ :paths ["src"]
+ :deps {
+                 org.clojure/clojure {:mvn/version "1.10.1"}
+                 org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
+                 org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}
+                 seancorfield/next.jdbc {:mvn/version "1.0.10"}
+                 djhaskin987/onecli {:mvn/version "0.7.0-SNAPSHOT"}
+        }
+
+ :aliases {
+           :zic/uberjar {
+                     :extra-deps {
+                                  org.clojure/clojure {:mvn/version "1.10.2-alpha1"}
+                                  borkdude/clj-reflector-graal-java11-fix {:mvn/version "0.0.1-graalvm-20.1.0"}
+                                  }
+                     }
+           }
+ }
