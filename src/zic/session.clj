@@ -2,11 +2,53 @@
   (:require
    [next.jdbc :as jdbc])
   (:import
+   (java.nio.channels
+    FileChannel
+    FileLock)
    (java.nio.file
+    StandardOpenOption
     Path)))
 
-(defprotocol OpenClose
+(defn with-filelock
+  "
+  Surrounds the invocation of the function `f` with a file lock on the path of
+  your choosing. This path's contents, if any, will be DELETED and the path
+  will be deleted upon closure of the lock. Don't give me a file you intend to
+  use later or before for something other than locking.
+  "
+  [^Path path
+   f]
+    (let [channel
+          (FileChannel/open
+            path
+            (into-array
+              StandardOpenOption
+              [
+               StandardOpenOption/CREATE
+               StandardOpenOption/READ
+               StandardOpenOption/WRITE
+               StandardOpenOption/TRUNCATE_EXISTING
+               StandardOpenOption/DELETE_ON_CLOSE
+               ]))]
+      (if-let [lock (.tryLock channel)]
+          (try
+            (f)
+          (finally
+            (.release lock)
+            (.close channel))
+          )
+          (throw
+            (ex-info
+              (str
+              "Could not acquire file lock on `"
+              path
+              "`. "
+              "Probably another zic process is running.")
+              {
+               :path path
+               })))))
 
+(defprotocol OpenClose
   (open
     [this]
     "opens resource")
@@ -16,7 +58,6 @@
     "closes resource"))
 
 (defprotocol Reset
-
   (reset
     [this]
     "resets resource"))
@@ -67,6 +108,17 @@
             (if @problem
               (reset t)
               (close t))))))))
+
+(defn with-zic-session
+
+  [^Path path
+   ^String connection-string
+   f]
+  (with-filelock path
+    (fn []
+      (with-database
+        connection-string
+        f))))
 
 (defn path-to-connection-string
   [^Path path]

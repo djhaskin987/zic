@@ -164,7 +164,8 @@
       ;; On add
       "-p" "--set-package"}
      :defaults
-     {:start-directory (System/getProperty "user.dir")}
+     {:start-directory (System/getProperty "user.dir")
+      }
      :setup
      (fn [options]
        (if (not (= (:commands options) ["init"]))
@@ -188,13 +189,15 @@
                  :staging-path
                  (.resolve
                    (.getParent marking-file)
-                   ".staging")))
+                   ".staging"))
+               (assoc
+                 :lock-path
+                 (.resolve
+                   (.getParent marking-file)
+                   ".zic.lock")))
            options)
          options))
-   ;; when calling shell/sh, we need to use `shutdown-agents`
-   ;; https://clojuredocs.org/clojure.core/future
-   ;; https://clojuredocs.org/clojure.java.shell/sh
-     :teardown (fn [_] (shutdown-agents))}))
+     }))
 
 (defn -main
   "
@@ -202,5 +205,8 @@
   "
   [& args]
   (let [exit-code (run args)]
+    ;; when calling shell/sh, we need to use `shutdown-agents`
+    ;; https://clojuredocs.org/clojure.core/future
+    ;; https://clojuredocs.org/clojure.java.shell/sh
     (shutdown-agents)
     (System/exit exit-code)))

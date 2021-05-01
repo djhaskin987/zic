@@ -13,7 +13,7 @@ Story: Install a Single Package on a Fresh Database
 
 - Status: BLACK BOX PASSING
 - Other stuff to do:
-  - [x] linting, formatting
+  - [x] Linting, formatting
   - [ ] Write tests, get them to pass
   - [ ] Write docs rough draft
 
