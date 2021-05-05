@@ -49,3 +49,9 @@ java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     info \
     --set-package-name 'c' || :
+
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    files \
+    --set-package-name a
+

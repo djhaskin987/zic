@@ -30,22 +30,26 @@
 
 (defn files!
   "
-  Options:
-
-  - `-k`, `--set-package`: Set package name for which to list files
-
+  Lists the files owned by a particular package.
+  Non-Global Options:
+  package-name:          Name of the package.
   "
-  [_]
-  {:result :noop})
+  [options]
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+  (let [result (package/package-files! options)]
+    (if (nil? result)
+      {:result :not-found}
+      {:result :package-found
+       :package-files result})))
 
 
 (defn info!
   "
   Print immediate information about a particular package.
-  Options:
-
-  - `-e`, `--set-package`: Set package name for which to list files
-
+  Non-Global Options:
+     package-name:          Name of the package.
   "
   [options]
   (when (nil? (:package-name options))
@@ -171,8 +175,11 @@
       ;; On remove
       "-P" "--add-packages"
       ;; On add
-      "-p" "--set-package"
-      "-D" "--disable-download-package"}
+      "-k" "--set-package-name"
+
+      "-W" "--disable-download-package"
+      "-w" "--enable-download-package"
+      }
 
      :defaults
      {:start-directory (System/getProperty "user.dir")

@@ -10,6 +10,13 @@
    (java.util.zip
     ZipFile)))
 
+(defn package-files!
+  [{:keys [package-name
+           db-connection-string]
+    :as options}]
+  (session/with-database
+    db-connection-string
+    #(db/package-files! % options)))
 
 (defn package-info!
   [{:keys [package-name
@@ -32,28 +39,34 @@
            ^Path
            lock-path]
     :as options}]
-  (when download-package
-    (let [fname
-          (if-let [[_ fname] (re-matches #"/([^/]+)$" package-location)]
-            fname
-            (str
-              package-name
-              "-"
-              package-version
-              ".zip"))
-          download-dest (.resolve staging-path fname)
-          auth (:download-authorizations options)]
-      (session/with-filelock
-        lock-path
-        (fn []
-          (when (not (Files/exists staging-path (into-array
-                                                  java.nio.file.LinkOption
-                                                  [])))
-            (Files/createDirectories staging-path (into-array
-                                                    java.nio.file.attribute.FileAttribute
-                                                    [])))
-          (fs/download package-location download-dest auth)
-          (fs/unpack (ZipFile. (.toFile download-dest)) root-path)))))
+  (let [package-files
+        (if download-package
+          (let [fname
+                (if-let [[_ fname] (re-matches #"/([^/]+)$" package-location)]
+                  fname
+                  (str
+                    package-name
+                    "-"
+                    package-version
+                    ".zip"))
+                download-dest (.resolve staging-path fname)
+                auth (:download-authorizations options)]
+            (session/with-filelock
+              lock-path
+              (fn []
+                (when (not (Files/exists staging-path (into-array
+                                                        java.nio.file.LinkOption
+                                                        [])))
+                  (Files/createDirectories staging-path (into-array
+                                                          java.nio.file.attribute.FileAttribute
+                                                          [])))
+                (fs/download package-location download-dest auth)
+                (fs/unpack (ZipFile. (.toFile download-dest)) root-path))))
+          [])]
   (session/with-database
     db-connection-string
-    #(db/add-package! % options)))
+    (fn [c]
+      (db/add-package!
+        c
+        options
+        package-files)))))

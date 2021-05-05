@@ -54,6 +54,7 @@ Story: Info on Package
 Story: Files of a Package
 -------------------------
 
+- STATUS: BLACK BOX PASSING
 - The `files` command works
 - Functions:
   - `zic.cli/files`
@@ -61,15 +62,14 @@ Story: Files of a Package
 Story: Verify a Package
 -----------------------
 
-- A column in the files sectsessionn for sha256sum
+- A column in the files section for crc
 - Functions:
-  - `zic.fs/hash-files` and its use in `zic.package/install-package!`
   - `zic.cli/verify`
 
 Story: Install package next to existing packages
 ------------------------------------------------
 
-- Functsessionns:
+- Functions:
   - `zic.db/file-owned?`
   - `zic.db/list-archive-files`
   - `zic.package/package-installable?`
@@ -88,7 +88,7 @@ Story: Remove Package(s)
 ------------------------
 
 - The `remove` command works
-- Functsessionns needed that aren't already done:
+- Functions needed that aren't already done:
   - `zic.cli/remove`
   - `zic.package/remove-cascade`
   - `zic.db/used-by`
@@ -98,7 +98,7 @@ Story: List Orphans
 
 - The `orphans` command works
 - An `is_source` column in the package table
-- Functsessionns:
+- Functions:
   - `zic.package/graph-sources` and its use in install-packages
   - `zic.cli/orphans`
   - `zic.db/non-source-pkgs`

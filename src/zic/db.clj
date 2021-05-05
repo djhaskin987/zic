@@ -1,5 +1,6 @@
 (ns zic.db
   (:require
+    [zic.util :as util]
    [cheshire.core :as json]
    [next.jdbc :as jdbc]))
 
@@ -20,6 +21,7 @@
       id INTEGER NOT NULL PRIMARY KEY,
       pid INTEGER,
       path TEXT,
+      size INTEGER,
       is_directory INTEGER,
       crc INTEGER,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id))
@@ -59,6 +61,48 @@
    :location (:packages/location pkg)
    :metadata (deserialize-metadata (:packages/metadata pkg))})
 
+(defn deserialize-file
+  [fil]
+  (util/dbg fil)
+  {:path (:files/path fil)
+   :size (:files/size fil)
+   :is-directory (if (= (:files/is_directory fil) 1) true false)
+   :crc (:files/crc fil)
+   })
+
+(defn get-package-id!
+  [c package-name]
+  (:packages/id (jdbc/execute-one!
+                  c
+                  [
+                   "
+                   SELECT id
+                   FROM packages
+                   WHERE name = ?
+                   "
+                   package-name
+                   ]
+                  )))
+
+(defn package-files!
+  [c {:keys [package-name]}]
+  (let [package-id (get-package-id! c package-name)
+        ]
+    (if (nil? package-id)
+      nil
+      (map
+        deserialize-file
+        (jdbc/execute! c
+                       [
+                        "
+                        SELECT path, size, is_directory, crc
+                        FROM files
+                        WHERE pid = ?
+                        "
+                        package-id
+                        ]
+                       )))))
+
 (defn package-info!
   [c {:keys [package-name]}]
   (let [results (jdbc/execute! c
@@ -79,7 +123,9 @@
   [c {:keys [package-name
              package-version
              package-location
-             package-metadata]}]
+             package-metadata]
+      }
+   package-files]
   (jdbc/execute! c
                  ["
                   INSERT INTO packages
@@ -91,4 +137,22 @@
                   package-version
                   package-location
                   ;; I know, I know, don't hate me
-                  (serialize-metadata (json/parse-string package-metadata true))]))
+                  (serialize-metadata (json/parse-string package-metadata true))])
+  (let [package-id (get-package-id! c package-name)]
+    (doseq [{:keys [name crc size is-directory]} package-files]
+      (jdbc/execute!
+        c
+        [
+         "
+         INSERT INTO files
+         (pid, path, size, is_directory, crc)
+         VALUES
+         (?,?,?,?,?)
+         "
+         package-id
+         name
+         size
+         is-directory
+         crc
+         ]
+        ))))
