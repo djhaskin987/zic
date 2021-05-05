@@ -54,10 +54,26 @@
 
 (defn deserialize-package
   [pkg]
-  {:name (:package/name pkg)
-   :version (:package/version pkg)
-   :location (:package/location pkg)
-   :metadata (deserialize-metadata (:package/metadata pkg))})
+  {:name (:packages/name pkg)
+   :version (:packages/version pkg)
+   :location (:packages/location pkg)
+   :metadata (deserialize-metadata (:packages/metadata pkg))})
+
+(defn package-info!
+  [c {:keys [package-name]}]
+  (let [results (jdbc/execute! c
+                               [
+                                "
+                                SELECT name, version, location, metadata
+                                FROM packages
+                                WHERE name = ?
+                                "
+                                package-name
+                                ])]
+    (if (empty? results)
+      nil
+      (deserialize-package
+        (get results 0)))))
 
 (defn add-package!
   [c {:keys [package-name
@@ -74,4 +90,5 @@
                   package-name
                   package-version
                   package-location
-                  (serialize-metadata package-metadata)]))
+                  ;; I know, I know, don't hate me
+                  (serialize-metadata (json/parse-string package-metadata true))]))

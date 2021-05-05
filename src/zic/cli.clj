@@ -21,6 +21,7 @@
      package-location:      URL to the location of the package.
      package-metadata:      Metadata you wish to associate with the package.
      package-dependencies:  Unsupported as of yet, but getting there!
+     download-package:      Whether or not to download the package.
   "
   [options]
   (package/install-package! options)
@@ -46,8 +47,16 @@
   - `-e`, `--set-package`: Set package name for which to list files
 
   "
-  [_]
-  {:result :noop})
+  [options]
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+
+  (let [result (package/package-info! options)]
+    (if (nil? result)
+      {:result :not-found}
+      {:result :package-found
+       :package-information result})))
 
 
 (defn init!
@@ -162,9 +171,12 @@
       ;; On remove
       "-P" "--add-packages"
       ;; On add
-      "-p" "--set-package"}
+      "-p" "--set-package"
+      "-D" "--disable-download-package"}
+
      :defaults
      {:start-directory (System/getProperty "user.dir")
+      :download-package true
       }
      :setup
      (fn [options]

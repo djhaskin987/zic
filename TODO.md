@@ -41,18 +41,11 @@ Story: Install a Single Package on a Fresh Database
   - `zic.cli/add!`: shell
   - TODO: test the above with integration test.
 
-
-Story: Install a graph of packages
-----------------------------------
-- Functions:
-  - `zic.package/install-packages`: insert between install-package and install
-  - `zic.package/packages-conflict?`
-
 Story: Info on Package
 ----------------------
 
 - The `info` command works
-- Functsessionns:
+- Functions:
   - `zic.cli/info`
   - `zic.db/lookup-pkg`
   - `zic.db/deserialize-pkg`
@@ -69,7 +62,7 @@ Story: Verify a Package
 
 - A column in the files sectsessionn for sha256sum
 - Functions:
-  - `zic.fs/hash-files` and its use in install-packages
+  - `zic.fs/hash-files` and its use in `zic.package/install-package!`
   - `zic.cli/verify`
 
 Story: Install package next to existing packages
