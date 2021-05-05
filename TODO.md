@@ -45,9 +45,10 @@ Story: Info on Package
 ----------------------
 
 - The `info` command works
+- STATUS: BLACK BOX PASSING
 - Functions:
   - `zic.cli/info`
-  - `zic.db/lookup-pkg`
+  - `zic.db/package-info!`
   - `zic.db/deserialize-pkg`
 
 Story: Files of a Package
