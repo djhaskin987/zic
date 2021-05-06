@@ -9,8 +9,10 @@
     Files
     Path
     CopyOption
-    LinkOption)
+    LinkOption
+    OpenOption)
    (java.util.zip
+    CRC32
     ZipFile
     ZipEntry)))
 
@@ -55,6 +57,56 @@
                      CopyOption
                      []))))))
 
+;; exceedingly janky. try to use with-open or something.
+(defn file-size!
+  [^Path path]
+    (let [fchan
+          (FileChannel/open path (into-array OpenOption []))
+          sz (.size fchan)]
+      (.close fchan)
+      sz))
+
+;; exceedingly janky. try to use with-open or something.
+;; https://www.baeldung.com/java-checksums
+(defn file-crc!
+  [^Path path]
+  (let [checked
+        (CheckedInputStream.
+          (Files/newInputStream path (into-array OpenOption []))
+          (CRC32.))
+        buffer (make-array Byte/TYPE 4096)]
+    (loop [sentry 1]
+      (when (>= sentry 0)
+        (recur (.read
+                 checkedInputStream
+                 0
+                 (.length buffer)))))
+    (let [result (.getValue (.getChecksum checked))]
+      (.close checked)
+      result)))
+
+(defn verify!
+  [^Path base {:keys [path crc size is-directory]}]
+  (let [target-path (.resolve base path)]
+        (if
+          (not (Files/exists target-path (into-array LinkOption [])))
+          {:result :file-missing}
+          (let [is-target-dir (Files/isDirectory target-path (into-array LinkOption []))]
+            (if is-directory
+              (if (not is-target-dir)
+                {:result :path-not-directory}
+                {:result :correct})
+              (if is-target-dir
+                {:result :path-not-file}
+                (let [target-size (file-size! target-path)]
+                  (if (not (= target-size size))
+                    {:result :incorrect-size
+                     :target-path-size target-size}
+                    (let [target-crc (file-crc! target-path)]
+                      (if (not (= target-crc crc))
+                        {:result :incorrect-crc
+                         :target-crc target-crc}
+                        {:result :correct}))))))))))
 
 (defn unpack
   [^ZipFile zip-file ^Path dest]
@@ -71,7 +123,7 @@
                 (Files/deleteIfExists dest-path)
                 (with-open [sf (.getInputStream zip-file entry)]
                   (Files/copy sf dest-path (into-array CopyOption [])))))
-            {:name (.getName entry)
+            {:path (.getName entry)
              :crc (.getCrc entry)
              :size (.getSize entry)
              :is-directory (.isDirectory entry)})))

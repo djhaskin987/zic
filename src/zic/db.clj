@@ -56,7 +56,7 @@
 
 (defn deserialize-package
   [pkg]
-  {:name (:packages/name pkg)
+  {:path (:packages/name pkg)
    :version (:packages/version pkg)
    :location (:packages/location pkg)
    :metadata (deserialize-metadata (:packages/metadata pkg))})
