@@ -11,7 +11,10 @@
     CopyOption
     LinkOption
     OpenOption)
+   (java.nio.channels
+     FileChannel)
    (java.util.zip
+     CheckedInputStream
     CRC32
     ZipFile
     ZipEntry)))
@@ -57,34 +60,31 @@
                      CopyOption
                      []))))))
 
-;; exceedingly janky. try to use with-open or something.
+;; Used the repl to test this
 (defn file-size!
   [^Path path]
-    (let [fchan
-          (FileChannel/open path (into-array OpenOption []))
-          sz (.size fchan)]
-      (.close fchan)
-      sz))
+    (with-open [fchan
+          (FileChannel/open path (into-array OpenOption []))]
+      (.size fchan)))
 
-;; exceedingly janky. try to use with-open or something.
-;; https://www.baeldung.com/java-checksums
+;; Used the repl to test this
 (defn file-crc!
   [^Path path]
-  (let [checked
+  (with-open [checked
         (CheckedInputStream.
           (Files/newInputStream path (into-array OpenOption []))
-          (CRC32.))
-        buffer (make-array Byte/TYPE 4096)]
-    (loop [sentry 1]
-      (when (>= sentry 0)
-        (recur (.read
-                 checkedInputStream
-                 0
-                 (.length buffer)))))
-    (let [result (.getValue (.getChecksum checked))]
-      (.close checked)
-      result)))
+          (CRC32.))]
+    (let [buffer (byte-array 4096)]
+      (loop [sentry 1]
+        (when (>= sentry 0)
+          (recur (.read
+                   checked
+                   buffer
+                   0
+                   (count buffer)))))
+      (.getValue (.getChecksum checked)))))
 
+;; Used the repl to test this
 (defn verify!
   [^Path base {:keys [path crc size is-directory]}]
   (let [target-path (.resolve base path)]

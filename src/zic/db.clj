@@ -63,7 +63,6 @@
 
 (defn deserialize-file
   [fil]
-  (util/dbg fil)
   {:path (:files/path fil)
    :size (:files/size fil)
    :is-directory (if (= (:files/is_directory fil) 1) true false)
@@ -139,7 +138,7 @@
                   ;; I know, I know, don't hate me
                   (serialize-metadata (json/parse-string package-metadata true))])
   (let [package-id (get-package-id! c package-name)]
-    (doseq [{:keys [name crc size is-directory]} package-files]
+    (doseq [{:keys [path crc size is-directory]} package-files]
       (jdbc/execute!
         c
         [
@@ -150,7 +149,7 @@
          (?,?,?,?,?)
          "
          package-id
-         name
+         path
          size
          is-directory
          crc

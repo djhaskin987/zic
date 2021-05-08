@@ -38,7 +38,7 @@
   (when (nil? (:package-name options))
     (throw (ex-info "Package name (`package-name`) option needs to be specified."
                     {:missing-argument :package-name})))
-  (let [result (package/package-files! options)]
+  (let [result (package/get-package-files! options)]
     (if (nil? result)
       {:result :not-found}
       {:result :package-found
@@ -56,7 +56,7 @@
     (throw (ex-info "Package name (`package-name`) option needs to be specified."
                     {:missing-argument :package-name})))
 
-  (let [result (package/package-info! options)]
+  (let [result (package/get-package-info! options)]
     (if (nil? result)
       {:result :not-found}
       {:result :package-found
@@ -69,7 +69,7 @@
   Relevant options:
 
   - `-d <path>`, `--set-start-directory <path>`: Set start directory. This
-    directory is where the file `.zic.sqlite3` will be placed.
+    directory is where the file `.zic.db` will be placed.
   "
 
   [options]
@@ -139,11 +139,19 @@
 
 (defn verify!
   "
-  FIXME
+  Verifies the files on the file system for a given package.
+  Non-Global Options:
+  package-name:          Name of the package.
   "
-  [_]
-  {:result :noop})
-
+  [options]
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+  (let [result (package/verify-package-files! options)]
+    (if (nil? result)
+      {:result :package-not-found}
+      {:result :package-found
+       :verification-results result})))
 
 (defn run
   "
