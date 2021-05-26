@@ -28,6 +28,11 @@ java -jar \
 
 java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    verify \
+    --set-package-name 'a'
+
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     add \
     --set-package-name 'b' \
     --set-package-version 0.1.0 \

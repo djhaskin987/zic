@@ -62,6 +62,7 @@ Story: Files of a Package
 Story: Verify a Package
 -----------------------
 
+- STATUS: MANUAL TEST PASSING
 - A column in the files section for crc
 - Functions:
   - `zic.cli/verify`
