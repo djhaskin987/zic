@@ -3,8 +3,7 @@
    [next.jdbc :as jdbc])
   (:import
    (java.nio.channels
-    FileChannel
-    FileLock)
+    FileChannel)
    (java.nio.file
     StandardOpenOption
     Path)))
@@ -18,35 +17,30 @@
   "
   [^Path path
    f]
-    (let [channel
-          (FileChannel/open
-            path
-            (into-array
-              StandardOpenOption
-              [
-               StandardOpenOption/CREATE
-               StandardOpenOption/READ
-               StandardOpenOption/WRITE
-               StandardOpenOption/TRUNCATE_EXISTING
-               StandardOpenOption/DELETE_ON_CLOSE
-               ]))]
-      (if-let [lock (.tryLock channel)]
-          (try
-            (f)
-          (finally
-            (.release lock)
-            (.close channel))
-          )
-          (throw
-            (ex-info
-              (str
-              "Could not acquire file lock on `"
-              path
-              "`. "
-              "Probably another zic process is running.")
-              {
-               :path path
-               })))))
+  (let [channel
+        (FileChannel/open
+         path
+         (into-array
+          StandardOpenOption
+          [StandardOpenOption/CREATE
+           StandardOpenOption/READ
+           StandardOpenOption/WRITE
+           StandardOpenOption/TRUNCATE_EXISTING
+           StandardOpenOption/DELETE_ON_CLOSE]))]
+    (if-let [lock (.tryLock channel)]
+      (try
+        (f)
+        (finally
+          (.release lock)
+          (.close channel)))
+      (throw
+       (ex-info
+        (str
+         "Could not acquire file lock on `"
+         path
+         "`. "
+         "Probably another zic process is running.")
+        {:path path})))))
 
 (defprotocol OpenClose
   (open
@@ -108,17 +102,6 @@
             (if @problem
               (reset t)
               (close t))))))))
-
-(defn with-zic-session
-
-  [^Path path
-   ^String connection-string
-   f]
-  (with-filelock path
-    (fn []
-      (with-database
-        connection-string
-        f))))
 
 (defn path-to-connection-string
   [^Path path]

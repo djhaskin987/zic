@@ -1,14 +1,13 @@
 (ns zic.script-basic-test
   (:require
+   [zic.util :refer [dbg]]
    [clojure.java.shell :refer [sh]]
    [clojure.string :as string]
-   [clojure.test :refer :all]
-   [zic.util :refer :all])
+   [clojure.test :refer [deftest testing is]])
   (:import
    (java.nio.file
     Files
     LinkOption
-    Path
     Paths)))
 
 (deftest ^:integration basic-tests

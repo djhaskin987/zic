@@ -1,9 +1,9 @@
 (ns zic.session-test
   (:require
    [clojure.string :as string]
-   [clojure.test :refer :all]
-   [zic.session :refer :all]
-   [zic.util :refer :all])
+   [clojure.test :refer [deftest testing is]]
+   [zic.session :refer [path-to-connection-string]]
+   [zic.util :refer [dbg]])
   (:import
    (java.nio.file
     Paths)))

@@ -1,6 +1,5 @@
 (ns zic.db
   (:require
-    [zic.util :as util]
    [cheshire.core :as json]
    [next.jdbc :as jdbc]))
 
@@ -66,64 +65,53 @@
   {:path (:files/path fil)
    :size (:files/size fil)
    :is-directory (if (= (:files/is_directory fil) 1) true false)
-   :crc (:files/crc fil)
-   })
+   :crc (:files/crc fil)})
 
 (defn get-package-id!
   [c package-name]
   (:packages/id (jdbc/execute-one!
-                  c
-                  [
-                   "
+                 c
+                 ["
                    SELECT id
                    FROM packages
                    WHERE name = ?
                    "
-                   package-name
-                   ]
-                  )))
+                  package-name])))
 
 (defn package-files!
   [c {:keys [package-name]}]
-  (let [package-id (get-package-id! c package-name)
-        ]
+  (let [package-id (get-package-id! c package-name)]
     (if (nil? package-id)
       nil
       (map
-        deserialize-file
-        (jdbc/execute! c
-                       [
-                        "
+       deserialize-file
+       (jdbc/execute! c
+                      ["
                         SELECT path, size, is_directory, crc
                         FROM files
                         WHERE pid = ?
                         "
-                        package-id
-                        ]
-                       )))))
+                       package-id])))))
 
 (defn package-info!
   [c {:keys [package-name]}]
   (let [results (jdbc/execute! c
-                               [
-                                "
+                               ["
                                 SELECT name, version, location, metadata
                                 FROM packages
                                 WHERE name = ?
                                 "
-                                package-name
-                                ])]
+                                package-name])]
     (if (empty? results)
       nil
       (deserialize-package
-        (get results 0)))))
+       (get results 0)))))
 
 (defn add-package!
   [c {:keys [package-name
              package-version
              package-location
-             package-metadata]
-      }
+             package-metadata]}
    package-files]
   (jdbc/execute! c
                  ["
@@ -140,18 +128,15 @@
   (let [package-id (get-package-id! c package-name)]
     (doseq [{:keys [path crc size is-directory]} package-files]
       (jdbc/execute!
-        c
-        [
-         "
+       c
+       ["
          INSERT INTO files
          (pid, path, size, is_directory, crc)
          VALUES
          (?,?,?,?,?)
          "
-         package-id
-         path
-         size
-         is-directory
-         crc
-         ]
-        ))))
+        package-id
+        path
+        size
+        is-directory
+        crc]))))
