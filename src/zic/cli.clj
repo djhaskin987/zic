@@ -1,17 +1,17 @@
 (ns zic.cli
   (:gen-class)
   (:require
-    [onecli.core :as onecli]
-    [zic.db :as db]
-    [zic.fs :as fs]
-    [zic.package :as package]
-    [zic.session :as session])
+   [onecli.core :as onecli]
+   [zic.db :as db]
+   [zic.fs :as fs]
+   [zic.package :as package]
+   [zic.session :as session])
   (:import
-    (java.nio.file
-      Paths)))
+   (java.nio.file
+    Paths)))
 
-
-(defn add!
+(defn
+  add!
   "
   Add a package to the installation. This is effectively the same as `install`
   but it's easier to use if you are only installing a single package.
@@ -75,10 +75,10 @@
   [options]
   (session/with-database
     (session/path-to-connection-string
-      (Paths/get
-        (:start-directory options)
-        (into-array
-          [".zic.db"])))
+     (Paths/get
+      (:start-directory options)
+      (into-array
+       [".zic.db"])))
     db/init-database!)
   {:result :successful})
 
@@ -160,71 +160,68 @@
   "
   [args]
   (onecli/go!
-    {:program-name "zic"
-     :env (System/getenv)
-     :args args
-     :functions
-     {["add"] 'zic.cli/add!
-      ["files"] 'zic.cli/files!
-      ["info"] 'zic.cli/info!
-      ["init"] 'zic.cli/init!
-      ["install"] 'zic.cli/install!
-      ["list"] 'zic.cli/list!
-      ["orphans"] 'zic.cli/orphans!
-      ["remove"] 'zic.cli/remove!
-      ["used"] 'zic.cli/used!
-      ["uses"] 'zic.cli/uses!
-      ["verify"] 'zic.cli/verify!}
-     :cli-aliases
-     {;; Global
-      "-d" "--set-start-directory"
+   {:program-name "zic"
+    :env (System/getenv)
+    :args args
+    :functions
+    {["add"] 'zic.cli/add!
+     ["files"] 'zic.cli/files!
+     ["info"] 'zic.cli/info!
+     ["init"] 'zic.cli/init!
+     ["install"] 'zic.cli/install!
+     ["list"] 'zic.cli/list!
+     ["orphans"] 'zic.cli/orphans!
+     ["remove"] 'zic.cli/remove!
+     ["used"] 'zic.cli/used!
+     ["uses"] 'zic.cli/uses!
+     ["verify"] 'zic.cli/verify!}
+    :cli-aliases
+    {;; Global
+     "-d" "--set-start-directory"
       ;; On install
-      "-g" "--file-install-graph"
+     "-g" "--file-install-graph"
       ;; On remove
-      "-P" "--add-packages"
+     "-P" "--add-packages"
       ;; On add
-      "-k" "--set-package-name"
+     "-k" "--set-package-name"
 
-      "-W" "--disable-download-package"
-      "-w" "--enable-download-package"
-      }
+     "-W" "--disable-download-package"
+     "-w" "--enable-download-package"}
 
-     :defaults
-     {:start-directory (System/getProperty "user.dir")
-      :download-package true
-      }
-     :setup
-     (fn [options]
-       (if (not (= (:commands options) ["init"]))
-         (if-let [marking-file
-                  (fs/find-marking-file
-                    (Paths/get
-                      (:start-directory options)
-                      (into-array
-                        java.lang.String
-                        []))
-                    ".zic.db")]
-           (-> options
-               (assoc
-                 :db-connection-string
-                 (session/path-to-connection-string
-                   marking-file))
-               (assoc
-                 :root-path
-                 (.getParent marking-file))
-               (assoc
-                 :staging-path
-                 (.resolve
-                   (.getParent marking-file)
-                   ".staging"))
-               (assoc
-                 :lock-path
-                 (.resolve
-                   (.getParent marking-file)
-                   ".zic.lock")))
-           options)
-         options))
-     }))
+    :defaults
+    {:start-directory (System/getProperty "user.dir")
+     :download-package true}
+    :setup
+    (fn [options]
+      (if (not (= (:commands options) ["init"]))
+        (if-let [marking-file
+                 (fs/find-marking-file
+                  (Paths/get
+                   (:start-directory options)
+                   (into-array
+                    java.lang.String
+                    []))
+                  ".zic.db")]
+          (-> options
+              (assoc
+               :db-connection-string
+               (session/path-to-connection-string
+                marking-file))
+              (assoc
+               :root-path
+               (.getParent marking-file))
+              (assoc
+               :staging-path
+               (.resolve
+                (.getParent marking-file)
+                ".staging"))
+              (assoc
+               :lock-path
+               (.resolve
+                (.getParent marking-file)
+                ".zic.lock")))
+          options)
+        options))}))
 
 (defn -main
   "

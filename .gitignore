@@ -18,7 +18,7 @@ pom.xml.asc
 /.vscode
 /.calva
 /.clj-kondo
-/.lsp
+/.lsp/sqlite.db
 /.staging
 /.classpath
 
