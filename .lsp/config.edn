@@ -1,3 +1,7 @@
 {:linters {:unused-public-var {:level :warning
-:exclude #{zic.cli}
-}}}
+                               :exclude #{zic.cli
+                                          zic.fs/archive-contents
+                                          zic.session/JdbcTransaction
+                                          zic.session/->JdbcTransaction
+                                          zic.session/map->JdbcTransaction}
+                               }}}
