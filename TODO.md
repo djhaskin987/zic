@@ -62,7 +62,7 @@ Story: Files of a Package
 Story: Verify a Package
 -----------------------
 
-- STATUS: MANUAL TEST PASSING
+- STATUS: BLACK BOX PASSING
 - A column in the files section for crc
 - Functions:
   - `zic.cli/verify`
@@ -75,8 +75,8 @@ Story: Install package next to existing packages
   - `zic.db/list-archive-files`
   - `zic.package/package-installable?`
 
-Story: Install a Package that Already Exists
---------------------------------------------
+Story: Update a Package that Already Exists via Install
+------------------------------------------------------
 
   - `zic.db/pkg-exists?`
   - `zic.db/lookup-pkg-id`

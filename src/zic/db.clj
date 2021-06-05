@@ -21,7 +21,6 @@
       pid INTEGER,
       path TEXT,
       size INTEGER,
-      is_directory INTEGER,
       crc INTEGER,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id))
    "
@@ -78,6 +77,27 @@
                    "
                   package-name])))
 
+(defn owned-by?!
+  "
+   Returns the name of the package that owns the file in question, or nil if no such package exists.
+   "
+  [c file]
+  (:name (jdbc/execute-one!
+          c
+          ["
+           SELECT
+               packages.name AS name
+           FROM
+               files
+           INNER JOIN
+               packages
+           ON
+               files.pid = packages.id
+           WHERE
+               files.path = ?
+           "
+           file])))
+
 (defn package-files!
   [c {:keys [package-name]}]
   (let [package-id (get-package-id! c package-name)]
@@ -127,16 +147,16 @@
                   (serialize-metadata (json/parse-string package-metadata true))])
   (let [package-id (get-package-id! c package-name)]
     (doseq [{:keys [path crc size is-directory]} package-files]
-      (jdbc/execute!
-       c
-       ["
+      (when (not is-directory)
+        (jdbc/execute!
+         c
+         ["
          INSERT INTO files
-         (pid, path, size, is_directory, crc)
+         (pid, path, size, crc)
          VALUES
-         (?,?,?,?,?)
+         (?,?,?,?)
          "
-        package-id
-        path
-        size
-        is-directory
-        crc]))))
+          package-id
+          path
+          size
+          crc])))))

@@ -12,9 +12,9 @@
     LinkOption
     OpenOption)
    (java.nio.channels
-     FileChannel)
+    FileChannel)
    (java.util.zip
-     CheckedInputStream
+    CheckedInputStream
     CRC32
     ZipFile
     ZipEntry)))
@@ -26,11 +26,11 @@
        (enumeration-seq)
        (map
         (fn [^ZipEntry entry]
-          {:name (.getName entry)
+          {:path (.getName entry)
+           :crc (.getCrc entry)
            :size (.getSize entry)
            :time (.getTime entry)
-           :is-directory? (.isDirectory entry)
-           :crc (.getCrc entry)}))
+           :is-directory (.isDirectory entry)}))
        (into [])))
 
 (defn download
@@ -63,50 +63,50 @@
 ;; Used the repl to test this
 (defn file-size!
   [^Path path]
-    (with-open [fchan
-          (FileChannel/open path (into-array OpenOption []))]
-      (.size fchan)))
+  (with-open [fchan
+              (FileChannel/open path (into-array OpenOption []))]
+    (.size fchan)))
 
 ;; Used the repl to test this
 (defn file-crc!
   [^Path path]
   (with-open [checked
-        (CheckedInputStream.
-          (Files/newInputStream path (into-array OpenOption []))
-          (CRC32.))]
+              (CheckedInputStream.
+               (Files/newInputStream path (into-array OpenOption []))
+               (CRC32.))]
     (let [buffer (byte-array 4096)]
       (loop [sentry 1]
         (when (>= sentry 0)
           (recur (.read
-                   checked
-                   buffer
-                   0
-                   (count buffer)))))
+                  checked
+                  buffer
+                  0
+                  (count buffer)))))
       (.getValue (.getChecksum checked)))))
 
 ;; Used the repl to test this
 (defn verify!
   [^Path base {:keys [path crc size is-directory]}]
   (let [target-path (.resolve base path)]
-        (if
-          (not (Files/exists target-path (into-array LinkOption [])))
-          {:result :file-missing}
-          (let [is-target-dir (Files/isDirectory target-path (into-array LinkOption []))]
-            (if is-directory
-              (if (not is-target-dir)
-                {:result :path-not-directory}
-                {:result :correct})
-              (if is-target-dir
-                {:result :path-not-file}
-                (let [target-size (file-size! target-path)]
-                  (if (not (= target-size size))
-                    {:result :incorrect-size
-                     :target-path-size target-size}
-                    (let [target-crc (file-crc! target-path)]
-                      (if (not (= target-crc crc))
-                        {:result :incorrect-crc
-                         :target-crc target-crc}
-                        {:result :correct}))))))))))
+    (if
+     (not (Files/exists target-path (into-array LinkOption [])))
+      {:result :file-missing}
+      (let [is-target-dir (Files/isDirectory target-path (into-array LinkOption []))]
+        (if is-directory
+          (if (not is-target-dir)
+            {:result :path-not-directory}
+            {:result :correct})
+          (if is-target-dir
+            {:result :path-not-file}
+            (let [target-size (file-size! target-path)]
+              (if (not (= target-size size))
+                {:result :incorrect-size
+                 :target-path-size target-size}
+                (let [target-crc (file-crc! target-path)]
+                  (if (not (= target-crc crc))
+                    {:result :incorrect-crc
+                     :target-crc target-crc}
+                    {:result :correct}))))))))))
 
 (defn unpack
   [^ZipFile zip-file ^Path dest]
@@ -126,6 +126,7 @@
             {:path (.getName entry)
              :crc (.getCrc entry)
              :size (.getSize entry)
+             :time (.getTime entry)
              :is-directory (.isDirectory entry)})))
        (into [])))
 
