@@ -1,10 +1,17 @@
 (ns zic.fs
   (:require
+   [buddy.core.hash :as hash]
+   [buddy.core.codecs :refer bytes->hex]
    [clj-http.lite.client :as client]
    [clojure.java.io :as io])
   (:import
    (java.nio.file.attribute
     FileAttribute)
+   (java.math
+    BigInteger)
+   (java.security
+    DigestInputStream
+    MessageDigest)
    (java.nio.file
     Files
     Path
@@ -20,6 +27,9 @@
     ZipEntry)))
 
 (defn archive-contents
+  "
+  Return the list (or contents) of an archive.
+  "
   [^ZipFile zip-file]
   (->> zip-file
        (.entries)
@@ -34,6 +44,11 @@
        (into [])))
 
 (defn download
+  "
+  Download a file and save it to a destination path.
+  Optionally, an auth object may be provided, allowing support for basic, token
+  and header authorization.
+  "
   [^String resource ^Path dest auth]
   (if (Files/exists dest (into-array LinkOption []))
     (Long/valueOf 0)
@@ -62,17 +77,22 @@
 
 ;; Used the repl to test this
 (defn file-size!
+  "
+  Get the size of a file.
+  "
   [^Path path]
   (with-open [fchan
               (FileChannel/open path (into-array OpenOption []))]
     (.size fchan)))
 
-;; Used the repl to test this
-(defn file-crc!
-  [^Path path]
+(defn stream-crc
+  "
+  Compute the CRC of the input stream.
+  "
+  [stream]
   (with-open [checked
               (CheckedInputStream.
-               (Files/newInputStream path (into-array OpenOption []))
+               stream
                (CRC32.))]
     (let [buffer (byte-array 4096)]
       (loop [sentry 1]
@@ -84,8 +104,19 @@
                   (count buffer)))))
       (.getValue (.getChecksum checked)))))
 
+(defn file-crc!
+  "
+  Compute the CRC of a file on the filesystem.
+  "
+  [^Path path]
+  (with-open [file-stream (Files/newInputStream path (into-array OpenOption []))]
+    (stream-crc file-stream)))
+
 ;; Used the repl to test this
 (defn verify!
+  "
+  Verify a path on the filesystem.
+  "
   [^Path base {:keys [path crc size is-directory]}]
   (let [target-path (.resolve base path)]
     (if
@@ -108,8 +139,59 @@
                      :target-crc target-crc}
                     {:result :correct}))))))))))
 
+(defn crc-violations
+  "
+  Returns a list of all CRC violations in a zip file.
+  "
+  [^ZipFile zip-file]
+  (->> zip-file
+       (.entries)
+       (enumeration-seq)
+       (filter (fn [^ZipEntry entry] (not (.isDirectory entry))))
+       (map (fn [^ZipEntry entry]
+              (let [computed-crc
+                    (with-open [sf (.getInputStream zip-file entry)]
+                      (stream-crc sf))]
+                (when (not (= computed-crc
+                              (.getCrc entry)))
+                  {:path (.getName entry)
+                   :stored-crc (.getCrc entry)
+                   :computed-crc computed-crc}))))
+       (remove nil?)
+       (into [])))
+
+(defn- left-pad
+  "
+  Who needs dependencies, amiright
+  "
+  [string pad width]
+  (let [sz (count string)
+        rm (- width sz)
+        pad-length (count pad)]
+    (if (or (< rm 0)
+            (> (rem rm pad-length) 0))
+      [false string]
+      [true (str
+             (apply str (repeat (quot rm pad-length) pad))
+             string)])))
+
+(defn- bytes->hexstr
+  [bites]
+  (as-> bites it
+    (BigInteger. 1 it)
+    (.toString it 16)
+    (second (left-pad it "0" 32))))
+
 (defn unpack
+  "
+  Unpack a zip file to a destination path.
+  "
   [^ZipFile zip-file ^Path dest]
+  (let [violations (crc-violations zip-file)]
+    (when (seq crc-violations)
+      (throw (ex-info "Zip file contains CRC violations."
+                      {:zip-file zip-file
+                       :crc-violations violations}))))
   (->> zip-file
        (.entries)
        (enumeration-seq)
@@ -118,24 +200,28 @@
           (let [dest-path (.resolve dest (.getName entry))]
             (if (.isDirectory entry)
               (Files/createDirectories dest-path (into-array FileAttribute []))
+
               (do
                 ;; BULLDOZE LOLCATZ W00T
                 (Files/deleteIfExists dest-path)
-                (with-open [sf (.getInputStream zip-file entry)]
-                  (Files/copy sf dest-path (into-array CopyOption [])))))
-            {:path (.getName entry)
-             :crc (.getCrc entry)
-             :size (.getSize entry)
-             :time (.getTime entry)
-             :is-directory (.isDirectory entry)})))
+                (let [digest (MessageDigest/getInstance "SHA-256")]
+                  (with-open [sf (.getInputStream zip-file entry)
+                              df (DigestInputStream.
+                                  sf
+                                  digest)]
+                    (Files/copy df dest-path (into-array CopyOption [])))
+                  {:path (.getName entry)
+                   :crc (.getCrc entry)
+                   :sha256 (bytes->hexstr (.digest digest))
+                   :size (.getSize entry)
+                   :time (.getTime entry)
+                   :is-directory (.isDirectory entry)}))))))
        (into [])))
-
 
 (defn list-files
   [^Path p]
   (let [stream (Files/newDirectoryStream p)]
     (into [] (iterator-seq (.iterator stream)))))
-
 
 (defn all-parents
   ([start-path]
@@ -144,7 +230,6 @@
   ([f p] (if (nil? p)
            '()
            (cons f (lazy-seq (all-parents p (.getParent p)))))))
-
 
 (defn find-marking-file
   [start match]

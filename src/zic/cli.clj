@@ -27,11 +27,10 @@
   (package/install-package! options)
   {:result :successful})
 
-
 (defn files!
   "
   Lists the files owned by a particular package.
-  Non-Global Options:
+
   package-name:          Name of the package.
   "
   [options]
@@ -43,7 +42,6 @@
       {:result :not-found}
       {:result :package-found
        :package-files result})))
-
 
 (defn info!
   "
@@ -61,7 +59,6 @@
       {:result :not-found}
       {:result :package-found
        :package-information result})))
-
 
 (defn init!
   "
@@ -82,7 +79,6 @@
     db/init-database!)
   {:result :successful})
 
-
 (defn install!
   "
   Install packages into the project rooth path.
@@ -96,14 +92,12 @@
   [_]
   {:result :noop})
 
-
 (defn list!
   "
   FIXME
   "
   [_]
   {:result :noop})
-
 
 (defn orphans!
   "
@@ -112,14 +106,12 @@
   [_]
   {:result :noop})
 
-
 (defn remove!
   "
   FIXME
   "
   [_]
   {:result :noop})
-
 
 (defn used!
   "
@@ -128,14 +120,12 @@
   [_]
   {:result :noop})
 
-
 (defn uses!
   "
   FIXME
   "
   [_]
   {:result :noop})
-
 
 (defn verify!
   "

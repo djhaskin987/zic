@@ -21,6 +21,7 @@
       pid INTEGER,
       path TEXT,
       size INTEGER,
+      is_directory INTEGER,
       crc INTEGER,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id))
    "
@@ -147,16 +148,16 @@
                   (serialize-metadata (json/parse-string package-metadata true))])
   (let [package-id (get-package-id! c package-name)]
     (doseq [{:keys [path crc size is-directory]} package-files]
-      (when (not is-directory)
-        (jdbc/execute!
-         c
-         ["
+      (jdbc/execute!
+       c
+       ["
          INSERT INTO files
-         (pid, path, size, crc)
+         (pid, path, size, is_directory, crc)
          VALUES
-         (?,?,?,?)
+         (?,?,?,?,?)
          "
-          package-id
-          path
-          size
-          crc])))))
+        package-id
+        path
+        size
+        is-directory
+        crc]))))
