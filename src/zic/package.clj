@@ -102,8 +102,8 @@
             (if download-package
               (let [downloaded-zip
                     (-> (download-package! options)
-                        (ZipFile.)
-                        (.toFile))]
+                        (.toFile)
+                        (ZipFile.))]
                 (when-let [conflict (package-file-conflict c downloaded-zip)]
                   (throw (ex-info (str "File `" (:path conflict) "` is already owned by package `" (:package conflict) "`")
                                   {:conflict conflict :options options})))

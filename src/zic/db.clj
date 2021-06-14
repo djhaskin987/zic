@@ -22,7 +22,7 @@
       path TEXT,
       size INTEGER,
       is_directory INTEGER,
-      crc INTEGER,
+      checksum TEXT,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id))
    "
    "
@@ -65,7 +65,7 @@
   {:path (:files/path fil)
    :size (:files/size fil)
    :is-directory (if (= (:files/is_directory fil) 1) true false)
-   :crc (:files/crc fil)})
+   :checksum (:files/checksum fil)})
 
 (defn get-package-id!
   [c package-name]
@@ -108,7 +108,7 @@
        deserialize-file
        (jdbc/execute! c
                       ["
-                        SELECT path, size, is_directory, crc
+                        SELECT path, size, is_directory, checksum
                         FROM files
                         WHERE pid = ?
                         "
@@ -147,12 +147,12 @@
                   ;; I know, I know, don't hate me
                   (serialize-metadata (json/parse-string package-metadata true))])
   (let [package-id (get-package-id! c package-name)]
-    (doseq [{:keys [path crc size is-directory]} package-files]
+    (doseq [{:keys [path size is-directory checksum]} package-files]
       (jdbc/execute!
        c
        ["
          INSERT INTO files
-         (pid, path, size, is_directory, crc)
+         (pid, path, size, is_directory, checksum)
          VALUES
          (?,?,?,?,?)
          "
@@ -160,4 +160,4 @@
         path
         size
         is-directory
-        crc]))))
+        checksum]))))

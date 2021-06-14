@@ -11,11 +11,10 @@ Story: Init database
 Story: Install a Single Package on a Fresh Database
 ---------------------------------------------------
 
-- Status: BLACK BOX PASSING
+- Status: BLACK BOX PASSING, MOSTLY
+- [ ] TODO: TEST that crc violations verification can actually catch violations
 - Other stuff to do:
   - [x] Linting, formatting
-  - [ ] Write tests, get them to pass
-  - [ ] Write docs rough draft
 
 - The `add` command works
 - All the stuff in `session.clj` works, including filelock and file-root-path.

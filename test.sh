@@ -1,5 +1,5 @@
-
 #!/bin/sh
+set -ex
 
 # https://docs.oracle.com/javadb/10.8.3.0/adminguide/cadminsslclient.html
 # https://stackoverflow.com/questions/65376092/can-jvm-trust-a-self-signed-certificate-for-only-a-single-run
