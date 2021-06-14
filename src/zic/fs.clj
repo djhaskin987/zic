@@ -5,8 +5,6 @@
   (:import
    (java.nio.file.attribute
     FileAttribute)
-   (java.math
-    BigInteger)
    (java.security
     DigestInputStream
     MessageDigest)
@@ -37,8 +35,11 @@
           {:path (.getName entry)
            :size (.getSize entry)
            :time (.getTime entry)
+           :crc (.getCrc entry)
            :is-directory (.isDirectory entry)}))
        (into [])))
+
+#_(archive-contents (ZipFile. (java.io.File. "a.zip")))
 
 (defn download
   "
@@ -114,10 +115,12 @@
 
 (defn- bytes->hexstr
   [bites]
-  (as-> bites it
+  (apply str (map #(format "%02x" %) bites)))
+
+#_(as-> bites it
     (BigInteger. 1 it)
     (.toString it 16)
-    (second (left-pad it "0" 32))))
+    (second (left-pad it "0" (quot (count bites) 2))))
 
 (defn stream-sha256
   "
@@ -184,6 +187,8 @@
                      :source-checksum checksum}
                     {:result :correct}))))))))))
 
+#_(crc-violations (java.util.zip.ZipFile. (java.io.File. "lighttpd-environment/wwwroot/bad.zip")))
+
 (defn crc-violations
   "
   Returns a list of all CRC violations in a zip file.
@@ -204,6 +209,9 @@
                    :computed-crc computed-crc}))))
        (remove nil?)
        (into [])))
+
+#_(unpack (java.util.zip.ZipFile. (java.io.File. "lighttpd-environment/wwwroot/bad.zip"))
+          (java.nio.file.Paths/get "a" (into-array String [])))
 
 (defn unpack
   "

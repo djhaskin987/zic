@@ -64,6 +64,8 @@ echo 'I can'\''t stop this feeling deep inside of me' > a/poem.txt
 zip -r "${testing_path}/wwwroot/a.zip" a
 zip -r "${testing_path}/wwwroot/b.zip" b
 zip -r "${testing_path}/wwwroot/c.zip" c
+cd "${testing_path}/"
+./new-verybad.bb
 
 cd "${testing_path}"
 

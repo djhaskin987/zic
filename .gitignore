@@ -30,6 +30,7 @@ lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
 /a/
+/*.zip
 
 
 # editor files
