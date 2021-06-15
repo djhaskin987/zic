@@ -37,7 +37,8 @@ java -jar \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
     --set-package-version 0.1.0 \
-    --set-package-location "https://djhaskin987.me:8443/a.zip"
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}'
 
 java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
@@ -78,8 +79,11 @@ java -jar \
     info \
     --set-package-name 'c' || :
 
-java -jar \
+if [ "$(java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     files \
-    --set-package-name a
+    --set-package-name a)" != '{"result":"package-found","package-files":[{"path":"a/","size":0,"file-class":"directory","checksum":null},{"path":"a/poem.txt","size":44,"file-class":"config-file","checksum":"f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e"},{"path":"a/log.txt","size":0,"file-class":"ghost-file","checksum":null}]}' ]
+then
+    exit 1
+fi
 
