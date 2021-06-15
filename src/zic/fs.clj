@@ -178,11 +178,11 @@
             {:result :path-not-file}
             (let [target-size (file-size! target-path)]
               (if (not (= target-size size))
-                {:result :incorrect-size
+                {:result :size-discrepancy
                  :target-path-size target-size}
                 (let [target-checksum (file-sha256! target-path)]
                   (if (not (= target-checksum checksum))
-                    {:result :incorrect-checksum
+                    {:result :checksum-discrepancy
                      :target-checksum target-checksum
                      :source-checksum checksum}
                     {:result :correct}))))))))))

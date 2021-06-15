@@ -46,10 +46,13 @@ java -jar \
 
 sed -i  's/I/U/g' a/poem.txt
 
-java -jar \
+if java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     verify \
     --set-package-name 'a'
+then
+    exit 1
+fi
 
 java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \

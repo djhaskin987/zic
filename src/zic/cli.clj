@@ -139,9 +139,13 @@
                     {:missing-argument :package-name})))
   (let [result (package/verify-package-files! options)]
     (if (nil? result)
-      {:result :package-not-found}
-      {:result :package-found
-       :verification-results result})))
+      {:result :package-not-found :onecli {:exit-code 3}}
+      (if (seq result)
+        {:result :package-found
+         :verification-results result
+         :onecli {:exit-code 4}}
+        {:result :package-found
+         :verification-results result}))))
 
 (defn run
   "
