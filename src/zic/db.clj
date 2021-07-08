@@ -8,6 +8,15 @@
    PRAGMA foreign_keys = ON
    "
    "
+   CREATE TABLE IF NOT EXISTS file_classes (
+     id INTEGER NOT NULL PRIMARY KEY,
+     name TEXT UNIQUE NOT NULL
+   )
+   "
+   "
+   INSERT INTO file_classes (id, name) VALUES (0, \"normal-file\"), (1, \"directory\"), (2, \"config-file\"), (3, \"ghost-file\")
+   "
+   "
     CREATE TABLE IF NOT EXISTS packages (
       id INTEGER NOT NULL PRIMARY KEY,
       name TEXT UNIQUE NOT NULL UNIQUE,
@@ -15,6 +24,7 @@
       location TEXT NOT NULL,
       metadata TEXT)
     "
+
    "
     CREATE TABLE IF NOT EXISTS files (
       id INTEGER NOT NULL PRIMARY KEY,
@@ -24,6 +34,7 @@
       file_class INTEGER NOT NULL,
       checksum TEXT,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id))
+      CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id))
    "
    "
     CREATE TABLE IF NOT EXISTS uses (
@@ -55,7 +66,7 @@
 
 (defn deserialize-package
   [pkg]
-  {:path (:packages/name pkg)
+  {:name (:packages/name pkg)
    :version (:packages/version pkg)
    :location (:packages/location pkg)
    :metadata (deserialize-metadata (:packages/metadata pkg))})
@@ -129,7 +140,7 @@
   [c {:keys [package-name]}]
   (let [results (jdbc/execute! c
                                ["
-                                SELECT name, version, location, metadata
+                                SELECT id, name, version, location, metadata
                                 FROM packages
                                 WHERE name = ?
                                 "
@@ -138,6 +149,7 @@
       nil
       (deserialize-package
        (get results 0)))))
+
 (defn insert-file!
   [c package-id path size file-class-index checksum]
   (jdbc/execute!
@@ -160,27 +172,31 @@
              package-location
              package-metadata]}
    package-files]
-  (let [metadata-object (json/parse-string package-metadata true)]
+                  ;; I know, I know, don't hate me
+  (let [serialized-metadata (serialize-metadata package-metadata)]
     (jdbc/execute! c
                    ["
                   INSERT INTO packages
                   (name, version, location, metadata)
                   VALUES
                   (?,?,?,?)
+                  ON CONFLICT (name) DO UPDATE SET version=?, location=?, metadata=?
                   "
                     package-name
                     package-version
                     package-location
-                  ;; I know, I know, don't hate me
-                    (serialize-metadata metadata-object)])
-    (let [package-id (get-package-id! c package-name)
-          config-files (into #{} (get-in metadata-object [:zic :config-files]))
-          ghost-files (get-in metadata-object [:zic :ghost-files])]
-      (doseq [{:keys [path size is-directory checksum]} package-files]
-        (let [file-class-index
-              (cond is-directory (get file-class-indices :directory)
-                    (contains? config-files path) (get file-class-indices :config-file)
-                    :else (get file-class-indices :normal-file))]
-          (insert-file! c package-id path size file-class-index checksum)))
-      (doseq [path ghost-files]
-        (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil)))))
+                    serialized-metadata
+                    package-version
+                    package-location
+                    serialized-metadata]))
+  (let [package-id (get-package-id! c package-name)
+        config-files (into #{} (get-in package-metadata [:zic :config-files]))
+        ghost-files (get-in package-metadata [:zic :ghost-files])]
+    (doseq [{:keys [path size is-directory checksum]} package-files]
+      (let [file-class-index
+            (cond is-directory (get file-class-indices :directory)
+                  (contains? config-files path) (get file-class-indices :config-file)
+                  :else (get file-class-indices :normal-file))]
+        (insert-file! c package-id path size file-class-index checksum)))
+    (doseq [path ghost-files]
+      (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))

@@ -1,6 +1,7 @@
 (ns zic.cli
   (:gen-class)
   (:require
+   [cheshire.core :as json]
    [onecli.core :as onecli]
    [zic.db :as db]
    [zic.fs :as fs]
@@ -213,7 +214,10 @@
                :lock-path
                (.resolve
                 (.getParent marking-file)
-                ".zic.lock")))
+                ".zic.lock"))
+              (assoc
+               :package-metadata
+               (json/parse-string (:package-metadata options) true)))
           options)
         options))}))
 

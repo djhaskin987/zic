@@ -14,6 +14,7 @@
                  [buddy/buddy-core "1.10.1"]
                  [org.xerial/sqlite-jdbc "3.28.0"]
                  [seancorfield/next.jdbc "1.0.10"]
+                 [serovers "1.6.2"]
                  [onecli "0.7.0-SNAPSHOT" :exclusions [org.clojure/clojure]]]
   :main zic.cli
   :target-path "target/%s"

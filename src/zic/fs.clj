@@ -10,6 +10,7 @@
     MessageDigest)
    (java.nio.file
     Files
+    Paths
     Path
     CopyOption
     LinkOption
@@ -21,6 +22,103 @@
     CRC32
     ZipFile
     ZipEntry)))
+
+(defn new-unique-path [pathstr]
+  (loop [n 0]
+    (let [new-path (Paths/get (if (> n 0) (str pathstr "." n) path) (into-array String []))]
+      (if (not (Files/exists new-path))
+        new-path
+        (recur (inc n))))))
+
+(defn backup-all!
+  [paths ending]
+  (doseq [path paths]
+    (let [ppath (Paths/get path (into-array String []))]
+      (when (Files/exists ppath)
+        (Files/move ppath (new-unique-path (str ppath "." ending)))))))
+
+(defn remove-files!
+  [paths]
+  (doseq [path paths]
+    (let [ppath (Paths/get path (into-array String []))]
+      (Files/deleteIfExists ppath))))
+
+(defn try-remove-directories!
+  [paths])
+
+(defn dummy-read
+  "
+  Read the file but don't do anything with the read contents,
+  presumably because the stream is part of some checksum operation
+  "
+  [stream]
+  (let [buffer (byte-array 4096)]
+    (loop [sentry 1]
+      (when (>= sentry 0)
+        (recur (.read
+                stream
+                buffer
+                0
+                (count buffer)))))))
+
+(defn- bytes->hexstr
+  [bites]
+  (apply str (map #(format "%02x" %) bites)))
+
+(defn stream-sha256
+  "
+  Compute the SHA 256 of an input stream.
+  "
+  [stream]
+  (let [digest (MessageDigest/getInstance "SHA-256")]
+    (with-open [digested
+                (DigestInputStream. stream digest)]
+      (dummy-read digested))
+    (bytes->hexstr (.digest digest))))
+
+(defn stream-crc
+  "
+  Compute the CRC of the input stream.
+  "
+  [stream]
+  (with-open [checked
+              (CheckedInputStream.
+               stream
+               (CRC32.))]
+    (dummy-read checked)
+    (.getValue (.getChecksum checked))))
+
+(defn file-sha256!
+  "
+  Compute the SHA 256 of a file on the filesystem.
+  "
+  [^Path path]
+  (when (Files/exists path (into-array LinkOption []))
+
+    (with-open [file-stream (Files/newInputStream path (into-array OpenOption []))]
+      (stream-sha256 file-stream))))
+
+#_(archive-entry-checksums (java.util.zip.ZipFile.
+                            (java.io.File. "lighttpd-environment/wwwroot/b.zip"))
+                           #{"b/fie.txt"})
+
+(defn archive-entry-checksums
+  "
+  Compute checksums for a set of files, or all files if unspecified.
+  "
+  ([^ZipFile zip-file] (archive-entry-checksums zip-file (fn [_] true)))
+  ([^ZipFile zip-file path-pred]
+   (->> zip-file
+        (.entries)
+        (enumeration-seq)
+        (filter (fn [^ZipEntry entry]
+                  (and (not (.isDirectory entry))
+                       (path-pred (.getName entry)))))
+        (map
+         (fn [^ZipEntry entry]
+           (with-open [sf (.getInputStream zip-file entry)]
+             [(.getName entry) (stream-sha256 sf)])))
+        (into (hash-map)))))
 
 (defn archive-contents
   "
@@ -82,76 +180,6 @@
   (with-open [fchan
               (FileChannel/open path (into-array OpenOption []))]
     (.size fchan)))
-
-(defn dummy-read
-  "
-  Read the file but don't do anything with the read contents,
-  presumably because the stream is part of some checksum operation
-  "
-  [stream]
-  (let [buffer (byte-array 4096)]
-    (loop [sentry 1]
-      (when (>= sentry 0)
-        (recur (.read
-                stream
-                buffer
-                0
-                (count buffer)))))))
-
-(defn- left-pad
-  "
-  Who needs dependencies, amiright
-  "
-  [string pad width]
-  (let [sz (count string)
-        rm (- width sz)
-        pad-length (count pad)]
-    (if (or (< rm 0)
-            (> (rem rm pad-length) 0))
-      [false string]
-      [true (str
-             (apply str (repeat (quot rm pad-length) pad))
-             string)])))
-
-(defn- bytes->hexstr
-  [bites]
-  (apply str (map #(format "%02x" %) bites)))
-
-#_(as-> bites it
-    (BigInteger. 1 it)
-    (.toString it 16)
-    (second (left-pad it "0" (quot (count bites) 2))))
-
-(defn stream-sha256
-  "
-  Compute the SHA 256 of an input stream.
-  "
-  [stream]
-  (let [digest (MessageDigest/getInstance "SHA-256")]
-    (with-open [digested
-                (DigestInputStream. stream digest)]
-      (dummy-read digested))
-    (bytes->hexstr (.digest digest))))
-
-(defn stream-crc
-  "
-  Compute the CRC of the input stream.
-  "
-  [stream]
-  (with-open [checked
-              (CheckedInputStream.
-               stream
-               (CRC32.))]
-    (dummy-read checked)
-    (.getValue (.getChecksum checked))))
-
-(defn file-sha256!
-  "
-  Compute the SHA 256 of a file on the filesystem.
-  "
-  [^Path path]
-  (with-open [file-stream (Files/newInputStream path (into-array OpenOption []))]
-    (stream-sha256 file-stream)))
 
 #_(verify! (.toAbsolutePath
             (Paths/get "." (into-array String [])))
@@ -217,7 +245,11 @@
   "
   Unpack a zip file to a destination path.
   "
-  [^ZipFile zip-file ^Path dest]
+  [^ZipFile zip-file ^Path dest & {:keys [put-aside put-aside-ending exclude]
+                                   :or {put-aside {}
+                                        put-aside-ending ".new"
+                                        exclude {}}}]
+
   (let [violations (crc-violations zip-file)]
     (when (seq violations)
       (throw (ex-info "Zip file contains CRC violations."
@@ -228,26 +260,31 @@
        (enumeration-seq)
        (map
         (fn [^ZipEntry entry]
-          (let [dest-path (.resolve dest (.getName entry))
-                base-return
+          (let [base-return
                 {:path (.getName entry)
                  :size (.getSize entry)
                  :time (.getTime entry)
                  :is-directory (.isDirectory entry)}]
-            (if (.isDirectory entry)
-              (do
-                (Files/createDirectories dest-path (into-array FileAttribute []))
-                base-return)
-              (do
+            (if (exclude (.getName entry))
+              base-return
+              (let [base-dest-path (.resolve dest (.getName entry))
+                    dest-path (if (put-aside (.getName entry))
+                                (str base-dest-path put-aside-ending)
+                                base-dest-path)]
+                (if (.isDirectory entry)
+                  (do
+                    (Files/createDirectories dest-path (into-array FileAttribute []))
+                    base-return)
+                  (do
                 ;; BULLDOZE LOLCATZ W00T
-                (Files/deleteIfExists dest-path)
-                (let [digest (MessageDigest/getInstance "SHA-256")]
-                  (with-open [sf (.getInputStream zip-file entry)
-                              df (DigestInputStream.
-                                  sf
-                                  digest)]
-                    (Files/copy df dest-path (into-array CopyOption [])))
-                  (assoc base-return :checksum (bytes->hexstr (.digest digest)))))))))
+                    (Files/deleteIfExists dest-path)
+                    (let [digest (MessageDigest/getInstance "SHA-256")]
+                      (with-open [sf (.getInputStream zip-file entry)
+                                  df (DigestInputStream.
+                                      sf
+                                      digest)]
+                        (Files/copy df dest-path (into-array CopyOption [])))
+                      (assoc base-return :checksum (bytes->hexstr (.digest digest)))))))))))
        (into [])))
 
 (defn list-files
