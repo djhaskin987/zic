@@ -23,6 +23,15 @@
     ZipFile
     ZipEntry)))
 
+(defn try-remove-directories! [dirs]
+  (doseq [dir dir-paths]
+    (let [ppath (Paths/get dir (into-array String []))]
+      (when
+        (and (Files/exists ppath (into-array LinkOption []))
+             (Files/isDirectory ppath (into-array LinkOption []))
+             (empty? (Files/newDirectoryStream ppath)))
+        (Files/delete ppath)))))
+
 (defn new-unique-path [pathstr]
   (loop [n 0]
     (let [new-path (Paths/get

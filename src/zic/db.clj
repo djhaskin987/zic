@@ -200,3 +200,17 @@
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
       (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))
+
+(defn remove-files!
+  [c package-id]
+  (jdbc/execute! c
+                 [
+                  "
+                  DELETE
+                  FROM
+                    files
+                  WHERE
+                    files.pid = ?
+                  "
+                  package-id
+                  ]))

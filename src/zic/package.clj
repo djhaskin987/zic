@@ -164,11 +164,10 @@
                    (into (hash-map)))
               incontig-configs (set/difference old-config-fset
                                                contig-config-files)]
-          ;; TODO: MAKE these database and fs functions.
           (fs/backup-all! incontig-configs (str package-name "." package-version ".back"))
           (fs/remove-files! (map :path (:normal-file old-files)))
           (fs/try-remove-directories! old-directories)
-          (db/remove-files! exist-pkg-id)
+          (db/remove-files! c exist-pkg-id)
           config-decisions)))
     {}))
 
