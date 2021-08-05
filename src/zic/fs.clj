@@ -25,8 +25,13 @@
 
 (defn new-unique-path [pathstr]
   (loop [n 0]
-    (let [new-path (Paths/get (if (> n 0) (str pathstr "." n) path) (into-array String []))]
-      (if (not (Files/exists new-path))
+    (let [new-path (Paths/get
+                     (if
+                       (> n 0)
+                       (str pathstr "." n)
+                       pathstr)
+                     (into-array String []))]
+      (if (not (Files/exists new-path (into-array LinkOption [])))
         new-path
         (recur (inc n))))))
 
@@ -34,17 +39,15 @@
   [paths ending]
   (doseq [path paths]
     (let [ppath (Paths/get path (into-array String []))]
-      (when (Files/exists ppath)
-        (Files/move ppath (new-unique-path (str ppath "." ending)))))))
+      (when (Files/exists ppath (into-array LinkOption []))
+        (Files/move ppath (new-unique-path (str ppath "." ending))
+                    (into-array CopyOption []))))))
 
 (defn remove-files!
   [paths]
   (doseq [path paths]
     (let [ppath (Paths/get path (into-array String []))]
       (Files/deleteIfExists ppath))))
-
-(defn try-remove-directories!
-  [paths])
 
 (defn dummy-read
   "

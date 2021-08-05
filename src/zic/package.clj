@@ -80,7 +80,7 @@
     :install
     (nil? old)
     :put-aside
-    (nil? new)
+    (nil? nw)
     :do-nothing
     (and (not (= old current))
          (not (= nw current))
@@ -97,12 +97,12 @@
    package-name
    archive-contents]
   (remove nil?
-          (fn [rec]
+          (map (fn [rec]
             (when (not (:is-directory rec))
               (when-let [package (db/owned-by?! c (:path rec))]
                 (when (not (= package-name package))
                   (assoc rec :package package)))))
-          archive-contents))
+          archive-contents)))
 
 (defn upgrade-precautions!
   [{:keys [package-name
