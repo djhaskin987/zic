@@ -2,6 +2,7 @@
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
+   [zic.util :as util]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as set]
@@ -96,13 +97,13 @@
   [c
    package-name
    archive-contents]
-  (remove nil?
-          (map (fn [rec]
-            (when (not (:is-directory rec))
-              (when-let [package (db/owned-by?! c (:path rec))]
-                (when (not (= package-name package))
-                  (assoc rec :package package)))))
-          archive-contents)))
+  (seq (remove nil?
+               (doall (map (fn [rec]
+                             (when (not (:is-directory rec))
+                               (when-let [package (db/owned-by?! c (:path rec))]
+                                 (when (not (= package-name package))
+                                   (assoc rec :package package)))))
+                           archive-contents)))))
 
 (defn upgrade-precautions!
   [{:keys [package-name
@@ -190,7 +191,7 @@
               (let [downloaded-zip
                     (download-package! options)
                     zip-files (fs/archive-contents downloaded-zip)]
-                (when-let [conflicts (package-file-conflicts c package-name zip-files)]
+                (when-let [conflicts (util/dbg (package-file-conflicts c package-name zip-files))]
                   (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
                                   {:conflicts conflicts})))
                 (let [precautions (upgrade-precautions! options c downloaded-zip zip-files)]

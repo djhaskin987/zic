@@ -108,7 +108,7 @@
    ^Path path
    f]
   (with-database connection-string
-    (fn [c] (with-filelock path (fn [] (f c))))))
+ (fn [c] (with-filelock path (fn [] (f c))))))
 
 (defn path-to-connection-string
   [^Path path]

@@ -33,7 +33,7 @@
       size INTEGER NOT NULL,
       file_class INTEGER NOT NULL,
       checksum TEXT,
-      CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id))
+      CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
       CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id))
    "
    "
@@ -102,22 +102,23 @@
 
 (defn owned-by?!
   "
-   Returns the name of the package that owns the file in question, or nil if no such package exists.
+   Returns the name of the package that owns the file in question,
+   or nil if no such package exists.
    "
   [c file]
   (:name (jdbc/execute-one!
           c
           ["
-           SELECT
-               packages.name AS name
-           FROM
-               files
-           INNER JOIN
-               packages
-           ON
-               files.pid = packages.id
-           WHERE
-               files.path = ?
+          SELECT
+              packages.name AS name
+          FROM
+              files
+          INNER JOIN
+              packages
+          ON
+              files.pid = packages.id
+          WHERE
+              files.path = ?
            "
            file])))
 
@@ -204,13 +205,11 @@
 (defn remove-files!
   [c package-id]
   (jdbc/execute! c
-                 [
-                  "
+                 ["
                   DELETE
                   FROM
                     files
                   WHERE
                     files.pid = ?
                   "
-                  package-id
-                  ]))
+                  package-id]))

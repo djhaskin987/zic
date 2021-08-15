@@ -24,7 +24,7 @@
     ZipEntry)))
 
 (defn try-remove-directories! [dirs]
-  (doseq [dir dir-paths]
+  (doseq [dir dirs]
     (let [ppath (Paths/get dir (into-array String []))]
       (when
         (and (Files/exists ppath (into-array LinkOption []))
