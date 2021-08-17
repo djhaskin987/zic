@@ -204,13 +204,14 @@
   "
   Verify a path on the filesystem.
   "
-  [^Path base {:keys [path size is-directory checksum]}]
+  [^Path base {:keys [path size file-class checksum]}]
   (let [target-path (.resolve base path)]
-    (if
-     (not (Files/exists target-path (into-array LinkOption [])))
+    (if (not (or
+              (= file-class :ghost-file)
+              (Files/exists target-path (into-array LinkOption []))))
       {:result :file-missing}
       (let [is-target-dir (Files/isDirectory target-path (into-array LinkOption []))]
-        (if is-directory
+        (if (= file-class :directory)
           (if (not is-target-dir)
             {:result :path-not-directory}
             {:result :correct})
