@@ -204,29 +204,43 @@
   "
   Verify a path on the filesystem.
   "
-  [^Path base {:keys [path size file-class checksum]}]
-  (let [target-path (.resolve base path)]
-    (if (not (or
-              (= file-class :ghost-file)
-              (Files/exists target-path (into-array LinkOption []))))
-      {:result :file-missing}
-      (let [is-target-dir (Files/isDirectory target-path (into-array LinkOption []))]
-        (if (= file-class :directory)
-          (if (not is-target-dir)
-            {:result :path-not-directory}
-            {:result :correct})
-          (if is-target-dir
-            {:result :path-not-file}
-            (let [target-size (file-size! target-path)]
-              (if (not (= target-size size))
-                {:result :size-discrepancy
-                 :target-path-size target-size}
-                (let [target-checksum (file-sha256! target-path)]
-                  (if (not (= target-checksum checksum))
-                    {:result :checksum-discrepancy
-                     :target-checksum target-checksum
-                     :source-checksum checksum}
-                    {:result :correct}))))))))))
+  [^Path base {:keys [path size file-class checksum] :as path-info}]
+  (let [target-path (.resolve base path)
+        is-target-dir (Files/isDirectory target-path (into-array LinkOption []))
+        target-exists (Files/exists target-path (into-array LinkOption []))]
+    (cond
+      (= file-class :ghost-file)
+      (if is-target-dir
+        {:result :path-not-file}
+        {:result :correct})
+      (= file-class :config-file)
+      (if is-target-dir
+        {:result :path-not-file}
+        (if target-exists
+          {:result :correct}
+          {:result :config-file-missing}))
+      (= file-class :directory)
+      (if is-target-dir
+        {:result :correct}
+        {:result :path-not-directory})
+      (= file-class :normal-file)
+      (if is-target-dir
+        {:result :path-not-file}
+        (if target-exists
+          (let [target-size (file-size! target-path)]
+            (if (not (= target-size size))
+              {:result :size-discrepancy
+               :target-path-size target-size}
+              (let [target-checksum (file-sha256! target-path)]
+                (if (not (= target-checksum checksum))
+                  {:result :checksum-discrepancy
+                   :target-checksum target-checksum
+                   :source-checksum checksum}
+                  {:result :correct}))))
+          {:result :file-missing}))
+      :else
+      (throw (ex-info (str "Unknown file-class `" file-class "`.")
+                      {:base base :path-info path-info})))))
 
 #_(crc-violations (java.util.zip.ZipFile. (java.io.File. "lighttpd-environment/wwwroot/bad.zip")))
 
