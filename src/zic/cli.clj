@@ -1,7 +1,6 @@
 (ns zic.cli
   (:gen-class)
   (:require
-   [zic.util :as util]
    [cheshire.core :as json]
    [onecli.core :as onecli]
    [zic.db :as db]

@@ -2,7 +2,6 @@
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
-   [zic.util :as util]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as set]
@@ -188,17 +187,19 @@
     (fn [c]
       (let [package-files
             (if download-package
-              (let [downloaded-zip
-                    (download-package! options)
-                    zip-files (fs/archive-contents downloaded-zip)]
-                (when-let [conflicts (util/dbg (package-file-conflicts c package-name zip-files))]
-                  (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
-                                  {:conflicts conflicts})))
-                (let [precautions (upgrade-precautions! options c downloaded-zip zip-files)]
-                  (fs/unpack downloaded-zip root-path
-                             :put-aside (:put-aside precautions)
-                             :put-aside-ending (str package-name "." package-version ".new")
-                             :exclude (:do-nothing precautions))))
+              (if-let [downloaded-zip
+                       (download-package! options)]
+                (let [zip-files (fs/archive-contents downloaded-zip)]
+                  (when-let [conflicts (package-file-conflicts c package-name zip-files)]
+                    (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
+                                    {:conflicts conflicts})))
+                  (let [precautions (upgrade-precautions! options c downloaded-zip zip-files)]
+                    (fs/unpack downloaded-zip root-path
+                               :put-aside (or (:put-aside precautions) {})
+                               :put-aside-ending (str package-name "." package-version ".new")
+                               :exclude (or (:do-nothing precautions) #{}))))
+                (throw (ex-info (str "Package was not able to be downloaded.")
+                                {})))
               [])]
         (db/add-package!
          c

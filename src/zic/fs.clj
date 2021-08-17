@@ -27,19 +27,19 @@
   (doseq [dir dirs]
     (let [ppath (Paths/get dir (into-array String []))]
       (when
-        (and (Files/exists ppath (into-array LinkOption []))
-             (Files/isDirectory ppath (into-array LinkOption []))
-             (empty? (Files/newDirectoryStream ppath)))
+       (and (Files/exists ppath (into-array LinkOption []))
+            (Files/isDirectory ppath (into-array LinkOption []))
+            (empty? (Files/newDirectoryStream ppath)))
         (Files/delete ppath)))))
 
 (defn new-unique-path [pathstr]
   (loop [n 0]
     (let [new-path (Paths/get
-                     (if
-                       (> n 0)
-                       (str pathstr "." n)
-                       pathstr)
-                     (into-array String []))]
+                    (if
+                     (> n 0)
+                      (str pathstr "." n)
+                      pathstr)
+                    (into-array String []))]
       (if (not (Files/exists new-path (into-array LinkOption [])))
         new-path
         (recur (inc n))))))
@@ -270,7 +270,7 @@
   (->> zip-file
        (.entries)
        (enumeration-seq)
-       (map
+       (mapv
         (fn [^ZipEntry entry]
           (let [base-return
                 {:path (.getName entry)
