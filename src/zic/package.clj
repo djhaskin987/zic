@@ -45,7 +45,8 @@
     :as options}]
   (session/with-database
     db-connection-string
-    #((dissoc (db/package-info! % options) :id))))
+    (fn [c]
+      (dissoc (db/package-info! c options) :id))))
 
 (defn download-package!
   [{:keys [package-name

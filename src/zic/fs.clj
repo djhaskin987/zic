@@ -303,7 +303,7 @@
                     (Files/createDirectories dest-path (into-array FileAttribute []))
                     base-return)
                   (do
-                ;; BULLDOZE LOLCATZ W00T
+                     ;; BULLDOZE LOLCATZ W00T
                     (Files/deleteIfExists dest-path)
                     (let [digest (MessageDigest/getInstance "SHA-256")]
                       (with-open [sf (.getInputStream zip-file entry)

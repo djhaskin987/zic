@@ -60,6 +60,7 @@ mkdir b/d
 echo 'Hopscotch.' > b/d/hoarcrux.txt
 echo 'Fie on goodness! Fie! Fie! Fie! Fie!' > b/fie.txt
 echo 'I can'\''t stop this feeling deep inside of me' > a/poem.txt
+echo 'The wind in the' > a/willows.txt
 
 zip -r "${testing_path}/wwwroot/a.zip" a
 zip -r "${testing_path}/wwwroot/b.zip" b
