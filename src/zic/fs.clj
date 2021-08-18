@@ -10,7 +10,6 @@
     MessageDigest)
    (java.nio.file
     Files
-    Paths
     Path
     CopyOption
     LinkOption
@@ -23,39 +22,39 @@
     ZipFile
     ZipEntry)))
 
-(defn try-remove-directories! [dirs]
+(defn try-remove-directories! [^Path base
+                               dirs]
   (doseq [dir dirs]
-    (let [ppath (Paths/get dir (into-array String []))]
+    (let [ppath (.resolve base dir)]
       (when
        (and (Files/exists ppath (into-array LinkOption []))
             (Files/isDirectory ppath (into-array LinkOption []))
             (empty? (Files/newDirectoryStream ppath)))
         (Files/delete ppath)))))
 
-(defn new-unique-path [pathstr]
+(defn new-unique-path [base pathstr]
   (loop [n 0]
-    (let [new-path (Paths/get
-                    (if
-                     (> n 0)
-                      (str pathstr "." n)
-                      pathstr)
-                    (into-array String []))]
+    (let [new-path (.resolve base
+                             (if
+                              (> n 0)
+                               (str pathstr "." n)
+                               pathstr))]
       (if (not (Files/exists new-path (into-array LinkOption [])))
         new-path
         (recur (inc n))))))
 
 (defn backup-all!
-  [paths ending]
+  [base paths ending]
   (doseq [path paths]
-    (let [ppath (Paths/get path (into-array String []))]
+    (let [ppath (.resolve base path)]
       (when (Files/exists ppath (into-array LinkOption []))
-        (Files/move ppath (new-unique-path (str ppath "." ending))
+        (Files/move ppath (new-unique-path base (str ppath "." ending))
                     (into-array CopyOption []))))))
 
 (defn remove-files!
-  [paths]
+  [^Path base paths]
   (doseq [path paths]
-    (let [ppath (Paths/get path (into-array String []))]
+    (let [ppath (.resovle base path)]
       (Files/deleteIfExists ppath))))
 
 (defn dummy-read

@@ -15,11 +15,15 @@
     ZipFile)))
 
 (defn get-package-files!
-  [{:keys [db-connection-string]
-    :as options}]
+  [{:keys [package-name
+           db-connection-string]}]
   (session/with-database
     db-connection-string
-    #(db/package-files! % options)))
+    (fn [c]
+      (let [package-id (db/get-package-id! c package-name)]
+        (if (nil? package-id)
+          nil
+          (db/package-files! c package-id))))))
 
 (defn verify-package-files!
   [{:keys [root-path]
@@ -41,12 +45,11 @@
                     {:options options}))))
 
 (defn get-package-info!
-  [{:keys [db-connection-string]
-    :as options}]
+  [{:keys [db-connection-string package-name]}]
   (session/with-database
     db-connection-string
     (fn [c]
-      (dissoc (db/package-info! c options) :id))))
+      (dissoc (db/package-info! c package-name) :id))))
 
 (defn download-package!
   [{:keys [package-name
@@ -109,13 +112,14 @@
   [{:keys [package-name
            package-version
            package-metadata
-           allow-downgrades]
-    :as options}
+           allow-downgrades
+           ^Path
+           root-path]}
    c
    downloaded-zip
    zip-files]
   (if-let [{exist-pkg-id :id
-            exist-pkg-vers :version} (db/package-info! c options)]
+            exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
       (let [vercmp-result
             (serovers/debian-vercmp exist-pkg-vers package-version)]
@@ -131,7 +135,7 @@
                           {:existing-version exist-pkg-vers
                            :package-name package-name
                            :new-version package-version}))))
-      (let [old-files (group-by :file-class (db/package-files! c options))
+      (let [old-files (group-by :file-class (db/package-files! c exist-pkg-id))
             old-directories (->> old-files
                                  (:directory)
                                  (map :path)
@@ -165,17 +169,26 @@
                    (into (hash-map)))
               incontig-configs (set/difference old-config-fset
                                                contig-config-files)]
-          (fs/backup-all! incontig-configs (str package-name "." package-version ".back"))
-          (fs/remove-files! (map :path (:normal-file old-files)))
-          (fs/try-remove-directories! old-directories)
+          (fs/backup-all! root-path incontig-configs (str package-name "." package-version ".back"))
+          (fs/remove-files! root-path (map :path (:normal-file old-files)))
+          (fs/try-remove-directories! root-path old-directories)
           (db/remove-files! c exist-pkg-id)
           config-decisions)))
     {}))
 
-(defn assoc-maybe [m k v]
-  (if (get m k)
-    m
-    (assoc m k v)))
+(defn remove-without-cascade-internal
+  [c
+   package-info
+   ^Path
+   root-path]
+  (let [package-files (db/package-files! c (:id package-info))
+        old-files (group-by :file-class package-files)]
+    (fs/backup-all! root-path (map :path (:config-file old-files))
+                    (str (:name package-info) "." (:version package-info) ".back"))
+    (fs/remove-files! root-path (map :path (:normal-file old-files)))
+    (fs/try-remove-directories! root-path (map :path (:directory old-files)))
+    (db/remove-files! c (:id package-info))
+    (db/remove-package! c (:id package-info))))
 
 (defn remove-package!
   [{:keys [package-name
@@ -183,20 +196,13 @@
            ^Path
            root-path
            ^Path
-           lock-path]
-    :as options}]
+           lock-path]}]
   (session/with-zic-session
     db-connection-string
     lock-path
     (fn [c]
-      (let [package-info (db/package-info! c options)
-            package-files (db/package-files! c (assoc-maybe options :package-version (:version package-info)))
-            old-files (group-by :file-class package-files)]
-        (fs/backup-all! (map :path (:config-file old-files)) (str package-name "." (:version package-info) ".back"))
-        (fs/remove-files! (map :path (:normal-file old-files)))
-        (fs/try-remove-directories! (map :path (:directory old-files)))
-        (db/remove-files! c (:id package-info))
-        (db/remove-package! c (:id package-info))))))
+      (let [package-info (db/package-info! c package-name)]
+        (remove-without-cascade-internal c package-info root-path)))))
 
 (defn install-package!
   [{:keys [package-name

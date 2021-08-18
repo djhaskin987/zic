@@ -123,22 +123,19 @@
            file])))
 
 (defn package-files!
-  [c {:keys [package-name]}]
-  (let [package-id (get-package-id! c package-name)]
-    (if (nil? package-id)
-      nil
-      (map
-       deserialize-file
-       (jdbc/execute! c
-                      ["
+  [c package-id]
+  (map
+   deserialize-file
+   (jdbc/execute! c
+                  ["
                         SELECT path, size, file_class, checksum
                         FROM files
                         WHERE pid = ?
                         "
-                       package-id])))))
+                   package-id])))
 
 (defn package-info!
-  [c {:keys [package-name]}]
+  [c package-name]
   (let [results (jdbc/execute! c
                                ["
                                 SELECT id, name, version, location, metadata
@@ -201,6 +198,19 @@
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
       (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))
+
+(defn remove-package!
+  [c package-id]
+  (jdbc/execute-one!
+   c
+   ["
+     DELETE
+     FROM
+      packages
+     WHERE
+      packages.id = ?
+     "
+    package-id]))
 
 (defn remove-files!
   [c package-id]
