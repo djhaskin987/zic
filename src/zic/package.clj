@@ -172,6 +172,32 @@
           config-decisions)))
     {}))
 
+(defn assoc-maybe [m k v]
+  (if (get m k)
+    m
+    (assoc m k v)))
+
+(defn remove-package!
+  [{:keys [package-name
+           db-connection-string
+           ^Path
+           root-path
+           ^Path
+           lock-path]
+    :as options}]
+  (session/with-zic-session
+    db-connection-string
+    lock-path
+    (fn [c]
+      (let [package-info (db/package-info! c options)
+            package-files (db/package-files! c (assoc-maybe options :package-version (:version package-info)))
+            old-files (group-by :file-class package-files)]
+        (fs/backup-all! (map :path (:config-file old-files)) (str package-name "." (:version package-info) ".back"))
+        (fs/remove-files! (map :path (:normal-file old-files)))
+        (fs/try-remove-directories! (map :path (:directory old-files)))
+        (db/remove-files! c (:id package-info))
+        (db/remove-package! c (:id package-info))))))
+
 (defn install-package!
   [{:keys [package-name
            package-version

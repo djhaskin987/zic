@@ -12,10 +12,20 @@
     Paths)))
 
 (defn
+  remove!
+  "
+  Remove a package from the installation.
+  Non-Global Options:
+     package-name:          Name of the package.
+  "
+  [options]
+  (package/remove-package! options)
+  {:result :successful})
+
+(defn
   add!
   "
-  Add a package to the installation. This is effectively the same as `install`
-  but it's easier to use if you are only installing a single package.
+  Add a package to the installation.
   Non-Global Options:
      package-name:          Name of the package.
      package-version:       Version of the package.
@@ -79,19 +89,6 @@
        [".zic.db"])))
     db/init-database!)
   {:result :successful})
-
-(defn install!
-  "
-  Install packages into the project rooth path.
-
-  Relevant options:
-
-  - `-g <json-file>`, `--file-install-graph <json-file>`: Set install
-    graph by providing a file. The file might be `-` meaning standard
-    input.
-  "
-  [_]
-  {:result :noop})
 
 (defn list!
   "
@@ -163,7 +160,6 @@
      ["files"] 'zic.cli/files!
      ["info"] 'zic.cli/info!
      ["init"] 'zic.cli/init!
-     ["install"] 'zic.cli/install!
      ["list"] 'zic.cli/list!
      ["orphans"] 'zic.cli/orphans!
      ["remove"] 'zic.cli/remove!

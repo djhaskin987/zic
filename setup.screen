@@ -1,0 +1,6 @@
+at 0 stuff "./lighttpd-environment/lighttpd.sh"
+at 0 title "lighttpd"
+screen -t "repl" 1
+at 1 stuff "lein repl"
+screen -t "test.sh" 2
+screen -t "editor" 3

@@ -141,3 +141,42 @@ then
     exit 1
 fi
 
+
+# New testcases
+# Cannot upgrade from one package to one of equivalent version
+#  "Option `allow-downgrades` is disabled and downgrade detected."
+#  "Option `allow-downgrades` is enabled and downgrade detected."
+#  "Cannot update: some directories in old package are not directories in new package."
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'failure' \
+    --set-package-version 0.2.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}'
+
+
+
+# File cases:
+# used to be a config file, is now a ghost file
+# used to be a normal file, is now a directory
+# used to be a ghost file, is now a ghost file
+# used to be a ghost file, now doesn't exist in package
+# used to be a normal file, now doesn't exist in package
+# used to be a config file, now doesn't exist in package
+# used to be a normal file, is now a normal file, same contents
+# used to be a normal file, is now a normal file, different contents
+# used to be a config file, is now a config file (contiguous config): same contents
+# used to be a config file, is now a config file (contiguous config): different contents
+# used to be a config file, is now a config file (contiguous config): same contents, but edited in between
+# used to be a config file, is now a config file (contiguous config): different contents, but edited in between
+# used to be a config file, is now a config file (contiguous config): same contents, but gone in between
+# used to be a config file, is now a config file (contiguous config): different contents, but gone in between
+# TWO PACKAGES THAT OWN THE SAME DIRECTORY (which is okay)
+# Used to be a directory, now doesn't exist
+# used to be a non-empty directory, now doesn't exist
+# Check that files check out
+# Check for backups of config,s and .new's
