@@ -104,13 +104,6 @@
   [_]
   {:result :noop})
 
-(defn remove!
-  "
-  FIXME
-  "
-  [_]
-  {:result :noop})
-
 (defn used!
   "
   FIXME

@@ -10,6 +10,8 @@ set -ex
 
 rm -rf .zic.db
 rm -rf .staging
+rm -rf a
+rm -rf failure
 
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
@@ -33,7 +35,7 @@ fi
 # make sure the test DOES NOT replace existing files in the staging directory
 # by putting a bogus file where a good one should be downloaded.
 # BTW, because verybad was downloaded previously, the .staging directory
-# SHOULD ALREADY BE THER
+# SHOULD ALREADY BE THERE
 # This also tests that the directory has been created.
 touch .staging/a-0.1.0.zip
 
@@ -143,10 +145,6 @@ fi
 
 
 # New testcases
-# Cannot upgrade from one package to one of equivalent version
-#  "Option `allow-downgrades` is disabled and downgrade detected."
-#  "Option `allow-downgrades` is enabled and downgrade detected."
-#  "Cannot update: some directories in old package are not directories in new package."
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
@@ -155,9 +153,64 @@ java -jar \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
     --set-package-version 0.2.0 \
-    --set-package-location "https://djhaskin987.me:8443/a.zip" \
-    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}'
+    --set-package-location "https://djhaskin987.me:8443/failure-0.2.0.zip"
 
+# Cannot upgrade from one package to one of equivalent version
+if java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'failure' \
+    --set-package-version 0.2.0 \
+    --set-package-location "https://djhaskin987.me:8443/failure-0.2.0.zip"
+then
+    exit 1
+fi
+
+#  "Option `allow-downgrades` is disabled and downgrade detected."
+if java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'failure' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
+then
+    exit 1
+fi
+
+#  "Option `allow-downgrades` is enabled and downgrade detected."
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'failure' \
+    --enable-allow-downgrades \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --set-package-name 'failure'
+
+# It better actually be gone
+if [ -d failure ]
+then
+    exit 1
+fi
+
+
+
+#  "Cannot update: some directories in old package are not directories in new package."
 
 
 # File cases:

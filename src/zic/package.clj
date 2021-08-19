@@ -121,8 +121,8 @@
   (if-let [{exist-pkg-id :id
             exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
-      (let [vercmp-result
-            (serovers/debian-vercmp exist-pkg-vers package-version)]
+      (let [vercmp-result (serovers/debian-vercmp
+                           exist-pkg-vers package-version)]
         (when (= vercmp-result 0)
           (throw (ex-info "Cannot upgrade from one package to another of equivalent version."
                           {:existing-version exist-pkg-vers
@@ -130,7 +130,7 @@
                            :new-version package-version})))
         (when (and
                (not allow-downgrades)
-               (< vercmp-result 0))
+               (> vercmp-result 0))
           (throw (ex-info "Option `allow-downgrades` is disabled and downgrade detected."
                           {:existing-version exist-pkg-vers
                            :package-name package-name

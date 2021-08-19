@@ -1,5 +1,7 @@
 (ns zic.fs
   (:require
+   [clojure.string :as string]
+   [zic.util :as util]
    [clj-http.lite.client :as client]
    [clojure.java.io :as io])
   (:import
@@ -22,9 +24,27 @@
     ZipFile
     ZipEntry)))
 
+(def pathsep-pattern
+  (str
+   "("
+   (System/getProperty "file.separator")
+   "|/)+"))
+
+(defn path-part-count [path]
+  (as-> path it
+    (string/replace it (re-pattern (str pathsep-pattern "$")) "")
+    (re-seq (re-pattern pathsep-pattern) it)
+    (count it)
+    (+ 1 it)))
+
+(defn path-sorter [path]
+  [(- (path-part-count path))
+   path])
+
 (defn try-remove-directories! [^Path base
                                dirs]
-  (doseq [dir dirs]
+
+  (doseq [dir (sort-by path-sorter dirs)]
     (let [ppath (.resolve base dir)]
       (when
        (and (Files/exists ppath (into-array LinkOption []))
@@ -54,7 +74,7 @@
 (defn remove-files!
   [^Path base paths]
   (doseq [path paths]
-    (let [ppath (.resovle base path)]
+    (let [ppath (.resolve base path)]
       (Files/deleteIfExists ppath))))
 
 (defn dummy-read
