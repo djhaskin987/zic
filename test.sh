@@ -184,6 +184,7 @@ then
 fi
 
 #  "Option `allow-downgrades` is enabled and downgrade detected."
+# used to be a normal file, is now a directory
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
@@ -208,28 +209,98 @@ then
     exit 1
 fi
 
-
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'failure' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
 
 #  "Cannot update: some directories in old package are not directories in new package."
-
+if java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.2.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'failure' \
+    --set-package-version 0.2.0 \
+    --set-package-location "https://djhaskin987.me:8443/failure-0.2.0.zip"
+then
+    exit 1
+fi
 
 # File cases:
 # used to be a config file, is now a ghost file
-# used to be a normal file, is now a directory
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'changes' \
+    --set-package-version 0.1.0 \
+    --set-package-metadata '{ "zic": { "config-files": [ "changes/config-to-ghost", "changes/config-to-gone", "changes/contig-config-diffsize", "changes/contig-config-diffsize-gone", "changes/contig-config-diffsum", "changes/contig-config-diffsum-edited", "changes/contig-config-same", "changes/contig-config-same-edited", "changes/contig-config-same-gone" ], "ghost-files": [ "changes/ghost-to-ghost" ] } }' \
+    --set-package-location "https://djhaskin987.me:8443/changes-0.1.0.zip"
+
+# gone to config
+# gone to config, edited in between
+echo 'gone to config edited' > changes/gone-to-config-edited
+echo 'contig config same edited' > changes/contig-config-same-edited
+echo 'contig config grey edited' > changes/contig-config-diffsum-edited
+rm -f changes/contig-config-same-gone
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'changes' \
+    --set-package-version 0.2.0 \
+    --set-package-metadata '{ "zic": { "config-files": [ "changes/gone-to-config", "changes/gone-to-config-edited", "changes/contig-config-diffsize", "changes/contig-config-diffsize-gone", "changes/contig-config-diffsum", "changes/contig-config-diffsum-edited", "changes/contig-config-same", "changes/contig-config-same-edited", "changes/contig-config-same-gone" ], "ghost-files": [ "changes/config-to-ghost", "changes/ghost-to-ghost", "changes/gone-to-ghost" ] } }' \
+    --set-package-location "https://djhaskin987.me:8443/changes-0.2.0.zip"
+
+# TWO PACKAGES THAT OWN THE SAME DIRECTORY (which is okay)
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'somethingelse' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/somethingelse-0.1.0.zip"
+
+# Check that files check out
+# Check for backups of config,s and .new's
+
 # used to be a ghost file, is now a ghost file
 # used to be a ghost file, now doesn't exist in package
 # used to be a normal file, now doesn't exist in package
 # used to be a config file, now doesn't exist in package
 # used to be a normal file, is now a normal file, same contents
 # used to be a normal file, is now a normal file, different contents
+# gone to normal
+# gone to config
+# gone to config, edited in between
 # used to be a config file, is now a config file (contiguous config): same contents
 # used to be a config file, is now a config file (contiguous config): different contents
 # used to be a config file, is now a config file (contiguous config): same contents, but edited in between
 # used to be a config file, is now a config file (contiguous config): different contents, but edited in between
 # used to be a config file, is now a config file (contiguous config): same contents, but gone in between
 # used to be a config file, is now a config file (contiguous config): different contents, but gone in between
-# TWO PACKAGES THAT OWN THE SAME DIRECTORY (which is okay)
 # Used to be a directory, now doesn't exist
 # used to be a non-empty directory, now doesn't exist
-# Check that files check out
-# Check for backups of config,s and .new's
+
+# THEN, DELETE IT
+#java -jar \
+#    -Djavax.net.ssl.trustStore="test.keystore" \
+#    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+#    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+#    remove \
+#    --set-package-name 'changes'
+# AND CHECK THE FILES AGAIN
