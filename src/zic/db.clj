@@ -14,7 +14,7 @@
    )
    "
    "
-   INSERT INTO file_classes (id, name) VALUES (0, \"normal-file\"), (1, \"directory\"), (2, \"config-file\"), (3, \"ghost-file\")
+   INSERT INTO file_classes (id, name) VALUES (1, \"normal-file\"), (2, \"config-file\"), (3, \"ghost-file\")
    "
    "
     CREATE TABLE IF NOT EXISTS packages (
@@ -24,17 +24,20 @@
       location TEXT NOT NULL,
       metadata TEXT)
     "
-
    "
     CREATE TABLE IF NOT EXISTS files (
       id INTEGER NOT NULL PRIMARY KEY,
       pid INTEGER,
-      path TEXT NOT NULL UNIQUE,
+      path TEXT NOT NULL,
       size INTEGER NOT NULL,
       file_class INTEGER NOT NULL,
       checksum TEXT,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
-      CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id))
+      CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id)
+      CONSTRAINT size_positive CHECK (size >= 0),
+      CONSTRAINT checksum_used (file_class = 3 or checksum is not null),
+      CONSTRAINT ghost_sum (file_class != 3 or checksum is null),
+      CONSTRAINT ghost_size (file_class != 3 or size = 0))
    "
    "
     CREATE TABLE IF NOT EXISTS uses (
@@ -72,14 +75,12 @@
    :location (:packages/location pkg)
    :metadata (deserialize-metadata (:packages/metadata pkg))})
 
-(def file-classes [:normal-file
-                   :directory
-                   :config-file
-                   :ghost-file])
+(def file-classes {1 :normal-file
+                   2 :config-file
+                   3 :ghost-file})
 
 (def file-class-indices
-  {:normal-file 0
-   :directory 1
+  {:normal-file 1
    :config-file 2
    :ghost-file 3})
 
@@ -120,7 +121,7 @@
               files.pid = packages.id
           WHERE
               files.path = ?
-           "
+          "
            file])))
 
 (defn package-files!
@@ -191,11 +192,12 @@
   (let [package-id (get-package-id! c package-name)
         config-files (into #{} (get-in package-metadata [:zic :config-files]))
         ghost-files (get-in package-metadata [:zic :ghost-files])]
-    (doseq [{:keys [path size is-directory checksum]} package-files]
+    (doseq [{:keys [path size _ checksum]} (filter #(not (:is-directory %)) package-files)]
       (let [file-class-index
-            (cond is-directory (get file-class-indices :directory)
-                  (contains? config-files path) (get file-class-indices :config-file)
-                  :else (get file-class-indices :normal-file))]
+            (cond (contains? config-files path)
+                  (get file-class-indices :config-file)
+                  (contains? config-files path)
+                  (get file-class-indices :normal-file))]
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
       (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))

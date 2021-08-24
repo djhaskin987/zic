@@ -138,13 +138,11 @@ java -jar \
 if [ "$(java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     files \
-    --set-package-name a)" != '{"result":"package-found","package-files":[{"path":"a/","size":0,"file-class":"directory","checksum":null},{"path":"a/poem.txt","size":44,"file-class":"config-file","checksum":"f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e"},{"path":"a/willows.txt","size":16,"file-class":"normal-file","checksum":"bf20da2e626d608e486160cad938868e588603cd91fa71b4b7f604a5a4e90dfd"},{"path":"a/log.txt","size":0,"file-class":"ghost-file","checksum":null}]}' ]
+    --set-package-name a)" != '{"result":"package-found","package-files":[{"path":"a/poem.txt","size":44,"file-class":"config-file","checksum":"f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e"},{"path":"a/willows.txt","size":16,"file-class":"normal-file","checksum":"bf20da2e626d608e486160cad938868e588603cd91fa71b4b7f604a5a4e90dfd"},{"path":"a/log.txt","size":0,"file-class":"ghost-file","checksum":null}]}' ]
 then
     exit 1
 fi
 
-
-# New testcases
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
@@ -204,7 +202,7 @@ java -jar \
     --set-package-name 'failure'
 
 # It better actually be gone
-if [ -d failure ]
+if [ ! -f failure/directory-to-normal ]
 then
     exit 1
 fi
@@ -219,7 +217,8 @@ java -jar \
     --set-package-version 0.1.0 \
     --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
 
-#  "Cannot update: some directories in old package are not directories in new package."
+#  Cannot update: some directories in old package are not directories in new package.
+#  (This isn't explicitly checked for; it should just blow up)
 if java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
@@ -232,6 +231,15 @@ if java -jar \
 then
     exit 1
 fi
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --set-package-name 'failure'
+
+rm -rf failure
 
 # File cases:
 # used to be a config file, is now a ghost file
@@ -275,6 +283,39 @@ java -jar \
     --set-package-version 0.1.0 \
     --set-package-location "https://djhaskin987.me:8443/somethingelse-0.1.0.zip"
 
+# TWO PACKAGES THAT OWN THE SAME FILE - GHOST VERSION (which is NOT okay)
+if java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'yetsomethingelse' \
+    --set-package-version 0.1.0 \
+    --set-package-metadata '{"zic": {"ghost-files": ["changes/samedir/somethingelse"]}}'
+    --set-package-location "https://djhaskin987.me:8443/a.zip"
+then
+    exit 1
+fi
+
+# TWO PACKAGES THAT OWN THE SAME FILE (which is NOT okay)
+if java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'alsosomethingelse' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/alsosomethingelse-0.1.0.zip"
+then
+    exit 1
+fi
+
+# TODO: [ ] Check that if I specify an extra config file, this is okay.
+# TODO: [ ] Check that if I specify a config file the same as a ghost file, it explodes.
+# happens if it does.
+
 # Check that files check out
 # Check for backups of config,s and .new's
 
@@ -304,3 +345,5 @@ java -jar \
 #    remove \
 #    --set-package-name 'changes'
 # AND CHECK THE FILES AGAIN
+
+# [ ] TODO: CHECK package file conflicts on upgrade apply between ghost-file/normal file pairs

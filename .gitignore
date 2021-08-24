@@ -30,6 +30,8 @@ lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
 /a/
+/failure/
+/changes/
 /*.zip
 
 

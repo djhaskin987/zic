@@ -79,16 +79,23 @@ zip -r "${testing_path}/wwwroot/failure-0.2.0.zip" failure
 #echo 'used to be config, now a ghost' > d/config-to-ghost.txt
 rm -rf changes1
 rm -rf changes2
+rm -rf changes3
+rm -rf changes4
 mkdir changes1
 mkdir changes2
+mkdir changes3
+mkdir changes4
 mkdir changes1/samedir
 mkdir changes2/samedir
 mkdir changes3/samedir
+mkdir changes4/samedir
+
 
 # Two packages that share the same directory
 echo 'samedir' > changes1/samedir/changes
 echo 'samedir' > changes2/samedir/changes
 echo 'samedir' > changes3/samedir/somethingelse
+echo 'samefile' > changes4/samedir/somethingelse
 
 # [ ] used to be a config file, is now a ghost file
 echo 'config to ghost' > changes1/config-to-ghost
@@ -156,6 +163,9 @@ zip -r "${testing_path}/wwwroot/changes-0.2.0.zip" changes
 rm -rf changes
 cp -af changes3 changes
 zip -r "${testing_path}/wwwroot/somethingelse-0.1.0.zip" changes
+rm -rf changes
+cp -af changes4 changes
+zip -r "${testing_path}/wwwroot/alsosomethingelse-0.1.0.zip" changes
 
 zip -r "${testing_path}/wwwroot/a.zip" a
 zip -r "${testing_path}/wwwroot/b.zip" b

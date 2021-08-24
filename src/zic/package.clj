@@ -4,7 +4,7 @@
    [zic.fs :as fs]
    [zic.session :as session]
    [clojure.string :as str]
-   [clojure.set :as set]
+   [clojure.set :as cset]
    [serovers.core :as serovers])
   (:import
    (java.nio.file
@@ -99,14 +99,15 @@
 (defn package-file-conflicts
   [c
    package-name
-   archive-contents]
+
+   new-files]
   (seq (remove nil?
                (doall (map (fn [rec]
                              (when (not (:is-directory rec))
                                (when-let [package (db/owned-by?! c (:path rec))]
                                  (when (not (= package-name package))
                                    (assoc rec :package package)))))
-                           archive-contents)))))
+                           new-files)))))
 
 (defn upgrade-precautions!
   [{:keys [package-name
@@ -117,7 +118,7 @@
            root-path]}
    c
    downloaded-zip
-   zip-files]
+   new-files]
   (if-let [{exist-pkg-id :id
             exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
@@ -136,44 +137,33 @@
                            :package-name package-name
                            :new-version package-version}))))
       (let [old-files (group-by :file-class (db/package-files! c exist-pkg-id))
-            old-directories (->> old-files
-                                 (:directory)
-                                 (map :path)
-                                 (into #{}))]
-        (let [new-nondirs (->> zip-files
-                               (filter #(not (:is-directory %)))
-                               (map :path)
-                               (into #{}))
-              usedto-be-dirs (clojure.set/intersection old-directories new-nondirs)]
-          (when (seq usedto-be-dirs)
-            (throw (ex-info "Cannot update: some directories in old package are not directories in new package."
-                            {:usedto-be-dirs usedto-be-dirs}))))
-        (let [old-config-sums (->> old-files
-                                   (:config-file)
-                                   (map #(do [(:path %) (:checksum %)]))
-                                   (into (hash-map)))
-              old-config-fset (into #{} (keys old-config-sums))
-              new-config-fset (into #{} (get-in [:zic :config-files] package-metadata))
-              contig-config-files (set/intersection old-config-fset new-config-fset)
-              new-checksums (fs/archive-entry-checksums downloaded-zip contig-config-files)
-              current-checksums (into (hash-map)
-                                      (map (fn [conf-path] [conf-path (fs/file-sha256! (Paths/get conf-path (into-array String [])))]) contig-config-files))
-              config-decisions
-              (->> contig-config-files
-                   (map (fn [x] [x [(get old-config-sums x)
-                                    (get current-checksums x)
-                                    (get new-checksums x)]]))
-                   (group-by #(apply decide-config-fate (second %)))
-                   (map (fn [[fate sums]]
-                          [fate (mapv (fn [[path _]] path) sums)]))
-                   (into (hash-map)))
-              incontig-configs (set/difference old-config-fset
-                                               contig-config-files)]
-          (fs/backup-all! root-path incontig-configs (str package-name "." package-version ".back"))
-          (fs/remove-files! root-path (map :path (:normal-file old-files)))
-          (fs/try-remove-directories! root-path old-directories)
-          (db/remove-files! c exist-pkg-id)
-          config-decisions)))
+            old-config-sums (->> old-files
+                                 (:config-file)
+                                 (map #(do [(:path %) (:checksum %)]))
+                                 (into (hash-map)))
+            old-config-fset (into #{} (keys old-config-sums))
+            new-config-fset (cset/intersection
+                             (into #{} (filter #(not (:is-directory %)) (map :path new-files)))
+                             (into #{} (get-in [:zic :config-files] package-metadata)))
+            contig-config-files (cset/intersection old-config-fset new-config-fset)
+            new-checksums (fs/archive-entry-checksums downloaded-zip contig-config-files)
+            current-checksums (into (hash-map)
+                                    (map (fn [conf-path] [conf-path (fs/file-sha256! (Paths/get conf-path (into-array String [])))]) contig-config-files))
+            config-decisions
+            (->> contig-config-files
+                 (map (fn [x] [x [(get old-config-sums x)
+                                  (get current-checksums x)
+                                  (get new-checksums x)]]))
+                 (group-by #(apply decide-config-fate (second %)))
+                 (map (fn [[fate sums]]
+                        [fate (mapv (fn [[path _]] path) sums)]))
+                 (into (hash-map)))
+            incontig-configs (cset/difference old-config-fset
+                                              contig-config-files)]
+        (fs/backup-all! root-path incontig-configs (str package-name "." package-version ".back"))
+        (fs/remove-files! root-path (map :path (:normal-file old-files)))
+        (db/remove-files! c exist-pkg-id)
+        config-decisions))
     {}))
 
 (defn remove-without-cascade-internal
@@ -186,7 +176,6 @@
     (fs/backup-all! root-path (map :path (:config-file old-files))
                     (str (:name package-info) "." (:version package-info) ".back"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
-    (fs/try-remove-directories! root-path (map :path (:directory old-files)))
     (db/remove-files! c (:id package-info))
     (db/remove-package! c (:id package-info))))
 
@@ -207,6 +196,7 @@
 (defn install-package!
   [{:keys [package-name
            package-version
+           package-metadata
            download-package
            db-connection-string
            ^Path
@@ -222,11 +212,15 @@
             (if download-package
               (if-let [downloaded-zip
                        (download-package! options)]
-                (let [zip-files (fs/archive-contents downloaded-zip)]
-                  (when-let [conflicts (package-file-conflicts c package-name zip-files)]
+                (let [zip-files (fs/archive-contents downloaded-zip)
+                      new-files (into
+                                 zip-files
+                                 (map (fn [gf] {:path gf :is-directory false})
+                                      (get-in [:zic :ghost-files] package-metadata)))]
+                  (when-let [conflicts (package-file-conflicts c package-name new-files)]
                     (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
                                     {:conflicts conflicts})))
-                  (let [precautions (upgrade-precautions! options c downloaded-zip zip-files)]
+                  (let [precautions (upgrade-precautions! options c downloaded-zip new-files)]
                     (fs/unpack downloaded-zip root-path
                                :put-aside (or (:put-aside precautions) {})
                                :put-aside-ending (str package-name "." package-version ".new")
