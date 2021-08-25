@@ -58,6 +58,13 @@
            ^Path
            staging-path]
     :as options}]
+  (when (or
+         (nil? package-location)
+         (nil? package-name)
+         (nil? package-version))
+    (throw (ex-info
+            "Package name, version, and location must all be given."
+            {})))
   (let [fname
         (if-let [[_ fname] (re-matches #"/([^/]+)$" package-location)]
           fname
@@ -118,7 +125,7 @@
            root-path]}
    c
    downloaded-zip
-   new-files]
+   zip-files]
   (if-let [{exist-pkg-id :id
             exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
@@ -143,7 +150,7 @@
                                  (into (hash-map)))
             old-config-fset (into #{} (keys old-config-sums))
             new-config-fset (cset/intersection
-                             (into #{} (filter #(not (:is-directory %)) (map :path new-files)))
+                             (into #{} (filter #(not (:is-directory %)) (map :path zip-files)))
                              (into #{} (get-in [:zic :config-files] package-metadata)))
             contig-config-files (cset/intersection old-config-fset new-config-fset)
             new-checksums (fs/archive-entry-checksums downloaded-zip contig-config-files)
@@ -216,11 +223,11 @@
                       new-files (into
                                  zip-files
                                  (map (fn [gf] {:path gf :is-directory false})
-                                      (get-in [:zic :ghost-files] package-metadata)))]
+                                      (get-in package-metadata [:zic :ghost-files])))]
                   (when-let [conflicts (package-file-conflicts c package-name new-files)]
                     (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
                                     {:conflicts conflicts})))
-                  (let [precautions (upgrade-precautions! options c downloaded-zip new-files)]
+                  (let [precautions (upgrade-precautions! options c downloaded-zip zip-files)]
                     (fs/unpack downloaded-zip root-path
                                :put-aside (or (:put-aside precautions) {})
                                :put-aside-ending (str package-name "." package-version ".new")

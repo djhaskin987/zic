@@ -57,6 +57,7 @@ mkdir c
 mkdir b
 mkdir a
 mkdir b/d
+mkdir empty
 echo 'Hopscotch.' > b/d/hoarcrux.txt
 echo 'Fie on goodness! Fie! Fie! Fie! Fie!' > b/fie.txt
 echo 'I can'\''t stop this feeling deep inside of me' > a/poem.txt
@@ -76,6 +77,7 @@ mkdir failure
 echo 'used to be normal, now a directory' > failure/directory-to-normal
 zip -r "${testing_path}/wwwroot/failure-0.2.0.zip" failure
 
+zip -r "${testing_path}/wwwroot/empty-0.1.0.zip" empty
 #echo 'used to be config, now a ghost' > d/config-to-ghost.txt
 rm -rf changes1
 rm -rf changes2

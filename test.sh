@@ -201,11 +201,14 @@ java -jar \
     remove \
     --set-package-name 'failure'
 
-# It better actually be gone
-if [ ! -f failure/directory-to-normal ]
+# No normal files should exist anymore
+if [ -n "$(find failure -type f)" ]
 then
     exit 1
 fi
+
+# Clean slate for tests
+rm -rf failure
 
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
@@ -292,8 +295,8 @@ if java -jar \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'yetsomethingelse' \
     --set-package-version 0.1.0 \
-    --set-package-metadata '{"zic": {"ghost-files": ["changes/samedir/somethingelse"]}}'
-    --set-package-location "https://djhaskin987.me:8443/a.zip"
+    --set-package-metadata '{"zic": {"ghost-files": ["changes/samedir/somethingelse"]}}' \
+    --set-package-location "https://djhaskin987.me:8443/empty-0.1.0.zip"
 then
     exit 1
 fi

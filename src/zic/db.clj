@@ -28,16 +28,17 @@
     CREATE TABLE IF NOT EXISTS files (
       id INTEGER NOT NULL PRIMARY KEY,
       pid INTEGER,
-      path TEXT NOT NULL,
+      path TEXT UNIQUE NOT NULL,
       size INTEGER NOT NULL,
       file_class INTEGER NOT NULL,
       checksum TEXT,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
-      CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id)
+      CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id),
       CONSTRAINT size_positive CHECK (size >= 0),
-      CONSTRAINT checksum_used (file_class = 3 or checksum is not null),
-      CONSTRAINT ghost_sum (file_class != 3 or checksum is null),
-      CONSTRAINT ghost_size (file_class != 3 or size = 0))
+      CONSTRAINT checksum_used CHECK (file_class = 3 OR checksum IS NOT NULL),
+      CONSTRAINT ghost_sum CHECK (file_class != 3 OR checksum IS NULL),
+      CONSTRAINT ghost_size CHECK (file_class != 3 OR size = 0)
+   )
    "
    "
     CREATE TABLE IF NOT EXISTS uses (
@@ -108,11 +109,11 @@
    or nil if no such package exists.
    "
   [c file]
-  (:name (jdbc/execute-one!
-          c
-          ["
+  (:packages/name (jdbc/execute-one!
+                   c
+                   ["
           SELECT
-              packages.name AS name
+              packages.name
           FROM
               files
           INNER JOIN
@@ -122,7 +123,7 @@
           WHERE
               files.path = ?
           "
-           file])))
+                    file])))
 
 (defn package-files!
   [c package-id]
@@ -194,10 +195,9 @@
         ghost-files (get-in package-metadata [:zic :ghost-files])]
     (doseq [{:keys [path size _ checksum]} (filter #(not (:is-directory %)) package-files)]
       (let [file-class-index
-            (cond (contains? config-files path)
-                  (get file-class-indices :config-file)
-                  (contains? config-files path)
-                  (get file-class-indices :normal-file))]
+            (if (contains? config-files path)
+              (get file-class-indices :config-file)
+              (get file-class-indices :normal-file))]
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
       (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))
