@@ -116,7 +116,7 @@
                                    (assoc rec :package package)))))
                            new-files)))))
 
-(defn upgrade-precautions!
+(defn config-and-upgrade-precautions
   [{:keys [package-name
            package-version
            package-metadata
@@ -167,11 +167,15 @@
                  (into (hash-map)))
             incontig-configs (cset/difference old-config-fset
                                               contig-config-files)]
-        (fs/backup-all! root-path incontig-configs (str package-name "." package-version ".back"))
+        (fs/backup-all! root-path incontig-configs (str package-name "." exist-pkg-vers ".backup"))
         (fs/remove-files! root-path (map :path (:normal-file old-files)))
         (db/remove-files! c exist-pkg-id)
         config-decisions))
-    {}))
+    {:put-aside
+      (as-> (get-in [:zic :config-files] package-metadata) it
+        (map (fn [path] (.resolve root-path path)) it)
+        (filter (fn [p] (Files/exists p)) it))}
+    ))
 
 (defn remove-without-cascade-internal
   [c
@@ -181,7 +185,7 @@
   (let [package-files (db/package-files! c (:id package-info))
         old-files (group-by :file-class package-files)]
     (fs/backup-all! root-path (map :path (:config-file old-files))
-                    (str (:name package-info) "." (:version package-info) ".back"))
+                    (str (:name package-info) "." (:version package-info) ".backup"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
     (db/remove-files! c (:id package-info))
     (db/remove-package! c (:id package-info))))
@@ -227,7 +231,11 @@
                   (when-let [conflicts (package-file-conflicts c package-name new-files)]
                     (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
                                     {:conflicts conflicts})))
-                  (let [precautions (upgrade-precautions! options c downloaded-zip zip-files)]
+                  (let [precautions (config-and-upgrade-precautions
+                                      options
+                                      c
+                                      downloaded-zip
+                                      zip-files)]
                     (fs/unpack downloaded-zip root-path
                                :put-aside (or (:put-aside precautions) {})
                                :put-aside-ending (str package-name "." package-version ".new")

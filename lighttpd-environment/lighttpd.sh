@@ -58,6 +58,7 @@ mkdir b
 mkdir a
 mkdir b/d
 mkdir empty
+echo 'I am an echo.' > "c/echo.txt"
 echo 'Hopscotch.' > b/d/hoarcrux.txt
 echo 'Fie on goodness! Fie! Fie! Fie! Fie!' > b/fie.txt
 echo 'I can'\''t stop this feeling deep inside of me' > a/poem.txt

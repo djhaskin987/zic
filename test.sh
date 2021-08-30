@@ -135,6 +135,26 @@ java -jar \
     info \
     --set-package-name 'c' || :
 
+
+# Test that config files put down before clean installation remain intact
+mkdir c
+echo 'I am NOT JUST an echo' > "c/echo.txt"
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'c' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/c.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["c/echo.txt"]}}'
+
+test "$(cat c/echo.txt)" = "I am NOT JUST an echo"
+test -f "c/echo.txt"
+test -f "c/echo.txt.c.0.1.0.new"
+
 if [ "$(java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     files \
@@ -244,6 +264,8 @@ java -jar \
 
 rm -rf failure
 
+# Clean slate for tests.
+rm -rf changes
 # File cases:
 # used to be a config file, is now a ghost file
 java -jar \
@@ -263,7 +285,11 @@ echo 'gone to config edited' > changes/gone-to-config-edited
 echo 'contig config same edited' > changes/contig-config-same-edited
 echo 'contig config grey edited' > changes/contig-config-diffsum-edited
 rm -f changes/contig-config-same-gone
-
+rm -f changes/contig-config-diffsize-gone
+# Test that .1,.2,.3 works (no file is overwritten)
+touch changes/config-to-gone.changes.0.1.0.backup
+touch changes/contig-config-diffsum-edited.changes.0.2.0.new
+touch changes/contig-config-diffsum-edited.changes.0.2.0.new.1
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
@@ -274,6 +300,71 @@ java -jar \
     --set-package-version 0.2.0 \
     --set-package-metadata '{ "zic": { "config-files": [ "changes/gone-to-config", "changes/gone-to-config-edited", "changes/contig-config-diffsize", "changes/contig-config-diffsize-gone", "changes/contig-config-diffsum", "changes/contig-config-diffsum-edited", "changes/contig-config-same", "changes/contig-config-same-edited", "changes/contig-config-same-gone" ], "ghost-files": [ "changes/config-to-ghost", "changes/ghost-to-ghost", "changes/gone-to-ghost" ] } }' \
     --set-package-location "https://djhaskin987.me:8443/changes-0.2.0.zip"
+
+test -f changes/config-to-ghost.changes.0.1.0.backup
+test -f changes/config-to-gone.changes.0.1.0.backup
+test -f changes/config-to-gone.changes.0.1.0.backup.1
+
+test -f changes/contig-config-diffsize
+test ! -f changes/contig-config-diffsize.changes.0.2.0.new
+test ! -f changes/contig-config-diffsize.changes.0.1.0.backup
+test ! -f changes/contig-config-diffsize.changes.0.2.0.backup
+
+test -f changes/contig-config-diffsum
+test ! -f changes/contig-config-diffsum.changes.0.1.0.backup
+test ! -f changes/contig-config-diffsum.changes.0.2.0.backup
+test ! -f changes/contig-config-diffsum.changes.0.2.0.new
+test "$(cat changes/contig-config-diffsum)" = "contig config blue"
+test "$(cat changes/contig-config-diffsum.changes.0.2.0.new)" = "contig config grey"
+
+test -f changes/contig-config-diffsize-gone
+test ! -f changes/contig-config-diffsize-gone.changes.0.1.0.backup
+test ! -f changes/contig-config-diffsize-gone.changes.0.2.0.backup
+test ! -f changes/contig-config-diffsize-gone.changes.0.2.0.new
+test "$(cat changes/contig-config-diffsize)" = "contig config blue"
+test "$(cat changes/contig-config-diffsize.changes.0.2.0.new)" = "contig config red"
+
+test -f changes/contig-config-diffsum-edited.changes.0.2.0.new
+test -f changes/contig-config-diffsum-edited.changes.0.2.0.new.1
+test -f changes/contig-config-diffsum-edited.changes.0.2.0.new.2
+test -f changes/contig-config-diffsum-edited
+
+test "$(cat changes/contig-config-diffsum-edited)" = "contig config grey edited"
+test "$(cat changes/contig-config-diffsum-edited.changes.0.2.0.new.2)" = "contig config blue"
+
+test -f changes/contig-config-same
+test ! -f changes/contig-config-same.changes.0.2.0.new
+test ! -f changes/contig-config-same.changes.0.1.0.backup
+test ! -f changes/contig-config-same.changes.0.2.0.backup
+
+test -f changes/contig-config-same-edited
+test ! -f changes/contig-config-same-edited.changes.0.2.0.new
+test "$(cat changes/contig-config-same-edited)" = "contig config same edited"
+
+test -f changes/contig-config-same-gone
+test ! -f changes/contig-config-same-gone.changes.0.2.0.new
+test ! -f changes/contig-config-same-gone.changes.0.2.0.backup
+
+test -f changes/gone-to-config
+test ! -f changes/gone-to-config.changes.0.2.0.new
+test ! -f changes/gone-to-config.changes.0.1.0.backup
+test ! -f changes/gone-to-config.changes.0.2.0.backup
+
+test -f changes/gone-to-config-edited
+test ! -f changes/gone-to-config-edited.changes.0.2.0.new
+test ! -f changes/gone-to-config-edited.changes.0.2.0.backup
+test ! -f changes/gone-to-config-edited.changes.0.1.0.backup
+test "$(cat changes/gone-to-config-edited)" = "gone to config edited"
+test "$(cat changes/gone-to-config-edited)" = "gone to config edited"
+
+test -f changes/gone-to-normal
+test -f changes/normal-to-normal-different
+test ! -f changes/normal-to-normal-different.changes.0.2.0.new
+test ! -f changes/normal-to-normal-different.changes.0.2.0.backup
+test ! -f changes/normal-to-normal-different.changes.0.1.0.backup
+
+test -f changes/normal-to-normal-same
+test -d changes/samedir
 
 # TWO PACKAGES THAT OWN THE SAME DIRECTORY (which is okay)
 java -jar \
@@ -315,7 +406,22 @@ then
     exit 1
 fi
 
-# TODO: [ ] Check that if I specify an extra config file, this is okay.
+# Check that if I specify an extra config file, it gets ignored.
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \ target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \ add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'extraconfigfile' \
+    --set-package-version 0.1.0 \
+    --set-package-metadata '{"zic": {"config-files": ["a/b"]}}' \
+    --set-package-location "https://djhaskin987.me:8443/empty-0.1.0.zip"
+
+if [ "$(java -jar target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar files --set-package-name 'extraconfigfile')" != '{"result":"package-found","package-files":[]}' ]
+then
+    exit 1
+fi
+
+
 # TODO: [ ] Check that if I specify a config file the same as a ghost file, it explodes.
 # happens if it does.
 
