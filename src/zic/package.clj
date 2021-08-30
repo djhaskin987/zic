@@ -174,7 +174,9 @@
     {:put-aside
       (as-> (get-in [:zic :config-files] package-metadata) it
         (map (fn [path] (.resolve root-path path)) it)
-        (filter (fn [p] (Files/exists p)) it))}
+        (filter (fn [p] (Files/exists p (into-array
+                                           java.nio.file.LinkOption
+                                           []))) it))}
     ))
 
 (defn remove-without-cascade-internal
