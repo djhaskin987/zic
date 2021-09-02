@@ -87,6 +87,10 @@
 
 (defn decide-config-fate
   [old current nw]
+  (util/dbg "This is decide-config-fate")
+  (util/dbg old)
+  (util/dbg current)
+  (util/dbg nw)
   (cond
     (nil? current)
     :install
@@ -156,17 +160,18 @@
                              (into #{} (filter #(not (:is-directory %)) (map :path zip-files)))
                              (into #{} (get-in package-metadata [:zic :config-files])))
             contig-config-files (cset/intersection old-config-fset new-config-fset)
-            contig-config-sums (into (hash-map) (map (fn [cf] [cf (get old-config-sums cf)]) contig-config-files))
-
-            new-checksums (fs/archive-entry-checksums downloaded-zip contig-config-files)
+            contig-config-old-sums (into (hash-map) (map (fn [cf] [cf (get old-config-sums cf)]) contig-config-files))
+            new-checksums (fs/archive-entry-checksums downloaded-zip new-config-fset)
             current-checksums (into (hash-map)
-                                    (map (fn [conf-path] [conf-path (fs/file-sha256! (Paths/get conf-path (into-array String [])))]) contig-config-files))
+                                    (map (fn [conf-path] [conf-path (fs/file-sha256! (Paths/get conf-path (into-array String [])))]) new-config-fset))
             config-decisions
-            (->> contig-config-files
+            (->> new-config-fset
                  (map (fn [x] [x [(get old-config-sums x)
                                   (get current-checksums x)
                                   (get new-checksums x)]]))
+                 (util/dbg)
                  (group-by #(apply decide-config-fate (second %)))
+                 (util/dbg)
                  (map (fn [[fate sums]]
                         [fate (into #{}
                                     (mapv (fn [[path _]] path) sums))]))
@@ -177,7 +182,7 @@
         (fs/remove-files! root-path (map :path (:normal-file old-files)))
         (db/remove-files! c exist-pkg-id)
         (assoc config-decisions
-               :config-sums contig-config-sums)))
+               :config-sums contig-config-old-sums)))
     (do
       (binding [*out* *err*]
         (println "second branch"))
