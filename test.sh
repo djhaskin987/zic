@@ -11,6 +11,8 @@ set -ex
 rm -rf .zic.db
 rm -rf .staging
 rm -rf a
+rm -rf c
+rm -rf changes
 rm -rf failure
 
 java -jar \
@@ -138,7 +140,11 @@ java -jar \
 
 # Test that config files put down before clean installation remain intact
 mkdir c
-echo 'I am NOT JUST an echo' > "c/echo.txt"
+echo 'I am NOT JUST an echo.' > "c/echo.txt"
+touch c/echo.txt.c.0.1.0.new
+
+# TODO: Test the case where config files listed are actually directories,
+# whether on the file system or the package
 
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
@@ -151,9 +157,10 @@ java -jar \
     --set-package-location "https://djhaskin987.me:8443/c.zip" \
     --set-package-metadata '{"zic": {"config-files": ["c/echo.txt"]}}'
 
-test "$(cat c/echo.txt)" = "I am NOT JUST an echo"
+test "$(cat c/echo.txt)" = "I am NOT JUST an echo."
 test -f "c/echo.txt"
 test -f "c/echo.txt.c.0.1.0.new"
+test -f "c/echo.txt.c.0.1.0.new.1"
 
 if [ "$(java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
@@ -315,14 +322,12 @@ test ! -f changes/contig-config-diffsum.changes.0.1.0.backup
 test ! -f changes/contig-config-diffsum.changes.0.2.0.backup
 test ! -f changes/contig-config-diffsum.changes.0.2.0.new
 test "$(cat changes/contig-config-diffsum)" = "contig config blue"
-test "$(cat changes/contig-config-diffsum.changes.0.2.0.new)" = "contig config grey"
 
 test -f changes/contig-config-diffsize-gone
 test ! -f changes/contig-config-diffsize-gone.changes.0.1.0.backup
 test ! -f changes/contig-config-diffsize-gone.changes.0.2.0.backup
 test ! -f changes/contig-config-diffsize-gone.changes.0.2.0.new
 test "$(cat changes/contig-config-diffsize)" = "contig config blue"
-test "$(cat changes/contig-config-diffsize.changes.0.2.0.new)" = "contig config red"
 
 test -f changes/contig-config-diffsum-edited.changes.0.2.0.new
 test -f changes/contig-config-diffsum-edited.changes.0.2.0.new.1

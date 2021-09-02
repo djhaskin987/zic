@@ -1,6 +1,5 @@
 (ns zic.fs
   (:require
-   [clojure.string :as string]
    [zic.util :as util]
    [clj-http.lite.client :as client]
    [clojure.java.io :as io])
@@ -23,34 +22,6 @@
     CRC32
     ZipFile
     ZipEntry)))
-
-(def pathsep-pattern
-  (str
-   "("
-   (System/getProperty "file.separator")
-   "|/)+"))
-
-(defn path-part-count [path]
-  (as-> path it
-    (string/replace it (re-pattern (str pathsep-pattern "$")) "")
-    (re-seq (re-pattern pathsep-pattern) it)
-    (count it)
-    (+ 1 it)))
-
-(defn path-sorter [path]
-  [(- (path-part-count path))
-   path])
-
-(defn try-remove-directories! [^Path base
-                               dirs]
-
-  (doseq [dir (sort-by path-sorter dirs)]
-    (let [ppath (.resolve base dir)]
-      (when
-       (and (Files/exists ppath (into-array LinkOption []))
-            (Files/isDirectory ppath (into-array LinkOption []))
-            (empty? (Files/newDirectoryStream ppath)))
-        (Files/delete ppath)))))
 
 (defn new-unique-path [base pathstr]
   (loop [n 0]
@@ -291,10 +262,12 @@
   "
   Unpack a zip file to a destination path.
   "
-  [^ZipFile zip-file ^Path dest & {:keys [put-aside put-aside-ending exclude]
+  [^ZipFile zip-file ^Path dest & {:keys [put-aside put-aside-ending exclude exclude-sum-pool]
                                    :or {put-aside {}
                                         put-aside-ending ".new"
-                                        exclude {}}}]
+                                        exclude {}
+                                        exclude-sum-pool {}}}]
+  (util/dbg put-aside)
 
   (let [violations (crc-violations zip-file)]
     (when (seq violations)
@@ -306,24 +279,28 @@
        (enumeration-seq)
        (mapv
         (fn [^ZipEntry entry]
-          (let [base-return
-                {:path (.getName entry)
+          (let [entry-name (.getName entry)
+                base-return
+                {:path entry-name
                  :size (.getSize entry)
                  :time (.getTime entry)
                  :is-directory (.isDirectory entry)}]
-            (if (exclude (.getName entry))
-              base-return
-              (let [base-dest-path (.resolve dest (.getName entry))
-                    dest-path (if (put-aside (.getName entry))
-                                (str base-dest-path put-aside-ending)
-                                base-dest-path)]
+            (if (exclude entry-name)
+              (if-let [exclude-sum (get exclude-sum-pool entry-name)]
+                (assoc base-return :checksum exclude-sum)
+                base-return)
+              (let [dest-path (.resolve dest (if (put-aside entry-name)
+                                               (new-unique-path dest
+                                                                (str entry-name put-aside-ending))
+                                               entry-name))]
                 (if (.isDirectory entry)
                   (do
                     (Files/createDirectories dest-path (into-array FileAttribute []))
                     base-return)
                   (do
                      ;; BULLDOZE LOLCATZ W00T
-                    (Files/deleteIfExists dest-path)
+                    (when (not (put-aside entry-name))
+                      (Files/deleteIfExists dest-path))
                     (let [digest (MessageDigest/getInstance "SHA-256")]
                       (with-open [sf (.getInputStream zip-file entry)
                                   df (DigestInputStream.

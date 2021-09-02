@@ -1,4 +1,4 @@
-at 0 stuff "./lighttpd-environment/lighttpd.sh"
+at 0 stuff "./lighttpd-environment/lighttpd.exp"
 at 0 title "lighttpd"
 screen -t "repl" 1
 at 1 stuff "lein repl"

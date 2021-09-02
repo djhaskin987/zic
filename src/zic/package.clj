@@ -2,6 +2,7 @@
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
+   [zic.util :as util]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as cset]
@@ -129,6 +130,8 @@
   (if-let [{exist-pkg-id :id
             exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
+      (binding [*out* *err*]
+        (println "first branch"))
       (let [vercmp-result (serovers/debian-vercmp
                            exist-pkg-vers package-version)]
         (when (= vercmp-result 0)
@@ -151,8 +154,10 @@
             old-config-fset (into #{} (keys old-config-sums))
             new-config-fset (cset/intersection
                              (into #{} (filter #(not (:is-directory %)) (map :path zip-files)))
-                             (into #{} (get-in [:zic :config-files] package-metadata)))
+                             (into #{} (get-in package-metadata [:zic :config-files])))
             contig-config-files (cset/intersection old-config-fset new-config-fset)
+            contig-config-sums (into (hash-map) (map (fn [cf] [cf (get old-config-sums cf)]) contig-config-files))
+
             new-checksums (fs/archive-entry-checksums downloaded-zip contig-config-files)
             current-checksums (into (hash-map)
                                     (map (fn [conf-path] [conf-path (fs/file-sha256! (Paths/get conf-path (into-array String [])))]) contig-config-files))
@@ -163,21 +168,30 @@
                                   (get new-checksums x)]]))
                  (group-by #(apply decide-config-fate (second %)))
                  (map (fn [[fate sums]]
-                        [fate (mapv (fn [[path _]] path) sums)]))
+                        [fate (into #{}
+                                    (mapv (fn [[path _]] path) sums))]))
                  (into (hash-map)))
             incontig-configs (cset/difference old-config-fset
                                               contig-config-files)]
         (fs/backup-all! root-path incontig-configs (str package-name "." exist-pkg-vers ".backup"))
         (fs/remove-files! root-path (map :path (:normal-file old-files)))
         (db/remove-files! c exist-pkg-id)
-        config-decisions))
-    {:put-aside
-      (as-> (get-in [:zic :config-files] package-metadata) it
-        (map (fn [path] (.resolve root-path path)) it)
-        (filter (fn [p] (Files/exists p (into-array
-                                           java.nio.file.LinkOption
-                                           []))) it))}
-    ))
+        (assoc config-decisions
+               :config-sums contig-config-sums)))
+    (do
+      (binding [*out* *err*]
+        (println "second branch"))
+      {:put-aside
+       (->> (get-in (util/dbg package-metadata) [:zic :config-files])
+            (util/dbg)
+            (filter (fn [p]
+                      (when (util/dbg (Files/exists
+                                       (util/dbg (.resolve root-path (util/dbg p)))
+                                       (into-array
+                                        java.nio.file.LinkOption [])))
+                        p)))
+            (util/dbg)
+            (into #{}))})))
 
 (defn remove-without-cascade-internal
   [c
@@ -234,14 +248,17 @@
                     (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
                                     {:conflicts conflicts})))
                   (let [precautions (config-and-upgrade-precautions
-                                      options
-                                      c
-                                      downloaded-zip
-                                      zip-files)]
+                                     options
+                                     c
+                                     downloaded-zip
+                                     zip-files)]
                     (fs/unpack downloaded-zip root-path
-                               :put-aside (or (:put-aside precautions) {})
-                               :put-aside-ending (str package-name "." package-version ".new")
-                               :exclude (or (:do-nothing precautions) #{}))))
+                               :put-aside (or (:put-aside (util/dbg precautions)) #{})
+                               :put-aside-ending (str "." package-name "." package-version ".new")
+                               :exclude (or
+                                         (:do-nothing precautions)
+                                         #{})
+                               :exclude-sum-pool (:config-sums precautions))))
                 (throw (ex-info (str "Package was not able to be downloaded.")
                                 {})))
               [])]
