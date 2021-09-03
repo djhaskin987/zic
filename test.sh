@@ -356,7 +356,7 @@ test ! -f changes/gone-to-config.changes.0.1.0.backup
 test ! -f changes/gone-to-config.changes.0.2.0.backup
 
 test -f changes/gone-to-config-edited
-test ! -f changes/gone-to-config-edited.changes.0.2.0.new
+test -f changes/gone-to-config-edited.changes.0.2.0.new
 test ! -f changes/gone-to-config-edited.changes.0.2.0.backup
 test ! -f changes/gone-to-config-edited.changes.0.1.0.backup
 test "$(cat changes/gone-to-config-edited)" = "gone to config edited"
@@ -414,7 +414,9 @@ fi
 # Check that if I specify an extra config file, it gets ignored.
 java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \ target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \ add \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'extraconfigfile' \
     --set-package-version 0.1.0 \

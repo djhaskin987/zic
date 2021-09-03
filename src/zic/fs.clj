@@ -1,6 +1,5 @@
 (ns zic.fs
   (:require
-   [zic.util :as util]
    [clj-http.lite.client :as client]
    [clojure.java.io :as io])
   (:import
@@ -267,8 +266,6 @@
                                         put-aside-ending ".new"
                                         exclude {}
                                         exclude-sum-pool {}}}]
-  (util/dbg put-aside)
-
   (let [violations (crc-violations zip-file)]
     (when (seq violations)
       (throw (ex-info "Zip file contains CRC violations."

@@ -1,6 +1,5 @@
 (ns zic.db
   (:require
-   [zic.util :as util]
    [cheshire.core :as json]
    [next.jdbc :as jdbc]))
 
@@ -199,7 +198,7 @@
             (if (contains? config-files path)
               (get file-class-indices :config-file)
               (get file-class-indices :normal-file))]
-        (insert-file! c package-id (util/dbg path) (util/dbg size) (util/dbg file-class-index) (util/dbg checksum))))
+        (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
       (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))
 

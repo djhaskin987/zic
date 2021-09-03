@@ -2,7 +2,6 @@
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
-   [zic.util :as util]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as cset]
@@ -87,10 +86,6 @@
 
 (defn decide-config-fate
   [old current nw]
-  (util/dbg "This is decide-config-fate")
-  (util/dbg old)
-  (util/dbg current)
-  (util/dbg nw)
   (cond
     (nil? current)
     :install
@@ -169,9 +164,7 @@
                  (map (fn [x] [x [(get old-config-sums x)
                                   (get current-checksums x)
                                   (get new-checksums x)]]))
-                 (util/dbg)
                  (group-by #(apply decide-config-fate (second %)))
-                 (util/dbg)
                  (map (fn [[fate sums]]
                         [fate (into #{}
                                     (mapv (fn [[path _]] path) sums))]))
@@ -183,20 +176,15 @@
         (db/remove-files! c exist-pkg-id)
         (assoc config-decisions
                :config-sums contig-config-old-sums)))
-    (do
-      (binding [*out* *err*]
-        (println "second branch"))
-      {:put-aside
-       (->> (get-in (util/dbg package-metadata) [:zic :config-files])
-            (util/dbg)
-            (filter (fn [p]
-                      (when (util/dbg (Files/exists
-                                       (util/dbg (.resolve root-path (util/dbg p)))
-                                       (into-array
-                                        java.nio.file.LinkOption [])))
-                        p)))
-            (util/dbg)
-            (into #{}))})))
+    {:put-aside
+     (->> (get-in package-metadata [:zic :config-files])
+          (filter (fn [p]
+                    (when (Files/exists
+                           (.resolve root-path p)
+                           (into-array
+                            java.nio.file.LinkOption []))
+                      p)))
+          (into #{}))}))
 
 (defn remove-without-cascade-internal
   [c
@@ -258,7 +246,7 @@
                                      downloaded-zip
                                      zip-files)]
                     (fs/unpack downloaded-zip root-path
-                               :put-aside (or (:put-aside (util/dbg precautions)) #{})
+                               :put-aside (or (:put-aside precautions) #{})
                                :put-aside-ending (str "." package-name "." package-version ".new")
                                :exclude (or
                                          (:do-nothing precautions)
