@@ -1,7 +1,8 @@
-(ns zic.package
+(ns package
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
+   [zic.util :as util]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as cset]
@@ -50,6 +51,13 @@
     db-connection-string
     (fn [c]
       (dissoc (db/package-info! c package-name) :id))))
+
+(defn get-package-uses!
+  [{:keys [db-connection-string package-name]}]
+  (session/with-database
+    db-connection-string
+    (fn [c]
+      (dissoc (db/package-uses! c package-name) :id))))
 
 (defn download-package!
   [{:keys [package-name
@@ -186,6 +194,15 @@
                       p)))
           (into #{}))}))
 
+(defn remove-with-cascade-internal
+  [c
+   package-info
+   ^Path
+   root-path]
+  (util/dbg c)
+  (util/dbg package-info)
+  (util/dbg root-path))
+
 (defn remove-without-cascade-internal
   [c
    package-info
@@ -202,6 +219,7 @@
 (defn remove-package!
   [{:keys [package-name
            db-connection-string
+           cascade-removal
            ^Path
            root-path
            ^Path
@@ -211,7 +229,9 @@
     lock-path
     (fn [c]
       (let [package-info (db/package-info! c package-name)]
-        (remove-without-cascade-internal c package-info root-path)))))
+        (if cascade-removal
+          (remove-without-cascade-internal c package-info root-path)
+          (remove-with-cascade-internal c package-info root-path))))))
 
 (defn install-package!
   [{:keys [package-name

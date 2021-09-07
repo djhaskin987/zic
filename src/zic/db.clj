@@ -137,6 +137,25 @@
                         "
                    package-id])))
 
+(defn package-uses-by-name!
+  [c package-name]
+  (let [results (jdbc/execute! c
+                               ["
+                                SELECT package.name AS depender
+                                FROM
+                                  packages:wq
+
+                                INNER JOIN
+                                  
+                                  
+                                WHERE name = ?
+                                "
+                                package-name])]
+    (if (empty? results)
+      nil
+      (deserialize-package
+       (get results 0)))))
+
 (defn package-info!
   [c package-name]
   (let [results (jdbc/execute! c

@@ -16,7 +16,9 @@
   "
   Remove a package from the installation.
   Non-Global Options:
-     package-name:          Name of the package.
+  - `-k <package>`, `--set-package-name <package>`: Set package name of package
+    to be removed.
+    Configuration item: `package-name`
   "
   [options]
   (package/remove-package! options)
@@ -27,12 +29,28 @@
   "
   Add a package to the installation.
   Non-Global Options:
-     package-name:          Name of the package.
-     package-version:       Version of the package.
-     package-location:      URL to the location of the package.
-     package-metadata:      Metadata you wish to associate with the package.
-     package-dependencies:  Unsupported as of yet, but getting there!
-     download-package:      Whether or not to download the package.
+  - `-k <package>`, `--set-package-name <package>`: Set package name.
+    Configuration item: `package-name`
+  - `-V <version>`, `--set-package-version <version>`: Set package version.
+    Configuration item: `package-version`
+  - `-l <URL>`, `--set-package-location <URL>`: Set package location.
+    Configuration item: `package-location`
+  - `-m <JSON>`, `--set-package-metadata <JSON>`: Set package metadata.
+    Configuration item: `package-metadata`
+  - `-u <dependency>`, `--add-package-dependency <dependency>`: Specify a
+    package dependency, or a package that must be present in order for this
+    package to be installed.
+    Configuration item: `package-dependency`
+  - `-w`, `--enable-download-package`: Download the package and install it
+    (the default). This option exists for testing purposes. Actually install
+    (unpack) the zip file and download it, recording that the package is
+    installed. This is the default.
+    Configuration item: `download-package`
+  - `-W`, `--disable-download-package`: Do not download the package and install
+    it; only record that it was installed. This option exists for testing
+    purposes. DO NOT actually install (unpack) the zip file and download it,
+    only record that the package is installed.
+    Configuration item: `download-package`
   "
   [options]
   (package/install-package! options)
@@ -41,8 +59,10 @@
 (defn files!
   "
   Lists the files owned by a particular package.
-
-  package-name:          Name of the package.
+  Non-Global Options:
+  - `-k <package>`, `--set-package-name <package>`: Set package name of files to
+    list.
+    Configuration item: `package-name`
   "
   [options]
   (when (nil? (:package-name options))
@@ -58,7 +78,9 @@
   "
   Print immediate information about a particular package.
   Non-Global Options:
-     package-name:          Name of the package.
+  - `-k <package>`, `--set-package-name <package>`: Set package name for which
+    to get information.
+    Configuration item: `package-name`
   "
   [options]
   (when (nil? (:package-name options))
@@ -74,10 +96,10 @@
 (defn init!
   "
   Initialize database in the start directory.
-  Relevant options:
-
+  Non-Global Options:
   - `-d <path>`, `--set-start-directory <path>`: Set start directory. This
     directory is where the file `.zic.db` will be placed.
+    Configuration item: `start-directory`
   "
 
   [options]
@@ -113,10 +135,21 @@
 
 (defn uses!
   "
-  FIXME
+  Lists the packages that use the package in question.
+  Relevant options:
+
+  - `-k <package>`, `--set-package-name <package>`: Set package name.
   "
-  [_]
-  {:result :noop})
+  [options]
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+
+  (let [result (package/get-package-uses! options)]
+    (if (nil? result)
+      {:result :not-found}
+      {:result :package-found
+       :package-information result})))
 
 (defn verify!
   "
@@ -168,6 +201,9 @@
      "-P" "--add-packages"
       ;; On add
      "-k" "--set-package-name"
+     "-V" "--set-package-version"
+     "-l" "--set-package-location"
+     "-m" "--set-package-metadata"
 
      "-W" "--disable-download-package"
      "-w" "--enable-download-package"}
