@@ -92,6 +92,10 @@
    :file-class (get file-classes (:files/file_class fil) :unknown-file-class)
    :checksum (:files/checksum fil)})
 
+#_(zic.session/with-database
+    "jdbc:sqlite:.zic.db"
+    (fn [c] (get-package-id! c "w")))
+
 (defn get-package-id!
   [c package-name]
   (:packages/id (jdbc/execute-one!
@@ -186,11 +190,25 @@
     file-class-index
     checksum]))
 
+(defn insert-use!
+  [c depender-id dependee-id]
+  (jdbc/execute!
+   c
+   ["
+        INSERT INTO uses
+        (depender, dependee)
+        VALUES
+        (?,?)
+    "
+    depender-id
+    dependee-id]))
+
 (defn add-package!
   [c {:keys [package-name
              package-version
              package-location
-             package-metadata]}
+             package-metadata
+             package-dependencies]}
    package-files]
                   ;; I know, I know, don't hate me
   (let [serialized-metadata (serialize-metadata package-metadata)]
@@ -219,7 +237,9 @@
               (get file-class-indices :normal-file))]
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
-      (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))
+      (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))
+    (doseq [dep package-dependencies]
+      (insert-use! c package-id (get-package-id! c dep)))))
 
 (defn remove-package!
   [c package-id]

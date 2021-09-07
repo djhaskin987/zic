@@ -237,6 +237,7 @@
   [{:keys [package-name
            package-version
            package-metadata
+           package-dependencies
            download-package
            db-connection-string
            ^Path
@@ -248,34 +249,40 @@
     db-connection-string
     lock-path
     (fn [c]
-      (let [package-files
-            (if download-package
-              (if-let [downloaded-zip
-                       (download-package! options)]
-                (let [zip-files (fs/archive-contents downloaded-zip)
-                      new-files (into
-                                 zip-files
-                                 (map (fn [gf] {:path gf :is-directory false})
-                                      (get-in package-metadata [:zic :ghost-files])))]
-                  (when-let [conflicts (package-file-conflicts c package-name new-files)]
-                    (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
-                                    {:conflicts conflicts})))
-                  (let [precautions (config-and-upgrade-precautions
-                                     options
-                                     c
-                                     downloaded-zip
-                                     zip-files)]
-                    (fs/unpack downloaded-zip root-path
-                               :put-aside (or (:put-aside precautions) #{})
-                               :put-aside-ending (str "." package-name "." package-version ".new")
-                               :exclude (or
-                                         (:do-nothing precautions)
-                                         #{})
-                               :exclude-sum-pool (:config-sums precautions))))
-                (throw (ex-info (str "Package was not able to be downloaded.")
-                                {})))
-              [])]
-        (db/add-package!
-         c
-         options
-         package-files)))))
+      (if-let [unmet-dependencies
+               (->> package-dependencies
+                    (map (fn [d] [d (db/get-package-id! c d)]))
+                    (filter (fn [[d did]] (when (nil? did) d))))]
+        (throw (ex-info "Several dependencies are unmet."
+                        {:unmet-dependencies unmet-dependencies}))
+        (let [package-files
+              (if download-package
+                (if-let [downloaded-zip
+                         (download-package! options)]
+                  (let [zip-files (fs/archive-contents downloaded-zip)
+                        new-files (into
+                                   zip-files
+                                   (map (fn [gf] {:path gf :is-directory false})
+                                        (get-in package-metadata [:zic :ghost-files])))]
+                    (when-let [conflicts (package-file-conflicts c package-name new-files)]
+                      (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
+                                      {:conflicts conflicts})))
+                    (let [precautions (config-and-upgrade-precautions
+                                       options
+                                       c
+                                       downloaded-zip
+                                       zip-files)]
+                      (fs/unpack downloaded-zip root-path
+                                 :put-aside (or (:put-aside precautions) #{})
+                                 :put-aside-ending (str "." package-name "." package-version ".new")
+                                 :exclude (or
+                                           (:do-nothing precautions)
+                                           #{})
+                                 :exclude-sum-pool (:config-sums precautions))))
+                  (throw (ex-info (str "Package was not able to be downloaded.")
+                                  {})))
+                [])]
+          (db/add-package!
+           c
+           options
+           package-files))))))

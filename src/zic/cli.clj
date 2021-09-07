@@ -140,16 +140,8 @@
 
   - `-k <package>`, `--set-package-name <package>`: Set package name.
   "
-  [options]
-  (when (nil? (:package-name options))
-    (throw (ex-info "Package name (`package-name`) option needs to be specified."
-                    {:missing-argument :package-name})))
-
-  (let [result (package/get-package-uses! options)]
-    (if (nil? result)
-      {:result :not-found}
-      {:result :package-found
-       :package-information result})))
+  [_]
+  {:result :noop})
 
 (defn verify!
   "
