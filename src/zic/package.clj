@@ -52,12 +52,19 @@
     (fn [c]
       (dissoc (db/package-info! c package-name) :id))))
 
-(defn get-package-uses!
+(defn get-package-dependees!
   [{:keys [db-connection-string package-name]}]
   (session/with-database
     db-connection-string
     (fn [c]
-      (dissoc (db/package-uses! c package-name) :id))))
+      (db/package-dependees! c package-name))))
+
+(defn get-package-dependers!
+  [{:keys [db-connection-string package-name]}]
+  (session/with-database
+    db-connection-string
+    (fn [c]
+      (db/package-dependers! c package-name))))
 
 (defn download-package!
   [{:keys [package-name
@@ -182,6 +189,7 @@
         (fs/backup-all! root-path incontig-configs (str package-name "." exist-pkg-vers ".backup"))
         (fs/remove-files! root-path (map :path (:normal-file old-files)))
         (db/remove-files! c exist-pkg-id)
+        (db/remove-uses! c exist-pkg-id)
         (assoc config-decisions
                :config-sums contig-config-old-sums)))
     {:put-aside
@@ -249,40 +257,45 @@
     db-connection-string
     lock-path
     (fn [c]
-      (if-let [unmet-dependencies
-               (->> package-dependencies
-                    (map (fn [d] [d (db/get-package-id! c d)]))
-                    (filter (fn [[d did]] (when (nil? did) d))))]
-        (throw (ex-info "Several dependencies are unmet."
-                        {:unmet-dependencies unmet-dependencies}))
-        (let [package-files
-              (if download-package
-                (if-let [downloaded-zip
-                         (download-package! options)]
-                  (let [zip-files (fs/archive-contents downloaded-zip)
-                        new-files (into
-                                   zip-files
-                                   (map (fn [gf] {:path gf :is-directory false})
-                                        (get-in package-metadata [:zic :ghost-files])))]
-                    (when-let [conflicts (package-file-conflicts c package-name new-files)]
-                      (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
-                                      {:conflicts conflicts})))
-                    (let [precautions (config-and-upgrade-precautions
-                                       options
-                                       c
-                                       downloaded-zip
-                                       zip-files)]
-                      (fs/unpack downloaded-zip root-path
-                                 :put-aside (or (:put-aside precautions) #{})
-                                 :put-aside-ending (str "." package-name "." package-version ".new")
-                                 :exclude (or
-                                           (:do-nothing precautions)
-                                           #{})
-                                 :exclude-sum-pool (:config-sums precautions))))
-                  (throw (ex-info (str "Package was not able to be downloaded.")
-                                  {})))
-                [])]
-          (db/add-package!
-           c
-           options
-           package-files))))))
+      (let [dependencies-status
+            (->> package-dependencies
+                 (map (fn [d] [d (db/get-package-id! c d)]))
+                 (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
+        (if (seq (:unmet dependencies-status))
+          (throw (ex-info "Several dependencies are unmet."
+                          {:unmet-dependencies
+                           (map (fn [[d _]] d)
+                                (:unmet dependencies-status))}))
+          (let [package-files
+                (if download-package
+                  (if-let [downloaded-zip
+                           (download-package! options)]
+                    (let [zip-files (fs/archive-contents downloaded-zip)
+                          new-files (into
+                                     zip-files
+                                     (map (fn [gf] {:path gf :is-directory false})
+                                          (get-in package-metadata [:zic :ghost-files])))]
+                      (when-let [conflicts (package-file-conflicts c package-name new-files)]
+                        (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
+                                        {:conflicts conflicts})))
+                      (let [precautions (config-and-upgrade-precautions
+                                         options
+                                         c
+                                         downloaded-zip
+                                         zip-files)]
+                        (fs/unpack downloaded-zip root-path
+                                   :put-aside (or (:put-aside precautions) #{})
+                                   :put-aside-ending (str "." package-name "." package-version ".new")
+                                   :exclude (or
+                                             (:do-nothing precautions)
+                                             #{})
+                                   :exclude-sum-pool (:config-sums precautions))))
+                    (throw (ex-info (str "Package was not able to be downloaded.")
+                                    {})))
+                  [])]
+            (db/add-package!
+             c
+             options
+             package-files
+             (map (fn [[_ id]] id)
+                  (:met dependencies-status)))))))))

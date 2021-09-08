@@ -141,24 +141,49 @@
                         "
                    package-id])))
 
-(defn package-uses-by-name!
+(defn package-dependers!
   [c package-name]
-  (let [results (jdbc/execute! c
-                               ["
-                                SELECT package.name AS depender
-                                FROM
-                                  packages:wq
+  (map
+   :dependers/name
+   (jdbc/execute! c
+                  ["
+                        SELECT dependers.name
+                        FROM
+                          packages AS dependers
+                        INNER JOIN
+                          uses
+                        ON
+                          uses.depender = dependers.id
+                        INNER JOIN
+                          packages AS dependees
+                        ON
+                          uses.dependee = dependees.id
+                        WHERE
+                          dependees.name = ?
+                        "
+                   package-name])))
 
-                                INNER JOIN
-                                  
-                                  
-                                WHERE name = ?
-                                "
-                                package-name])]
-    (if (empty? results)
-      nil
-      (deserialize-package
-       (get results 0)))))
+(defn package-dependees!
+  [c package-name]
+  (map
+   :dependees/name
+   (jdbc/execute! c
+                  ["
+                        SELECT dependees.name
+                        FROM
+                          packages AS dependers
+                        INNER JOIN
+                          uses
+                        ON
+                          uses.depender = dependers.id
+                        INNER JOIN
+                          packages AS dependees
+                        ON
+                          uses.dependee = dependees.id
+                        WHERE
+                          dependers.name = ?
+                        "
+                   package-name])))
 
 (defn package-info!
   [c package-name]
@@ -207,9 +232,9 @@
   [c {:keys [package-name
              package-version
              package-location
-             package-metadata
-             package-dependencies]}
-   package-files]
+             package-metadata]}
+   package-files
+   dependency-ids]
                   ;; I know, I know, don't hate me
   (let [serialized-metadata (serialize-metadata package-metadata)]
     (jdbc/execute! c
@@ -238,8 +263,8 @@
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
       (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))
-    (doseq [dep package-dependencies]
-      (insert-use! c package-id (get-package-id! c dep)))))
+    (doseq [depid dependency-ids]
+      (insert-use! c package-id depid))))
 
 (defn remove-package!
   [c package-id]
@@ -263,5 +288,17 @@
                     files
                   WHERE
                     files.pid = ?
+                  "
+                  package-id]))
+
+(defn remove-uses!
+  [c package-id]
+  (jdbc/execute! c
+                 ["
+                  DELETE
+                  FROM
+                    uses
+                  WHERE
+                    uses.depender = ?
                   "
                   package-id]))

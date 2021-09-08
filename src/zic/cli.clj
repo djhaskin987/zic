@@ -93,6 +93,44 @@
       {:result :package-found
        :package-information result})))
 
+(defn dependers!
+  "
+  Print immediate information about a particular package.
+  Non-Global Options:
+  - `-k <package>`, `--set-package-name <package>`: Set package name for which
+    to get information.
+    Configuration item: `package-name`
+  "
+  [options]
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+
+  (let [result (package/get-package-dependers! options)]
+    (if (nil? result)
+      {:result :not-found}
+      {:result :package-found
+       :package-dependers result})))
+
+(defn dependees!
+  "
+  Print immediate information about a particular package.
+  Non-Global Options:
+  - `-k <package>`, `--set-package-name <package>`: Set package name for which
+    to get information.
+    Configuration item: `package-name`
+  "
+  [options]
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+
+  (let [result (package/get-package-dependees! options)]
+    (if (nil? result)
+      {:result :not-found}
+      {:result :package-found
+       :package-dependees result})))
+
 (defn init!
   "
   Initialize database in the start directory.
@@ -181,8 +219,8 @@
      ["list"] 'zic.cli/list!
      ["orphans"] 'zic.cli/orphans!
      ["remove"] 'zic.cli/remove!
-     ["used"] 'zic.cli/used!
-     ["uses"] 'zic.cli/uses!
+     ["dependers"] 'zic.cli/dependers!
+     ["dependees"] 'zic.cli/dependees!
      ["verify"] 'zic.cli/verify!}
     :cli-aliases
     {;; Global
