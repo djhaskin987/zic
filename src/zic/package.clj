@@ -1,4 +1,4 @@
-(ns package
+(ns zic.package
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
