@@ -64,7 +64,6 @@ java -jar \
     --set-package-version 0.1.0 \
     --set-package-location "https://djhaskin987.me:8443/a.zip" \
     --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
-    -u 'b' \
     -u 'c'
 
 java -jar \
@@ -91,6 +90,41 @@ java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     dependees \
     -k 'b'
+
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    dependees \
+    -k 'a'
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.2.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b'
+
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    dependees \
+    -k 'a'
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.3.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b' \
+    -u 'c'
 
 java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
