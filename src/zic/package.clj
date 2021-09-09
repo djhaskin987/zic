@@ -245,7 +245,7 @@
   [{:keys [package-name
            package-version
            package-metadata
-           package-dependencies
+           package-dependency
            download-package
            db-connection-string
            ^Path
@@ -258,7 +258,7 @@
     lock-path
     (fn [c]
       (let [dependencies-status
-            (->> package-dependencies
+            (->> package-dependency
                  (map (fn [d] [d (db/get-package-id! c d)]))
                  (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
         (if (seq (:unmet dependencies-status))

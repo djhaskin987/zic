@@ -164,23 +164,6 @@
   [_]
   {:result :noop})
 
-(defn used!
-  "
-  FIXME
-  "
-  [_]
-  {:result :noop})
-
-(defn uses!
-  "
-  Lists the packages that use the package in question.
-  Relevant options:
-
-  - `-k <package>`, `--set-package-name <package>`: Set package name.
-  "
-  [_]
-  {:result :noop})
-
 (defn verify!
   "
   Verifies the files on the file system for a given package.
@@ -234,6 +217,7 @@
      "-V" "--set-package-version"
      "-l" "--set-package-location"
      "-m" "--set-package-metadata"
+     "-u" "--add-package-dependency"
 
      "-W" "--disable-download-package"
      "-w" "--enable-download-package"}

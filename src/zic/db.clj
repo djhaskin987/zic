@@ -144,7 +144,7 @@
 (defn package-dependers!
   [c package-name]
   (map
-   :dependers/name
+   :packages/name
    (jdbc/execute! c
                   ["
                         SELECT dependers.name
@@ -166,7 +166,7 @@
 (defn package-dependees!
   [c package-name]
   (map
-   :dependees/name
+   :packages/name
    (jdbc/execute! c
                   ["
                         SELECT dependees.name
