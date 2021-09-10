@@ -141,6 +141,20 @@
                         "
                    package-id])))
 
+(defn dependers-by-id!
+  [c pkg-id]
+  (map :uses/depender
+       (jdbc/execute! c
+                      ["
+                    SELECT
+                      uses.depender
+                    FROM
+                      uses
+                    WHERE
+                      uses.dependee = ?
+                    "
+                       pkg-id])))
+
 (defn package-dependers!
   [c package-name]
   (map
@@ -184,6 +198,20 @@
                           dependers.name = ?
                         "
                    package-name])))
+
+(defn package-info-by-id!
+  [c pkg-id]
+  (let [results (jdbc/execute! c
+                               ["
+                                SELECT id, name, version, location, metadata
+                                FROM packages
+                                WHERE id = ?
+                                "
+                                pkg-id])]
+    (if (empty? results)
+      nil
+      (deserialize-package
+       (get results 0)))))
 
 (defn package-info!
   [c package-name]

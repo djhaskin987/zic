@@ -202,11 +202,114 @@
                       p)))
           (into #{}))}))
 
+
+(defn reachable-nodes
+  [graph
+    node
+    already-seen]
+  (if (get already-seen node)
+    already-seen
+    (reduce
+      (fn [c v]
+        (reachable-nodes
+          graph
+          v
+          c))
+      (conj already-seen node)
+      (get graph node))))
+
+(defn sinks
+  [rnodes
+   graph]
+  (filter (fn [x] (empty? (get graph x))) rnodes))
+
+(defn linearize
+  [graph
+   node]
+  (loop [grph graph
+         building []]
+    (let [rnodes (reachable-node grph node #{})
+          snodes (sinks rnodes grph)]
+      (recur (reduce dissoc grph snodes)
+             (into building snodes)))))
+
+(defn linearize-graph
+  [
+   origins
+   node
+   already-seen
+   already-processed
+   ]
+    (let [mostly
+          (reduce
+    (fn [linearized new-node]
+      (if (or
+            (get linearized new-node) 
+            (get already-seen new-node)) 
+        linearized
+        (linearize-graph 
+          origins
+          new-node
+          (conj already-seen new-node)
+          linearized)
+      ))
+    already-processed
+    (origins node))]
+      (assoc mostly node (count mostly))))
+
+  (reachable-nodes 
+  (fn [node]
+   (get {:c [:a :b]
+         :m [:n :o :p]
+         :n []
+         :o []
+         :p []
+         :u [:v :w :x]
+         :v []
+         :w []
+        :b [:a :d]
+        :d [:e]
+        :e []
+        :a [:u]} node))
+  :c #{})
+
+
+
 (defn remove-with-cascade-internal
   [c
    package-info
    ^Path
-   root-path]
+   root-path
+   removal-parents
+   removed-so-far]
+  (reduce
+   (fn [removed-so-far next-pkg-id]
+        (if
+          (and
+            (not
+              (get removed-so-far next-pkg-id))
+            (not
+              (get removal-parents next-pkg-id)))
+          (remove-with-cascade-internal
+        c
+        (db/package-info-by-id! next-pkg-id)
+        root-path
+        (conj removed-so-far (:id package-info)))
+
+
+  (doseq [depender-id (db/dependers-by-id! c (:id package-info))]
+    (when (not (get already-seen depender-id))
+      ))
+  (remove-without-cascade-internal
+    c
+    (db/package-info-by-id! (:id package-info depender-id))
+    root-path))
+
+
+
+  (remove-with-casca
+    (remove-with-cascade-internal 
+      (
   (util/dbg c)
   (util/dbg package-info)
   (util/dbg root-path))
