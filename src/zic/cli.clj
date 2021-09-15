@@ -19,6 +19,12 @@
   - `-k <package>`, `--set-package-name <package>`: Set package name of package
     to be removed.
     Configuration item: `package-name`
+  - `-c`, `--enable-cascade-removal`: Enable removal of this package and all
+    packages which depend on it. This is the default.
+    Configuration item: `cascade-removal`
+  - `-C`, `--disable-cascade-removal`: Disable removal of this package and all
+    packages which depend on it.
+    Configuration item: `cascade-removal`
   "
   [options]
   (package/remove-package! options)
@@ -208,8 +214,6 @@
     :cli-aliases
     {;; Global
      "-d" "--set-start-directory"
-      ;; On install
-     "-g" "--file-install-graph"
       ;; On remove
      "-P" "--add-packages"
       ;; On add
@@ -218,12 +222,16 @@
      "-l" "--set-package-location"
      "-m" "--set-package-metadata"
      "-u" "--add-package-dependency"
+     ;; On remove
+     "-c" "--enable-cascade-removal"
+     "-C" "--disable-cascade-removal"
 
      "-W" "--disable-download-package"
      "-w" "--enable-download-package"}
 
     :defaults
     {:start-directory (System/getProperty "user.dir")
+     :cascade-removal true
      :download-package true}
     :setup
     (fn [options]

@@ -2,7 +2,6 @@
   (:require
    [zic.db :as db]
    [zic.fs :as fs]
-   [zic.util :as util]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as cset]
@@ -144,8 +143,6 @@
   (if-let [{exist-pkg-id :id
             exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
-      (binding [*out* *err*]
-        (println "first branch"))
       (let [vercmp-result (serovers/debian-vercmp
                            exist-pkg-vers package-version)]
         (when (= vercmp-result 0)
@@ -202,117 +199,77 @@
                       p)))
           (into #{}))}))
 
-
 (defn reachable-nodes
-  [graph
-    node
-    already-seen]
+  "
+  Find all the reachable nodes in a graph.
+  `gf` is a function returning a seq of node names
+  reachable from the node name it takes as its first argument.
+  The value `ignore` is a set of nodes which should be
+  ignored in the graph, they 'do not exist' for this run.
+  "
+  [gf
+   node
+   already-seen
+   ignore]
   (if (get already-seen node)
     already-seen
     (reduce
-      (fn [c v]
-        (reachable-nodes
-          graph
-          v
-          c))
-      (conj already-seen node)
-      (get graph node))))
+     (fn [c v]
+       (reachable-nodes
+        gf
+        v
+        c
+        ignore))
+     (conj already-seen node)
+     (remove ignore (gf node)))))
 
 (defn sinks
+  "
+  Find the sinks in a graph, relative to a set of nodes in consideration
+  (`rnodes`).
+  `gf` is a function returning a seq of node names
+  reachable from node `x`.
+  The value `ignore` is a set of nodes which should be
+  ignored in the graph, they 'do not exist' for this run.
+  "
   [rnodes
-   graph]
-  (filter (fn [x] (empty? (get graph x))) rnodes))
+   gf
+   ignore]
+  (filter (fn [x] (empty? (remove
+                           ignore
+                           (gf x)))) rnodes))
 
 (defn linearize
-  [graph
+  "
+  Linearize a subset of a graph which is reachable from `node`.
+  `gf `is a function returning a seq of node names
+  reachable from the node name given as its argument.
+  This function linearizes a graph in a specific way, designed
+  for linearizing a dependency tree.
+  It finds all the sinks in the reachable nodes and puts them first
+  in the linearization, followed by all the sinks in the reachable nodes
+  with them ignored, etc. This makes sure that all the packages
+  that don't have any dependers are deleted first, followed by those packages
+  that are their immediate dependers which themselves don't have any other
+  dependers, etc.
+  "
+  [gf
    node]
-  (loop [grph graph
+  (loop [ignore #{}
          building []]
-    (let [rnodes (reachable-node grph node #{})
-          snodes (sinks rnodes grph)]
-      (recur (reduce dissoc grph snodes)
-             (into building snodes)))))
-
-(defn linearize-graph
-  [
-   origins
-   node
-   already-seen
-   already-processed
-   ]
-    (let [mostly
-          (reduce
-    (fn [linearized new-node]
-      (if (or
-            (get linearized new-node) 
-            (get already-seen new-node)) 
-        linearized
-        (linearize-graph 
-          origins
-          new-node
-          (conj already-seen new-node)
-          linearized)
-      ))
-    already-processed
-    (origins node))]
-      (assoc mostly node (count mostly))))
-
-  (reachable-nodes 
-  (fn [node]
-   (get {:c [:a :b]
-         :m [:n :o :p]
-         :n []
-         :o []
-         :p []
-         :u [:v :w :x]
-         :v []
-         :w []
-        :b [:a :d]
-        :d [:e]
-        :e []
-        :a [:u]} node))
-  :c #{})
-
-
-
-(defn remove-with-cascade-internal
-  [c
-   package-info
-   ^Path
-   root-path
-   removal-parents
-   removed-so-far]
-  (reduce
-   (fn [removed-so-far next-pkg-id]
-        (if
-          (and
-            (not
-              (get removed-so-far next-pkg-id))
-            (not
-              (get removal-parents next-pkg-id)))
-          (remove-with-cascade-internal
-        c
-        (db/package-info-by-id! next-pkg-id)
-        root-path
-        (conj removed-so-far (:id package-info)))
-
-
-  (doseq [depender-id (db/dependers-by-id! c (:id package-info))]
-    (when (not (get already-seen depender-id))
-      ))
-  (remove-without-cascade-internal
-    c
-    (db/package-info-by-id! (:id package-info depender-id))
-    root-path))
-
-
-
-  (remove-with-casca
-    (remove-with-cascade-internal 
-      (
-  (util/dbg c)
-  (util/dbg package-info)
-  (util/dbg root-path))
+    (let [rnodes (reachable-nodes gf node #{} ignore)]
+      (if (and (= (count rnodes) 1)
+               (get rnodes node))
+        (conj building node)
+        (let [snodes (sinks rnodes gf ignore)]
+          (if (empty? snodes)
+            ;; Cycle detected. Basically, just add all the nodes at that point.
+            ;; They all gotta go, and I can't tell which ones to delete first,
+            ;; so I'm just gonna delete 'em all. Sue me.
+            (into building (sort rnodes))
+            (recur
+             (into ignore snodes)
+             (into building (sort snodes)))))))))
 
 (defn remove-without-cascade-internal
   [c
@@ -326,6 +283,20 @@
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
     (db/remove-files! c (:id package-info))
     (db/remove-package! c (:id package-info))))
+
+(defn remove-with-cascade-internal
+  [c
+   package-info
+   ^Path
+   root-path]
+  (doseq [pkgid (linearize
+                 (fn [pid]
+                   (db/dependers-by-id! c pid))
+                 (:id package-info))]
+    (remove-without-cascade-internal
+     c
+     (db/package-info-by-id! c pkgid)
+     root-path)))
 
 (defn remove-package!
   [{:keys [package-name
@@ -341,8 +312,8 @@
     (fn [c]
       (let [package-info (db/package-info! c package-name)]
         (if cascade-removal
-          (remove-without-cascade-internal c package-info root-path)
-          (remove-with-cascade-internal c package-info root-path))))))
+          (remove-with-cascade-internal c package-info root-path)
+          (remove-without-cascade-internal c package-info root-path))))))
 
 (defn install-package!
   [{:keys [package-name

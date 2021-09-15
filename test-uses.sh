@@ -135,3 +135,16 @@ java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     dependees \
     -k 'nonexistent'
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.3.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b' \
+    -u 'c'
