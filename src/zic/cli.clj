@@ -20,15 +20,30 @@
     to be removed.
     Configuration item: `package-name`
   - `-c`, `--enable-cascade-removal`: Enable removal of this package and all
-    packages which depend on it. This is the default.
-    Configuration item: `cascade-removal`
-  - `-C`, `--disable-cascade-removal`: Disable removal of this package and all
     packages which depend on it.
     Configuration item: `cascade-removal`
+  - `-C`, `--disable-cascade-removal`: Disable removal of this package and all
+    packages which depend on it. This is the default.
+    Configuration item: `cascade-removal`
+  - `-f`, `--enable-force-execution`: Enable force. For this command, that means
+    the removal will happen regardless of whether `cascade-removal` has been
+    enabled, or even if dependant packages exist.
+    Configuration item: `force-execution`
+  - `-F`, `--disable-force-execution`: Disable force. For this command, that means
+    the removal will only happen if either `cascade-removal` is enabled or
+    there are no dependant packages on the package in question. This is
+    the default.
+    Configuration item: `force-execution`
+  - `-r`, `--enable-dry-run`: Enable dry run. Do not actually remove anything, just
+    pretend to (presumably to see what packages *would* have been removed if the
+    command were run without this option).
+    Configuration item: `dry-run`
+  - `-R`, `--disable-dry-run`: Disable dry run. Ensures that packages are actually
+    removed. This is the default.
+    Configuration item: `dry-run`
   "
   [options]
-  (package/remove-package! options)
-  {:result :successful})
+  (package/remove-package! options))
 
 (defn
   add!
@@ -225,13 +240,18 @@
      ;; On remove
      "-c" "--enable-cascade-removal"
      "-C" "--disable-cascade-removal"
-
+     "-f" "--enable-force-execution"
+     "-F" "--disable-force-execution"
+     "-r" "--enable-dry-run"
+     "-R" "--disable-dry-run"
      "-W" "--disable-download-package"
      "-w" "--enable-download-package"}
 
     :defaults
     {:start-directory (System/getProperty "user.dir")
-     :cascade-removal true
+     :cascade-removal false
+     :force-execution false
+     :dry-run false
      :download-package true}
     :setup
     (fn [options]

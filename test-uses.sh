@@ -140,7 +140,7 @@ java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    add \
+    remove \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
     --set-package-version 0.3.0 \

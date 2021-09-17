@@ -284,24 +284,12 @@
     (db/remove-files! c (:id package-info))
     (db/remove-package! c (:id package-info))))
 
-(defn remove-with-cascade-internal
-  [c
-   package-info
-   ^Path
-   root-path]
-  (doseq [pkgid (linearize
-                 (fn [pid]
-                   (db/dependers-by-id! c pid))
-                 (:id package-info))]
-    (remove-without-cascade-internal
-     c
-     (db/package-info-by-id! c pkgid)
-     root-path)))
-
 (defn remove-package!
   [{:keys [package-name
            db-connection-string
            cascade-removal
+           force-execution
+           dry-run
            ^Path
            root-path
            ^Path
@@ -310,10 +298,39 @@
     db-connection-string
     lock-path
     (fn [c]
-      (let [package-info (db/package-info! c package-name)]
-        (if cascade-removal
-          (remove-with-cascade-internal c package-info root-path)
-          (remove-without-cascade-internal c package-info root-path))))))
+      (if-let [package-info (db/package-info! c package-name)]
+        (let [remove-packages
+              (map
+               (fn [i]
+                 (db/package-info-by-id! c i))
+               (linearize
+                (fn [pid]
+                  (db/dependers-by-id! c pid))
+                (:id package-info)))]
+          (if cascade-removal
+            (do
+              (when (not dry-run)
+                (doseq [pkg remove-packages]
+                  (remove-without-cascade-internal
+                   c
+                   (:name pkg)
+                   root-path)))
+              {:result :package-found
+               :dry-run dry-run
+               :removed-packages
+               (into [] (map (fn [i] (dissoc i :id)) remove-packages))})
+            (if (or (= (count remove-packages) 1)
+                    force-execution)
+              (do
+                (when (not dry-run)
+                  (remove-without-cascade-internal c package-info root-path))
+                {:result :package-found
+                 :dry-run dry-run
+                 :removed-packages [(dissoc package-info :id)]})
+              (throw (ex-info "Dependant packages exist, cannot remove."
+                              {:enqueued-for-removal
+                               remove-packages})))))
+        {:result :not-found}))))
 
 (defn install-package!
   [{:keys [package-name
