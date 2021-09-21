@@ -17,33 +17,41 @@
   Remove a package from the installation.
   Non-Global Options:
   - `-k <package>`, `--set-package-name <package>`: Set package name of package
-    to be removed.
+    to be removed. This information is required.
     Configuration item: `package-name`
   - `-c`, `--enable-cascade-removal`: Enable removal of this package and all
     packages which depend on it.
     Configuration item: `cascade-removal`
   - `-C`, `--disable-cascade-removal`: Disable removal of this package and all
-    packages which depend on it. This is the default.
+    packages which depend on it. This is the default behavior.
     Configuration item: `cascade-removal`
-  - `-f`, `--enable-force-execution`: Enable force. For this command, that means
-    the removal will happen regardless of whether `cascade-removal` has been
-    enabled, or even if dependant packages exist.
-    Configuration item: `force-execution`
-  - `-F`, `--disable-force-execution`: Disable force. For this command, that means
-    the removal will only happen if either `cascade-removal` is enabled or
-    there are no dependant packages on the package in question. This is
-    the default.
-    Configuration item: `force-execution`
-  - `-r`, `--enable-dry-run`: Enable dry run. Do not actually remove anything, just
-    pretend to (presumably to see what packages *would* have been removed if the
-    command were run without this option).
+  - `-f`, `--enable-forced-execution`: Enable forced execution. For this
+    command, that means the removal will happen regardless of whether
+    `cascade-removal` has been enabled, or even if dependant packages exist.
+    Configuration item: `forced-execution`
+  - `-F`, `--disable-forced-execution`: Disable forced execution. For this
+    command, that means the removal will only happen if either
+    `cascade-removal` is enabled or there are no dependant packages on the
+    package in question. This is the default behavior.
+    Configuration item: `forced-execution`
+  - `-r`, `--enable-dry-run`: Enable dry run. Do not actually remove anything,
+    just pretend to do so (presumably to see what packages *would* have been
+    removed if the command were run without this option).
     Configuration item: `dry-run`
-  - `-R`, `--disable-dry-run`: Disable dry run. Ensures that packages are actually
-    removed. This is the default.
+  - `-R`, `--disable-dry-run`: Disable dry run. Ensures that packages are
+    actually removed. This is the default behavior.
     Configuration item: `dry-run`
   "
   [options]
-  (package/remove-package! options))
+  (when (nil? (:package-name options))
+    (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                    {:missing-argument :package-name})))
+  (let [result (package/remove-package! options)]
+    (if (nil? result)
+      {:result :not-found}
+      {:result :package-found
+       :dry-run (:dry-run options)
+       :removed-packages result})))
 
 (defn
   add!
@@ -51,21 +59,25 @@
   Add a package to the installation.
   Non-Global Options:
   - `-k <package>`, `--set-package-name <package>`: Set package name.
+    This information is required in order to run.
     Configuration item: `package-name`
   - `-V <version>`, `--set-package-version <version>`: Set package version.
+    This information is required in order to run.
     Configuration item: `package-version`
   - `-l <URL>`, `--set-package-location <URL>`: Set package location.
+    This information is required in order to run, unless `download-package` is
+    set to false (disabled).
     Configuration item: `package-location`
-  - `-m <JSON>`, `--set-package-metadata <JSON>`: Set package metadata.
+  - `-m <JSON>`, `--set-package-metadata <JSON>`: Set optional package metadata.
     Configuration item: `package-metadata`
   - `-u <dependency>`, `--add-package-dependency <dependency>`: Specify a
     package dependency, or a package that must be present in order for this
     package to be installed.
     Configuration item: `package-dependency`
-  - `-w`, `--enable-download-package`: Download the package and install it
-    (the default). This option exists for testing purposes. Actually install
-    (unpack) the zip file and download it, recording that the package is
-    installed. This is the default.
+  - `-w`, `--enable-download-package`: Download the package and install it.
+    This is the default behavior. This option exists for testing purposes.
+    Actually install (unpack) the zip file and download it, recording that the
+    package is installed. This is the default behavior.
     Configuration item: `download-package`
   - `-W`, `--disable-download-package`: Do not download the package and install
     it; only record that it was installed. This option exists for testing
@@ -82,7 +94,7 @@
   Lists the files owned by a particular package.
   Non-Global Options:
   - `-k <package>`, `--set-package-name <package>`: Set package name of files to
-    list.
+    list. This information is required in order to run.
     Configuration item: `package-name`
   "
   [options]
@@ -100,7 +112,7 @@
   Print immediate information about a particular package.
   Non-Global Options:
   - `-k <package>`, `--set-package-name <package>`: Set package name for which
-    to get information.
+    to get information. This information is required in order to run.
     Configuration item: `package-name`
   "
   [options]
@@ -119,7 +131,7 @@
   Print immediate information about a particular package.
   Non-Global Options:
   - `-k <package>`, `--set-package-name <package>`: Set package name for which
-    to get information.
+    to get information. This information is required in order to run.
     Configuration item: `package-name`
   "
   [options]
@@ -138,7 +150,7 @@
   Print immediate information about a particular package.
   Non-Global Options:
   - `-k <package>`, `--set-package-name <package>`: Set package name for which
-    to get information.
+    to get information. This information is required in order to run.
     Configuration item: `package-name`
   "
   [options]
@@ -157,7 +169,8 @@
   Initialize database in the start directory.
   Non-Global Options:
   - `-d <path>`, `--set-start-directory <path>`: Set start directory. This
-    directory is where the file `.zic.db` will be placed.
+    directory is where the file `.zic.db` will be placed. The default path
+    if no start directory is given is the present working directory.
     Configuration item: `start-directory`
   "
 
@@ -240,8 +253,8 @@
      ;; On remove
      "-c" "--enable-cascade-removal"
      "-C" "--disable-cascade-removal"
-     "-f" "--enable-force-execution"
-     "-F" "--disable-force-execution"
+     "-f" "--enable-forced-execution"
+     "-F" "--disable-forced-execution"
      "-r" "--enable-dry-run"
      "-R" "--disable-dry-run"
      "-W" "--disable-download-package"
@@ -250,7 +263,7 @@
     :defaults
     {:start-directory (System/getProperty "user.dir")
      :cascade-removal false
-     :force-execution false
+     :forced-execution false
      :dry-run false
      :download-package true}
     :setup

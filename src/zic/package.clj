@@ -288,7 +288,7 @@
   [{:keys [package-name
            db-connection-string
            cascade-removal
-           force-execution
+           forced-execution
            dry-run
            ^Path
            root-path
@@ -298,7 +298,7 @@
     db-connection-string
     lock-path
     (fn [c]
-      (if-let [package-info (db/package-info! c package-name)]
+      (when-let [package-info (db/package-info! c package-name)]
         (let [remove-packages
               (map
                (fn [i]
@@ -315,22 +315,19 @@
                    c
                    (:name pkg)
                    root-path)))
-              {:result :package-found
-               :dry-run dry-run
-               :removed-packages
-               (into [] (map (fn [i] (dissoc i :id)) remove-packages))})
+              (into [] (map (fn [i] (dissoc i :id)) remove-packages)))
             (if (or (= (count remove-packages) 1)
-                    force-execution)
+                    forced-execution)
               (do
                 (when (not dry-run)
-                  (remove-without-cascade-internal c package-info root-path))
-                {:result :package-found
-                 :dry-run dry-run
-                 :removed-packages [(dissoc package-info :id)]})
+                  (remove-without-cascade-internal
+                   c
+                   package-info
+                   root-path))
+                [(dissoc package-info :id)])
               (throw (ex-info "Dependant packages exist, cannot remove."
                               {:enqueued-for-removal
-                               remove-packages})))))
-        {:result :not-found}))))
+                               remove-packages})))))))))
 
 (defn install-package!
   [{:keys [package-name
