@@ -143,8 +143,37 @@ java -jar \
     remove \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
-    --set-package-version 0.3.0 \
-    --set-package-location "https://djhaskin987.me:8443/a.zip" \
-    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
-    -u 'b' \
-    -u 'c'
+    --enable-dry-run
+# TODO: Check that package a is still there, but that it looked like it got
+# removed.
+
+# Remove a.
+#java -jar \
+#    -Djavax.net.ssl.trustStore="test.keystore" \
+#    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+#    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+#    remove \
+#    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+#    --set-package-name 'a'
+
+# TODO: Check that package a is NOT still there, but that b and c are still there
+# removed.
+
+# Add `a` back
+#java -jar \
+#    -Djavax.net.ssl.trustStore="test.keystore" \
+#    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+#    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+#    add \
+#    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+#    --set-package-name 'a' \
+#    --set-package-version 0.3.0 \
+#    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+#    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+#    -u 'b' \
+#    -u 'c'
+
+# TODO: Try to remove c, but you can't.
+# Then remove c, forced. Add it back.
+# Then remove c, cascade. Make sure EVERYTHING is gone.
+# Remove nonexistent, make sure what is returned makes sense.
