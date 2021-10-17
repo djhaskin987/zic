@@ -137,43 +137,142 @@ java -jar \
     -k 'nonexistent'
 
 java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --set-package-name 'a' \
+    --enable-dry-run
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'a' | jq -r '.result')" = "not-found" ]
+then
+    exit 1
+fi
+
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --set-package-name 'a'
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'a' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'b' | jq -r '.result')" != "package-found" ]
+then
+    exit 1
+fi
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'c' | jq -r '.result')" != "package-found" ]
+then
+    exit 1
+fi
+
+java -jar \
     -Djavax.net.ssl.trustStore="test.keystore" \
     -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    remove \
+    add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
-    --enable-dry-run
-# TODO: Check that package a is still there, but that it looked like it got
-# removed.
+    --set-package-version 0.3.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b' \
+    -u 'c'
 
-# Remove a.
-#java -jar \
-#    -Djavax.net.ssl.trustStore="test.keystore" \
-#    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-#    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-#    remove \
-#    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
-#    --set-package-name 'a'
+if java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --set-package-name 'c'
+then
+    exit 1
+fi
 
-# TODO: Check that package a is NOT still there, but that b and c are still there
-# removed.
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --enable-forced-execution \
+    --set-package-name 'c'
 
-# Add `a` back
-#java -jar \
-#    -Djavax.net.ssl.trustStore="test.keystore" \
-#    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-#    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-#    add \
-#    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
-#    --set-package-name 'a' \
-#    --set-package-version 0.3.0 \
-#    --set-package-location "https://djhaskin987.me:8443/a.zip" \
-#    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
-#    -u 'b' \
-#    -u 'c'
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'c' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
 
-# TODO: Try to remove c, but you can't.
-# Then remove c, forced. Add it back.
-# Then remove c, cascade. Make sure EVERYTHING is gone.
-# Remove nonexistent, make sure what is returned makes sense.
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'b' | jq -r '.result')" != "package-found" ]
+then
+    exit 1
+fi
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'a' | jq -r '.result')" != "package-found" ]
+then
+    exit 1
+fi
+
+java -jar \
+    -Djavax.net.ssl.trustStore="test.keystore" \
+    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'c' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/c.zip"
+
+
+java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --enable-cascade \
+    --set-package-name 'c'
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'c' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'b' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+if [ "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    info \
+    --set-package-name 'a' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+test "$(java -jar \
+    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+    remove \
+    --enable-cascade \
+    --set-package-name 'c' | jq -r '.result')" = "not-found"

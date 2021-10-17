@@ -19,19 +19,19 @@
   - `-k <package>`, `--set-package-name <package>`: Set package name of package
     to be removed. This information is required.
     Configuration item: `package-name`
-  - `-c`, `--enable-cascade-removal`: Enable removal of this package and all
+  - `-c`, `--enable-cascade`: Enable removal of this package and all
     packages which depend on it.
-    Configuration item: `cascade-removal`
-  - `-C`, `--disable-cascade-removal`: Disable removal of this package and all
+    Configuration item: `cascade`
+  - `-C`, `--disable-cascade`: Disable removal of this package and all
     packages which depend on it. This is the default behavior.
-    Configuration item: `cascade-removal`
+    Configuration item: `cascade`
   - `-f`, `--enable-forced-execution`: Enable forced execution. For this
     command, that means the removal will happen regardless of whether
-    `cascade-removal` has been enabled, or even if dependant packages exist.
+    `cascade` has been enabled, or even if dependant packages exist.
     Configuration item: `forced-execution`
   - `-F`, `--disable-forced-execution`: Disable forced execution. For this
     command, that means the removal will only happen if either
-    `cascade-removal` is enabled or there are no dependant packages on the
+    `cascade` is enabled or there are no dependant packages on the
     package in question. This is the default behavior.
     Configuration item: `forced-execution`
   - `-r`, `--enable-dry-run`: Enable dry run. Do not actually remove anything,
@@ -251,8 +251,8 @@
      "-m" "--set-package-metadata"
      "-u" "--add-package-dependency"
      ;; On remove
-     "-c" "--enable-cascade-removal"
-     "-C" "--disable-cascade-removal"
+     "-c" "--enable-cascade"
+     "-C" "--disable-cascade"
      "-f" "--enable-forced-execution"
      "-F" "--disable-forced-execution"
      "-r" "--enable-dry-run"
@@ -262,7 +262,7 @@
 
     :defaults
     {:start-directory (System/getProperty "user.dir")
-     :cascade-removal false
+     :cascade false
      :forced-execution false
      :dry-run false
      :download-package true}

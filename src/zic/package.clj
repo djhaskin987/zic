@@ -1,6 +1,7 @@
 (ns zic.package
   (:require
    [zic.db :as db]
+   [zic.util :as util]
    [zic.fs :as fs]
    [zic.session :as session]
    [clojure.string :as str]
@@ -25,7 +26,8 @@
           nil
           (db/package-files! c package-id))))))
 
-(defn verify-package-files!
+(defn
+  verify-package-files!
   [{:keys [root-path]
     :as options}]
   (if-let [package-file-info (get-package-files! options)]
@@ -39,10 +41,13 @@
       (dissoc it :correct)
       (map (fn [[k v]] [k (mapv (fn [y] (dissoc y :result)) v)]) it)
       (into {} it))
-    (throw (ex-info (str/join "\n"
-                              ["Could not extract file information from database."
-                               "Perhaps the database is missing or the project path is incorrect."])
-                    {:options options}))))
+    (throw
+     (ex-info
+      (str/join "\n"
+                ["Could not extract file information from database."
+                 "Perhaps the database is missing or the project path "
+                 "is incorrect."])
+      {:options options}))))
 
 (defn get-package-info!
   [{:keys [db-connection-string package-name]}]
@@ -287,7 +292,7 @@
 (defn remove-package!
   [{:keys [package-name
            db-connection-string
-           cascade-removal
+           cascade
            forced-execution
            dry-run
            ^Path
@@ -303,14 +308,15 @@
               (map
                (fn [i]
                  (db/package-info-by-id! c i))
-               (linearize
-                (fn [pid]
-                  (db/dependers-by-id! c pid))
-                (:id package-info)))]
-          (if cascade-removal
+               (util/dbg (linearize
+                          (fn [pid]
+                            (util/dbg (db/dependers-by-id! c pid)))
+                          (:id package-info))))]
+          (if cascade
             (do
+              (println "Horse manure!")
               (when (not dry-run)
-                (doseq [pkg remove-packages]
+                (doseq [pkg (util/dbg remove-packages)]
                   (remove-without-cascade-internal
                    c
                    (:name pkg)
@@ -361,11 +367,23 @@
                     (let [zip-files (fs/archive-contents downloaded-zip)
                           new-files (into
                                      zip-files
-                                     (map (fn [gf] {:path gf :is-directory false})
-                                          (get-in package-metadata [:zic :ghost-files])))]
-                      (when-let [conflicts (package-file-conflicts c package-name new-files)]
-                        (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
-                                        {:conflicts conflicts})))
+                                     (map (fn [gf]
+                                            {:path gf
+                                             :is-directory false})
+                                          (get-in package-metadata
+                                                  [:zic
+                                                   :ghost-files])))]
+                      (when-let [conflicts
+                                 (package-file-conflicts
+                                  c
+                                  package-name
+                                  new-files)]
+                        (throw
+                         (ex-info
+                          (str
+                           "Several files are already present in the project "
+                           "which are owned by other packages.")
+                          {:conflicts conflicts})))
                       (let [precautions (config-and-upgrade-precautions
                                          options
                                          c
@@ -373,13 +391,22 @@
                                          zip-files)]
                         (fs/unpack downloaded-zip root-path
                                    :put-aside (or (:put-aside precautions) #{})
-                                   :put-aside-ending (str "." package-name "." package-version ".new")
+                                   :put-aside-ending (str
+                                                      "."
+                                                      package-name
+                                                      "."
+                                                      package-version
+                                                      ".new")
                                    :exclude (or
                                              (:do-nothing precautions)
                                              #{})
-                                   :exclude-sum-pool (:config-sums precautions))))
-                    (throw (ex-info (str "Package was not able to be downloaded.")
-                                    {})))
+                                   :exclude-sum-pool
+                                   (:config-sums precautions))))
+                    (throw
+                     (ex-info
+                      (str
+                       "Package was not able to be downloaded.")
+                      {})))
                   [])]
             (db/add-package!
              c
