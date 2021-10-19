@@ -203,47 +203,6 @@ fi
 java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     remove \
-    --enable-forced-execution \
-    --set-package-name 'c'
-
-if [ "$(java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    info \
-    --set-package-name 'c' | jq -r '.result')" != "not-found" ]
-then
-    exit 1
-fi
-
-if [ "$(java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    info \
-    --set-package-name 'b' | jq -r '.result')" != "package-found" ]
-then
-    exit 1
-fi
-
-if [ "$(java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    info \
-    --set-package-name 'a' | jq -r '.result')" != "package-found" ]
-then
-    exit 1
-fi
-
-java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    add \
-    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
-    --set-package-name 'c' \
-    --set-package-version 0.1.0 \
-    --set-package-location "https://djhaskin987.me:8443/c.zip"
-
-
-java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    remove \
     --enable-cascade \
     --set-package-name 'c'
 

@@ -21,7 +21,7 @@
       id INTEGER NOT NULL PRIMARY KEY,
       name TEXT UNIQUE NOT NULL UNIQUE,
       version TEXT NOT NULL,
-      location TEXT NOT NULL,
+      location TEXT,
       metadata TEXT)
     "
    "

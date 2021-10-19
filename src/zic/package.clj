@@ -140,6 +140,7 @@
            package-version
            package-metadata
            allow-downgrades
+           allow-inplace
            ^Path
            root-path]}
    c
@@ -150,8 +151,10 @@
     (do
       (let [vercmp-result (serovers/debian-vercmp
                            exist-pkg-vers package-version)]
-        (when (= vercmp-result 0)
-          (throw (ex-info "Cannot upgrade from one package to another of equivalent version."
+        (when (and (not allow-inplace)
+                   (= vercmp-result 0))
+          (throw (ex-info (str "Option `allow-inplace` is disabled and in-place"
+                               " replacement detected.")
                           {:existing-version exist-pkg-vers
                            :package-name package-name
                            :new-version package-version})))
@@ -293,7 +296,6 @@
   [{:keys [package-name
            db-connection-string
            cascade
-           forced-execution
            dry-run
            ^Path
            root-path
@@ -322,8 +324,7 @@
                    (:name pkg)
                    root-path)))
               (into [] (map (fn [i] (dissoc i :id)) remove-packages)))
-            (if (or (= (count remove-packages) 1)
-                    forced-execution)
+            (if (= (count remove-packages) 1)
               (do
                 (when (not dry-run)
                   (remove-without-cascade-internal

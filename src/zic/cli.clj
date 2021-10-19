@@ -25,15 +25,6 @@
   - `-C`, `--disable-cascade`: Disable removal of this package and all
     packages which depend on it. This is the default behavior.
     Configuration item: `cascade`
-  - `-f`, `--enable-forced-execution`: Enable forced execution. For this
-    command, that means the removal will happen regardless of whether
-    `cascade` has been enabled, or even if dependant packages exist.
-    Configuration item: `forced-execution`
-  - `-F`, `--disable-forced-execution`: Disable forced execution. For this
-    command, that means the removal will only happen if either
-    `cascade` is enabled or there are no dependant packages on the
-    package in question. This is the default behavior.
-    Configuration item: `forced-execution`
   - `-r`, `--enable-dry-run`: Enable dry run. Do not actually remove anything,
     just pretend to do so (presumably to see what packages *would* have been
     removed if the command were run without this option).
@@ -84,6 +75,24 @@
     purposes. DO NOT actually install (unpack) the zip file and download it,
     only record that the package is installed.
     Configuration item: `download-package`
+  - `-o`, `--enable-allow-downgrades`: Allow downgrades, or when the new version
+    is older than the currently installed version in the case of when there
+    is already an installed package of the same name.
+    Configuration item: `allow-downgrades`
+  - `-O`, `--disable-allow-downgrades`: Disallow downgrades, or when the new
+    verison is older than the currently installed version in the case of when
+    there is already an installed package of the same name. This is the
+    default behavior.
+    Configuration item: `allow-downgrades`
+  - `-i`, `--enable-allow-inplace`: Allow in-place replacement, or when the
+    new version compares as equivalent to the currently installed version in the
+    case of when there is already an installed package of the same name.
+    Configuration item: `allow-inplace`
+  - `-I`, `--disable-allow-inplace`: Disallow in-place replacement, which is
+    when the new version compares as equivalent to the currently installed
+    version in the case of when there is already an installed package of the
+    same name. This is the default behavior.
+    Configuration item: `allow-inplace`
   "
   [options]
   (package/install-package! options)
@@ -116,9 +125,8 @@
     Configuration item: `package-name`
   "
   [options]
-  (when (nil? (:package-name options))
-    (throw (ex-info "Package name (`package-name`) option needs to be specified."
-                    {:missing-argument :package-name})))
+  (when (nil? (:package-name options)) (throw (ex-info "Package name (`package-name`) option needs to be specified."
+                                                       {:missing-argument :package-name})))
 
   (let [result (package/get-package-info! options)]
     (if (nil? result)
@@ -250,20 +258,21 @@
      "-l" "--set-package-location"
      "-m" "--set-package-metadata"
      "-u" "--add-package-dependency"
+     "-W" "--disable-download-package"
+     "-w" "--enable-download-package"
+     "-O" "--disable-allow-downgrades"
+     "-o" "--enable-allow-downgrades"
+     "-I" "--disable-allow-inplace"
+     "-i" "--enable-allow-inplace"
      ;; On remove
      "-c" "--enable-cascade"
      "-C" "--disable-cascade"
-     "-f" "--enable-forced-execution"
-     "-F" "--disable-forced-execution"
      "-r" "--enable-dry-run"
-     "-R" "--disable-dry-run"
-     "-W" "--disable-download-package"
-     "-w" "--enable-download-package"}
+     "-R" "--disable-dry-run"}
 
     :defaults
     {:start-directory (System/getProperty "user.dir")
      :cascade false
-     :forced-execution false
      :dry-run false
      :download-package true}
     :setup
