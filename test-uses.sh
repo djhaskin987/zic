@@ -66,6 +66,8 @@ java -jar \
     --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
     -u 'c'
 
+# TODO: The output of these commands need to be checked manually at the moment
+
 java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     dependers \
@@ -205,7 +207,7 @@ java -jar \
     remove \
     --enable-cascade \
     --set-package-name 'c'
-
+# TODO: THIS IS THE COMMAND THAT IS FAILING
 if [ "$(java -jar \
     target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
     info \

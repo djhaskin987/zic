@@ -35,6 +35,7 @@ lighttpd-environment/test-data
 /failure/
 /changes/
 /*.zip
+output-from-last-test
 
 
 # editor files

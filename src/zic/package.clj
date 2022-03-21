@@ -290,7 +290,7 @@
                     (str (:name package-info) "." (:version package-info) ".backup"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
     (db/remove-files! c (:id package-info))
-    (db/remove-package! c (:id package-info))))
+    (db/remove-package! c (util/dbg (:id package-info)))))
 
 (defn remove-package!
   [{:keys [package-name
@@ -310,18 +310,17 @@
               (map
                (fn [i]
                  (db/package-info-by-id! c i))
-               (util/dbg (linearize
-                          (fn [pid]
-                            (util/dbg (db/dependers-by-id! c pid)))
-                          (:id package-info))))]
+               (linearize
+                (fn [pid]
+                  (util/dbg (db/dependers-by-id! c pid)))
+                (:id package-info)))]
           (if cascade
             (do
-              (println "Horse manure!")
               (when (not dry-run)
                 (doseq [pkg (util/dbg remove-packages)]
                   (remove-without-cascade-internal
                    c
-                   (:name pkg)
+                   pkg
                    root-path)))
               (into [] (map (fn [i] (dissoc i :id)) remove-packages)))
             (if (= (count remove-packages) 1)
