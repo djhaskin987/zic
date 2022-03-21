@@ -21,7 +21,7 @@
       id INTEGER NOT NULL PRIMARY KEY,
       name TEXT UNIQUE NOT NULL UNIQUE,
       version TEXT NOT NULL,
-      location TEXT NOT NULL,
+      location TEXT,
       metadata TEXT)
     "
    "
@@ -92,6 +92,10 @@
    :file-class (get file-classes (:files/file_class fil) :unknown-file-class)
    :checksum (:files/checksum fil)})
 
+#_(zic.session/with-database
+    "jdbc:sqlite:.zic.db"
+    (fn [c] (get-package-id! c "w")))
+
 (defn get-package-id!
   [c package-name]
   (:packages/id (jdbc/execute-one!
@@ -137,20 +141,73 @@
                         "
                    package-id])))
 
-(defn package-uses-by-name!
+(defn dependers-by-id!
+  [c pkg-id]
+  (map :uses/depender
+       (jdbc/execute! c
+                      ["
+                    SELECT
+                      uses.depender
+                    FROM
+                      uses
+                    WHERE
+                      uses.dependee = ?
+                    "
+                       pkg-id])))
+
+(defn package-dependers!
   [c package-name]
+  (map
+   :packages/name
+   (jdbc/execute! c
+                  ["
+                        SELECT dependers.name
+                        FROM
+                          packages AS dependers
+                        INNER JOIN
+                          uses
+                        ON
+                          uses.depender = dependers.id
+                        INNER JOIN
+                          packages AS dependees
+                        ON
+                          uses.dependee = dependees.id
+                        WHERE
+                          dependees.name = ?
+                        "
+                   package-name])))
+
+(defn package-dependees!
+  [c package-name]
+  (map
+   :packages/name
+   (jdbc/execute! c
+                  ["
+                        SELECT dependees.name
+                        FROM
+                          packages AS dependers
+                        INNER JOIN
+                          uses
+                        ON
+                          uses.depender = dependers.id
+                        INNER JOIN
+                          packages AS dependees
+                        ON
+                          uses.dependee = dependees.id
+                        WHERE
+                          dependers.name = ?
+                        "
+                   package-name])))
+
+(defn package-info-by-id!
+  [c pkg-id]
   (let [results (jdbc/execute! c
                                ["
-                                SELECT package.name AS depender
-                                FROM
-                                  packages:wq
-
-                                INNER JOIN
-                                  
-                                  
-                                WHERE name = ?
+                                SELECT id, name, version, location, metadata
+                                FROM packages
+                                WHERE id = ?
                                 "
-                                package-name])]
+                                pkg-id])]
     (if (empty? results)
       nil
       (deserialize-package
@@ -186,12 +243,26 @@
     file-class-index
     checksum]))
 
+(defn insert-use!
+  [c depender-id dependee-id]
+  (jdbc/execute!
+   c
+   ["
+        INSERT INTO uses
+        (depender, dependee)
+        VALUES
+        (?,?)
+    "
+    depender-id
+    dependee-id]))
+
 (defn add-package!
   [c {:keys [package-name
              package-version
              package-location
              package-metadata]}
-   package-files]
+   package-files
+   dependency-ids]
                   ;; I know, I know, don't hate me
   (let [serialized-metadata (serialize-metadata package-metadata)]
     (jdbc/execute! c
@@ -219,7 +290,9 @@
               (get file-class-indices :normal-file))]
         (insert-file! c package-id path size file-class-index checksum)))
     (doseq [path ghost-files]
-      (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))))
+      (insert-file! c package-id path 0 (get file-class-indices :ghost-file) nil))
+    (doseq [depid dependency-ids]
+      (insert-use! c package-id depid))))
 
 (defn remove-package!
   [c package-id]
@@ -243,5 +316,17 @@
                     files
                   WHERE
                     files.pid = ?
+                  "
+                  package-id]))
+
+(defn remove-uses!
+  [c package-id]
+  (jdbc/execute! c
+                 ["
+                  DELETE
+                  FROM
+                    uses
+                  WHERE
+                    uses.depender = ?
                   "
                   package-id]))

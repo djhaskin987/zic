@@ -79,7 +79,6 @@ echo 'used to be normal, now a directory' > failure/directory-to-normal
 zip -r "${testing_path}/wwwroot/failure-0.2.0.zip" failure
 
 zip -r "${testing_path}/wwwroot/empty-0.1.0.zip" empty
-#echo 'used to be config, now a ghost' > d/config-to-ghost.txt
 rm -rf changes1
 rm -rf changes2
 rm -rf changes3

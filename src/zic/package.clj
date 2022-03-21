@@ -1,8 +1,8 @@
-(ns package
+(ns zic.package
   (:require
    [zic.db :as db]
-   [zic.fs :as fs]
    [zic.util :as util]
+   [zic.fs :as fs]
    [zic.session :as session]
    [clojure.string :as str]
    [clojure.set :as cset]
@@ -26,7 +26,8 @@
           nil
           (db/package-files! c package-id))))))
 
-(defn verify-package-files!
+(defn
+  verify-package-files!
   [{:keys [root-path]
     :as options}]
   (if-let [package-file-info (get-package-files! options)]
@@ -40,10 +41,13 @@
       (dissoc it :correct)
       (map (fn [[k v]] [k (mapv (fn [y] (dissoc y :result)) v)]) it)
       (into {} it))
-    (throw (ex-info (str/join "\n"
-                              ["Could not extract file information from database."
-                               "Perhaps the database is missing or the project path is incorrect."])
-                    {:options options}))))
+    (throw
+     (ex-info
+      (str/join "\n"
+                ["Could not extract file information from database."
+                 "Perhaps the database is missing or the project path "
+                 "is incorrect."])
+      {:options options}))))
 
 (defn get-package-info!
   [{:keys [db-connection-string package-name]}]
@@ -52,12 +56,19 @@
     (fn [c]
       (dissoc (db/package-info! c package-name) :id))))
 
-(defn get-package-uses!
+(defn get-package-dependees!
   [{:keys [db-connection-string package-name]}]
   (session/with-database
     db-connection-string
     (fn [c]
-      (dissoc (db/package-uses! c package-name) :id))))
+      (db/package-dependees! c package-name))))
+
+(defn get-package-dependers!
+  [{:keys [db-connection-string package-name]}]
+  (session/with-database
+    db-connection-string
+    (fn [c]
+      (db/package-dependers! c package-name))))
 
 (defn download-package!
   [{:keys [package-name
@@ -129,6 +140,7 @@
            package-version
            package-metadata
            allow-downgrades
+           allow-inplace
            ^Path
            root-path]}
    c
@@ -137,12 +149,12 @@
   (if-let [{exist-pkg-id :id
             exist-pkg-vers :version} (db/package-info! c package-name)]
     (do
-      (binding [*out* *err*]
-        (println "first branch"))
       (let [vercmp-result (serovers/debian-vercmp
                            exist-pkg-vers package-version)]
-        (when (= vercmp-result 0)
-          (throw (ex-info "Cannot upgrade from one package to another of equivalent version."
+        (when (and (not allow-inplace)
+                   (= vercmp-result 0))
+          (throw (ex-info (str "Option `allow-inplace` is disabled and in-place"
+                               " replacement detected.")
                           {:existing-version exist-pkg-vers
                            :package-name package-name
                            :new-version package-version})))
@@ -182,6 +194,7 @@
         (fs/backup-all! root-path incontig-configs (str package-name "." exist-pkg-vers ".backup"))
         (fs/remove-files! root-path (map :path (:normal-file old-files)))
         (db/remove-files! c exist-pkg-id)
+        (db/remove-uses! c exist-pkg-id)
         (assoc config-decisions
                :config-sums contig-config-old-sums)))
     {:put-aside
@@ -194,14 +207,77 @@
                       p)))
           (into #{}))}))
 
-(defn remove-with-cascade-internal
-  [c
-   package-info
-   ^Path
-   root-path]
-  (util/dbg c)
-  (util/dbg package-info)
-  (util/dbg root-path))
+(defn reachable-nodes
+  "
+  Find all the reachable nodes in a graph.
+  `gf` is a function returning a seq of node names
+  reachable from the node name it takes as its first argument.
+  The value `ignore` is a set of nodes which should be
+  ignored in the graph, they 'do not exist' for this run.
+  "
+  [gf
+   node
+   already-seen
+   ignore]
+  (if (get already-seen node)
+    already-seen
+    (reduce
+     (fn [c v]
+       (reachable-nodes
+        gf
+        v
+        c
+        ignore))
+     (conj already-seen node)
+     (remove ignore (gf node)))))
+
+(defn sinks
+  "
+  Find the sinks in a graph, relative to a set of nodes in consideration
+  (`rnodes`).
+  `gf` is a function returning a seq of node names
+  reachable from node `x`.
+  The value `ignore` is a set of nodes which should be
+  ignored in the graph, they 'do not exist' for this run.
+  "
+  [rnodes
+   gf
+   ignore]
+  (filter (fn [x] (empty? (remove
+                           ignore
+                           (gf x)))) rnodes))
+
+(defn linearize
+  "
+  Linearize a subset of a graph which is reachable from `node`.
+  `gf `is a function returning a seq of node names
+  reachable from the node name given as its argument.
+  This function linearizes a graph in a specific way, designed
+  for linearizing a dependency tree.
+  It finds all the sinks in the reachable nodes and puts them first
+  in the linearization, followed by all the sinks in the reachable nodes
+  with them ignored, etc. This makes sure that all the packages
+  that don't have any dependers are deleted first, followed by those packages
+  that are their immediate dependers which themselves don't have any other
+  dependers, etc.
+  "
+  [gf
+   node]
+  (loop [ignore #{}
+         building []]
+    (let [rnodes (reachable-nodes gf node #{} ignore)]
+      (if (and (= (count rnodes) 1)
+               (get rnodes node))
+        (conj building node)
+        (let [snodes (sinks rnodes gf ignore)]
+          (if (empty? snodes)
+            ;; Cycle detected. Basically, just add all the nodes at that point.
+            ;; They all gotta go, and I can't tell which ones to delete first,
+            ;; so I'm just gonna delete 'em all. Sue me.
+            (into building (sort rnodes))
+            (recur
+             (into ignore snodes)
+             (into building (sort snodes)))))))))
 
 (defn remove-without-cascade-internal
   [c
@@ -219,7 +295,8 @@
 (defn remove-package!
   [{:keys [package-name
            db-connection-string
-           cascade-removal
+           cascade
+           dry-run
            ^Path
            root-path
            ^Path
@@ -228,15 +305,41 @@
     db-connection-string
     lock-path
     (fn [c]
-      (let [package-info (db/package-info! c package-name)]
-        (if cascade-removal
-          (remove-without-cascade-internal c package-info root-path)
-          (remove-with-cascade-internal c package-info root-path))))))
+      (when-let [package-info (db/package-info! c package-name)]
+        (let [remove-packages
+              (map
+               (fn [i]
+                 (db/package-info-by-id! c i))
+               (linearize
+                (fn [pid]
+                  (db/dependers-by-id! c pid))
+                (:id package-info)))]
+          (if cascade
+            (do
+              (when (not dry-run)
+                (doseq [pkg remove-packages]
+                  (remove-without-cascade-internal
+                   c
+                   pkg
+                   root-path)))
+              (into [] (map (fn [i] (dissoc i :id)) remove-packages)))
+            (if (= (count remove-packages) 1)
+              (do
+                (when (not dry-run)
+                  (remove-without-cascade-internal
+                   c
+                   package-info
+                   root-path))
+                [(dissoc package-info :id)])
+              (throw (ex-info "Dependant packages exist, cannot remove."
+                              {:enqueued-for-removal
+                               remove-packages})))))))))
 
 (defn install-package!
   [{:keys [package-name
            package-version
            package-metadata
+           package-dependency
            download-package
            db-connection-string
            ^Path
@@ -248,34 +351,66 @@
     db-connection-string
     lock-path
     (fn [c]
-      (let [package-files
-            (if download-package
-              (if-let [downloaded-zip
-                       (download-package! options)]
-                (let [zip-files (fs/archive-contents downloaded-zip)
-                      new-files (into
-                                 zip-files
-                                 (map (fn [gf] {:path gf :is-directory false})
-                                      (get-in package-metadata [:zic :ghost-files])))]
-                  (when-let [conflicts (package-file-conflicts c package-name new-files)]
-                    (throw (ex-info (str "Several files are already present in the project which are owned by other packages.")
-                                    {:conflicts conflicts})))
-                  (let [precautions (config-and-upgrade-precautions
-                                     options
-                                     c
-                                     downloaded-zip
-                                     zip-files)]
-                    (fs/unpack downloaded-zip root-path
-                               :put-aside (or (:put-aside precautions) #{})
-                               :put-aside-ending (str "." package-name "." package-version ".new")
-                               :exclude (or
-                                         (:do-nothing precautions)
-                                         #{})
-                               :exclude-sum-pool (:config-sums precautions))))
-                (throw (ex-info (str "Package was not able to be downloaded.")
-                                {})))
-              [])]
-        (db/add-package!
-         c
-         options
-         package-files)))))
+      (let [dependencies-status
+            (->> package-dependency
+                 (map (fn [d] [d (db/get-package-id! c d)]))
+                 (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
+        (if (seq (:unmet dependencies-status))
+          (throw (ex-info "Several dependencies are unmet."
+                          {:unmet-dependencies
+                           (map (fn [[d _]] d)
+                                (:unmet dependencies-status))}))
+          (let [package-files
+                (if download-package
+                  (if-let [downloaded-zip
+                           (download-package! options)]
+                    (let [zip-files (fs/archive-contents downloaded-zip)
+                          new-files (into
+                                     zip-files
+                                     (map (fn [gf]
+                                            {:path gf
+                                             :is-directory false})
+                                          (get-in package-metadata
+                                                  [:zic
+                                                   :ghost-files])))]
+                      (when-let [conflicts
+                                 (package-file-conflicts
+                                  c
+                                  package-name
+                                  new-files)]
+                        (throw
+                         (ex-info
+                          (str
+                           "Several files are already present in the project "
+                           "which are owned by other packages.")
+                          {:conflicts conflicts})))
+                      (let [precautions (config-and-upgrade-precautions
+                                         options
+                                         c
+                                         downloaded-zip
+                                         zip-files)]
+                        (fs/unpack downloaded-zip root-path
+                                   :put-aside (or (:put-aside precautions) #{})
+                                   :put-aside-ending (str
+                                                      "."
+                                                      package-name
+                                                      "."
+                                                      package-version
+                                                      ".new")
+                                   :exclude (or
+                                             (:do-nothing precautions)
+                                             #{})
+                                   :exclude-sum-pool
+                                   (:config-sums precautions))))
+                    (throw
+                     (ex-info
+                      (str
+                       "Package was not able to be downloaded.")
+                      {})))
+                  [])]
+            (db/add-package!
+             c
+             options
+             package-files
+             (map (fn [[_ id]] id)
+                  (:met dependencies-status)))))))))

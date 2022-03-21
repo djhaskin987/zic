@@ -30,10 +30,12 @@ lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
 /a/
+/b/
 /c/
 /failure/
 /changes/
 /*.zip
+output-from-last-test
 
 
 # editor files
