@@ -1,0 +1,37 @@
+#!/bin/sh
+root_path=${PWD}
+
+name=$(lein print :name | sed 's|"||g')
+version=$(lein print :version | sed 's|"||g')
+
+#    --initialize-at-run-time=org.postgresql.sspi.SSPIClient
+#    --initialize-at-run-time=java.lang.Math\$RandomNumberGeneratorHolder \
+#    -J-Dclojure.compiler.direct-linking=true \
+#    -J-Dclojure.spec.skip-macros=true \
+#    -J-Xmx4G \
+#    -H:+JNI
+#    --configurations-path ${root_path}/META-INF/native-image
+# https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
+    #"-H:ProxyConfigurationFiles=META-INF/native-image/proxy-config.json" \
+    #"-H:SerializationConfigurationFile=META-INF/native-image/serialization-config.json" \
+    #--initialize-at-run-time=java.lang.Math\$RandomNumberGeneratorHolder \
+native-image \
+    --verbose \
+    --enable-url-protocols=file,https,http \
+    --report-unsupported-elements-at-runtime \
+    --no-fallback \
+    --no-server \
+    --enable-all-security-services \
+    --initialize-at-build-time \
+    --static \
+    -H:+ReportExceptionStackTraces \
+    -H:+JNI \
+    -H:Name="${name}" \
+    -jar target/uberjar/${name}-${version}-standalone.jar \
+    "-H:ReflectionConfigurationFiles=META-INF/native-image/reflect-config.json" \
+    "-H:JNIConfigurationFiles=META-INF/native-image/jni-config.json" \
+    "-H:ResourceConfigurationFiles=META-INF/native-image/resource-config.json" \
+    -H:+AllowIncompleteClasspath \
+    -J-Dclojure.compiler.direct-linking=true \
+    -J-Dclojure.spec.skip-macros=true \
+    -J-Xmx4G
