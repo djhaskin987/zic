@@ -4,8 +4,7 @@
    [next.jdbc :as jdbc]))
 
 (def ^:private init-statements
-  [
-   ;; \"
+  [;; \"
    ;; PRAGMA foreign_keys = ON
    ;; \"
    "
@@ -94,7 +93,7 @@
    :checksum (:files/checksum fil)})
 
 #_(zic.session/with-database
-    "jdbc:sqlite:.zic;AUTOCOMMIT=OFF"
+    "jdbc:h2:file:.zic;AUTOCOMMIT=OFF"
     (fn [c] (get-package-id! c "w")))
 
 (defn get-package-id!

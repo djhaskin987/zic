@@ -113,4 +113,5 @@
 (defn path-to-connection-string
   [^Path path]
   (str "jdbc:h2:file:"
-       (.toAbsolutePath path)))
+       (.toAbsolutePath path)
+       ";AUTOCOMMIT=OFF"))

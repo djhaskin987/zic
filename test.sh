@@ -18,6 +18,7 @@ usage() {
 rm -rf .zic.mv.db
 rm -rf .zic.trace.db
 rm -rf .staging
+mkdir -p .staging
 rm -rf a
 rm -rf c
 rm -rf changes
