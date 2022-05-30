@@ -1,7 +1,6 @@
 (ns zic.package
   (:require
    [zic.db :as db]
-   [zic.util :as util]
    [zic.fs :as fs]
    [zic.session :as session]
    [clojure.string :as str]

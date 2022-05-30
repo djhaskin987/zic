@@ -112,6 +112,9 @@
 
 (defn path-to-connection-string
   [^Path path]
-  (str "jdbc:h2:file:"
-       (.toAbsolutePath path)
-       ";AUTOCOMMIT=OFF"))
+  (str
+   "jdbc:h2:file:"
+   (let [spath (str (.toAbsolutePath path))
+         pend (.length spath)]
+     (subs spath 0 (- pend 6)))
+   ";MODE=PostgreSQL;AUTOCOMMIT=OFF"))

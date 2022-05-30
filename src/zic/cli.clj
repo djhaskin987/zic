@@ -5,6 +5,7 @@
    [onecli.core :as onecli]
    [zic.db :as db]
    [zic.fs :as fs]
+   [zic.util :as util]
    [zic.package :as package]
    [zic.session :as session])
   (:import
@@ -188,7 +189,7 @@
      (Paths/get
       (:start-directory options)
       (into-array
-       [".zic"])))
+       [".zic.mv.db"])))
     db/init-database!)
   {:result :successful})
 
@@ -285,7 +286,7 @@
                    (into-array
                     java.lang.String
                     []))
-                  ".zic.db")]
+                  ".zic.mv.db")]
           (-> options
               (assoc
                :db-connection-string

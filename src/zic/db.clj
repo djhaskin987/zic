@@ -9,7 +9,7 @@
    ;; \"
    "
    CREATE TABLE IF NOT EXISTS file_classes (
-     id INTEGER NOT NULL PRIMARY KEY,
+     id IDENTITY NOT NULL PRIMARY KEY,
      name VARCHAR(512) UNIQUE NOT NULL
    )
    "
@@ -18,7 +18,7 @@
    "
    "
     CREATE TABLE IF NOT EXISTS packages (
-      id INTEGER NOT NULL PRIMARY KEY,
+      id IDENTITY NOT NULL PRIMARY KEY,
       name VARCHAR(512) UNIQUE NOT NULL,
       version VARCHAR(4096) NOT NULL,
       location VARCHAR(4096),
@@ -26,11 +26,11 @@
     "
    "
     CREATE TABLE IF NOT EXISTS files (
-      id INTEGER NOT NULL PRIMARY KEY,
-      pid INTEGER,
+      id IDENTITY NOT NULL PRIMARY KEY,
+      pid BIGINT,
       path VARCHAR(4096) UNIQUE NOT NULL,
       size INTEGER NOT NULL,
-      file_class INTEGER NOT NULL,
+      file_class BIGINT NOT NULL,
       checksum VARCHAR(4096),
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
       CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id),
@@ -42,9 +42,9 @@
    "
    "
     CREATE TABLE IF NOT EXISTS uses (
-      id INTEGER NOT NULL PRIMARY KEY,
-      depender INTEGER,
-      dependee INTEGER,
+      id IDENTITY NOT NULL PRIMARY KEY,
+      depender BIGINT,
+      dependee BIGINT,
       CONSTRAINT depender_c FOREIGN KEY (depender) REFERENCES packages(id),
       CONSTRAINT dependee_c FOREIGN KEY (dependee) REFERENCES packages(id)
     )
@@ -267,16 +267,12 @@
   (let [serialized-metadata (serialize-metadata package-metadata)]
     (jdbc/execute! c
                    ["
-                  INSERT INTO packages
-                  (name, version, location, metadata)
-                  VALUES
-                  (?,?,?,?)
-                  ON CONFLICT (name) DO UPDATE SET version=?, location=?, metadata=?
+                    MERGE INTO packages (name, version, location, metadata)
+                    KEY (name)
+                    VALUES
+                    (?,?,?,?)
                   "
                     package-name
-                    package-version
-                    package-location
-                    serialized-metadata
                     package-version
                     package-location
                     serialized-metadata]))
