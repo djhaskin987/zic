@@ -25,6 +25,7 @@ pom.xml.asc
 # testing
 .zic.sqlite3
 .zic.db
+/*.db
 lighttpd-environment/lighttpd.conf
 lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd

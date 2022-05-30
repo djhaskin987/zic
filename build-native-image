@@ -16,14 +16,27 @@ version=$(lein print :version | sed 's|"||g')
     #"-H:SerializationConfigurationFile=META-INF/native-image/serialization-config.json" \
     #--initialize-at-run-time=java.lang.Math\$RandomNumberGeneratorHolder \
 #    --static \
+    #--initialize-at-build-time=java.sql.DriverManager \
+    #--initialize-at-build-time=org.sqlite.JDBC \
+    #'--initialize-at-build-time=org.sqlite.core.DB$ProgressObserver' \
+    #--initialize-at-build-time=org.sqlite.core.DB \
+    #--initialize-at-build-time=org.sqlite.core.NativeDB \
+    #--initialize-at-build-time=org.sqlite.ProgressHandler \
+    #--initialize-at-build-time=org.sqlite.Function \
+    #'--initialize-at-build-time=org.sqlite.Function$Aggregate' \
+    #'--initialize-at-build-time=org.sqlite.Function$Window' \
+    #--H:+StaticExecutableWithDynamicLibC \
 native-image \
     --verbose \
     --enable-url-protocols=file,https,http \
     --report-unsupported-elements-at-runtime \
     --no-fallback \
-    --no-server \
     --enable-all-security-services \
+    --no-server \
+    --report-unsupported-elements-at-runtime \
     --initialize-at-build-time \
+    --static \
+    --libc=musl \
     -H:+ReportExceptionStackTraces \
     -H:+JNI \
     -H:Name="${name}" \
