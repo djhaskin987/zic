@@ -37,7 +37,7 @@ do
             ;;
         --native)
             shift
-            execmd="./${name}-${version}-standalone"
+            execmd="./${name}-${version}-standalone -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf"
             ;;
         -h|*)
             usage
@@ -47,17 +47,13 @@ done
 
 if [ -z "${execmd}" ]
 then
-    execmd="${java} -jar target/uberjar/${name}-${version}-standalone.jar"
+    execmd="${java} -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf -jar target/uberjar/${name}-${version}-standalone.jar"
 fi
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     init
 
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'verybad' \
@@ -75,8 +71,6 @@ fi
 touch .staging/a-0.1.0.zip
 
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -90,8 +84,6 @@ fi
 rm -rf .staging/a-0.1.0.zip
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -169,8 +161,6 @@ touch c/echo.txt.c.0.1.0.new
 # whether on the file system or the package
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'c' \
@@ -191,8 +181,6 @@ then
 fi
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
@@ -201,8 +189,6 @@ $execmd \
 
 # Cannot upgrade from one package to one of equivalent version
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
@@ -214,8 +200,6 @@ fi
 
 #  "Option `allow-downgrades` is disabled and downgrade detected."
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
@@ -228,8 +212,6 @@ fi
 #  "Option `allow-downgrades` is enabled and downgrade detected."
 # used to be a normal file, is now a directory
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
@@ -238,8 +220,6 @@ $execmd \
     --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     remove \
     --set-package-name 'failure'
 
@@ -253,8 +233,6 @@ fi
 rm -rf failure
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
@@ -264,8 +242,6 @@ $execmd \
 #  Cannot update: some directories in old package are not directories in new package.
 #  (This isn't explicitly checked for; it should just blow up)
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
@@ -276,8 +252,6 @@ then
 fi
 
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     remove \
     --set-package-name 'failure'
 
@@ -288,8 +262,6 @@ rm -rf changes
 # File cases:
 # used to be a config file, is now a ghost file
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'changes' \
@@ -309,8 +281,6 @@ touch changes/config-to-gone.changes.0.1.0.backup
 touch changes/contig-config-diffsum-edited.changes.0.2.0.new
 touch changes/contig-config-diffsum-edited.changes.0.2.0.new.1
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'changes' \
@@ -383,8 +353,6 @@ test -d changes/samedir
 
 # TWO PACKAGES THAT OWN THE SAME DIRECTORY (which is okay)
 $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'somethingelse' \
@@ -393,8 +361,6 @@ $execmd \
 
 # TWO PACKAGES THAT OWN THE SAME FILE - GHOST VERSION (which is NOT okay)
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'yetsomethingelse' \
@@ -407,8 +373,6 @@ fi
 
 # TWO PACKAGES THAT OWN THE SAME FILE (which is NOT okay)
 if $execmd \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'alsosomethingelse' \
@@ -419,10 +383,7 @@ then
 fi
 
 # Check that if I specify an extra config file, it gets ignored.
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'extraconfigfile' \

@@ -4,9 +4,10 @@
    [next.jdbc :as jdbc]))
 
 (def ^:private init-statements
-  ["
-   PRAGMA foreign_keys = ON
-   "
+  [
+   ;; \"
+   ;; PRAGMA foreign_keys = ON
+   ;; \"
    "
    CREATE TABLE IF NOT EXISTS file_classes (
      id INTEGER NOT NULL PRIMARY KEY,
