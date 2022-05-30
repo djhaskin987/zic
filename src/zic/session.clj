@@ -71,7 +71,7 @@
   (close
     [this]
     (jdbc/execute! (:connection this) ["
-                                       COMMIT TRANSACTION
+                                       COMMIT
                                        "])
     this)
 

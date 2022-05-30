@@ -15,7 +15,8 @@ usage() {
     exit 1
 }
 
-rm -rf .zic.db
+rm -rf .zic.mv.db
+rm -rf .zic.trace.db
 rm -rf .staging
 rm -rf a
 rm -rf c

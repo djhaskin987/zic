@@ -11,28 +11,28 @@
    "
    CREATE TABLE IF NOT EXISTS file_classes (
      id INTEGER NOT NULL PRIMARY KEY,
-     name TEXT UNIQUE NOT NULL
+     name VARCHAR(512) UNIQUE NOT NULL
    )
    "
    "
-   INSERT INTO file_classes (id, name) VALUES (1, \"normal-file\"), (2, \"config-file\"), (3, \"ghost-file\")
+   INSERT INTO file_classes (id, name) VALUES (1, 'normal-file'), (2, 'config-file'), (3, 'ghost-file')
    "
    "
     CREATE TABLE IF NOT EXISTS packages (
       id INTEGER NOT NULL PRIMARY KEY,
-      name TEXT UNIQUE NOT NULL UNIQUE,
-      version TEXT NOT NULL,
-      location TEXT,
-      metadata TEXT)
+      name VARCHAR(512) UNIQUE NOT NULL,
+      version VARCHAR(4096) NOT NULL,
+      location VARCHAR(4096),
+      metadata VARCHAR(4096))
     "
    "
     CREATE TABLE IF NOT EXISTS files (
       id INTEGER NOT NULL PRIMARY KEY,
       pid INTEGER,
-      path TEXT UNIQUE NOT NULL,
+      path VARCHAR(4096) UNIQUE NOT NULL,
       size INTEGER NOT NULL,
       file_class INTEGER NOT NULL,
-      checksum TEXT,
+      checksum VARCHAR(4096),
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
       CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id),
       CONSTRAINT size_positive CHECK (size >= 0),
@@ -94,7 +94,7 @@
    :checksum (:files/checksum fil)})
 
 #_(zic.session/with-database
-    "jdbc:sqlite:.zic.db"
+    "jdbc:sqlite:.zic;AUTOCOMMIT=OFF"
     (fn [c] (get-package-id! c "w")))
 
 (defn get-package-id!
