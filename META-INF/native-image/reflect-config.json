@@ -737,9 +737,6 @@
   "name":"java.lang.StackTraceElement"
 },
 {
-  "name":"java.lang.StackTraceElement[]"
-},
-{
   "name":"java.lang.String",
   "allPublicMethods":true
 },
@@ -781,8 +778,7 @@
   "name":"java.math.BigDecimal"
 },
 {
-  "name":"java.math.BigInteger",
-  "allPublicConstructors":true
+  "name":"java.math.BigInteger"
 },
 {
   "name":"java.net.HttpURLConnection"
@@ -840,9 +836,6 @@
   "name":"java.nio.file.OpenOption"
 },
 {
-  "name":"java.nio.file.OpenOption[]"
-},
-{
   "name":"java.nio.file.Path",
   "allPublicMethods":true
 },
@@ -865,8 +858,7 @@
   "name":"java.security.AlgorithmParametersSpi"
 },
 {
-  "name":"java.security.DigestInputStream",
-  "allPublicMethods":true
+  "name":"java.security.DigestInputStream"
 },
 {
   "name":"java.security.KeyStoreSpi"

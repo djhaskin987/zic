@@ -8,7 +8,7 @@
             [lein-print "0.1.0"]]
   :dependencies [;;[serovers "1.6.2"]
 
-                 [org.clojure/clojure "1.10.3"]
+                 [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]
                  [org.xerial/sqlite-jdbc "3.28.0"]

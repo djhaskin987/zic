@@ -15,6 +15,7 @@ version=$(lein print :version | sed 's|"||g')
     #"-H:ProxyConfigurationFiles=META-INF/native-image/proxy-config.json" \
     #"-H:SerializationConfigurationFile=META-INF/native-image/serialization-config.json" \
     #--initialize-at-run-time=java.lang.Math\$RandomNumberGeneratorHolder \
+#    --static \
 native-image \
     --verbose \
     --enable-url-protocols=file,https,http \
@@ -23,7 +24,6 @@ native-image \
     --no-server \
     --enable-all-security-services \
     --initialize-at-build-time \
-    --static \
     -H:+ReportExceptionStackTraces \
     -H:+JNI \
     -H:Name="${name}" \
