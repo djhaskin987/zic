@@ -15,7 +15,9 @@
                  ;;[org.xerial/sqlite-jdbc "3.28.0"]
                  [seancorfield/next.jdbc "1.0.10"]
                  [serovers "1.6.2"]
-                 [onecli "0.7.0-SNAPSHOT" :exclusions [org.clojure/clojure]]]
+                 [onecli "0.7.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
+                 [borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]]
+
   :main zic.cli
   :target-path "target/%s"
   :test-selectors {:default (complement :integration)

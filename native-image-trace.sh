@@ -2,7 +2,7 @@
 set -ex
 
 # Dependency tree testing
-rm -rf .zic.db
+rm -rf .zic.mv.db
 rm -rf .staging
 rm -rf a
 rm -rf b

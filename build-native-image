@@ -26,6 +26,7 @@ version=$(lein print :version | sed 's|"||g')
     #'--initialize-at-build-time=org.sqlite.Function$Aggregate' \
     #'--initialize-at-build-time=org.sqlite.Function$Window' \
     #--H:+StaticExecutableWithDynamicLibC \
+    #--trace-object-instantiation=java.nio.DirectByteBuffer \
 native-image \
     --verbose \
     --enable-url-protocols=file,https,http \
@@ -41,7 +42,7 @@ native-image \
     -H:+JNI \
     -H:Name="${name}" \
     -jar target/uberjar/${name}-${version}-standalone.jar \
-    --trace-object-instantiation=java.nio.DirectByteBuffer \
+    --initialize-at-run-time=org.h2.store.fs.FileNioMemData \
     --initialize-at-run-time=org.h2.value.ValueGeometry \
     "-H:ReflectionConfigurationFiles=META-INF/native-image/reflect-config.json" \
     "-H:JNIConfigurationFiles=META-INF/native-image/jni-config.json" \
