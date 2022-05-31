@@ -45,4 +45,13 @@ Exception in thread "main" java.lang.NoSuchMethodError: java.lang.reflect.Access
 
 But after I googled the problem, I got borkdude's java 11 fix! so this might be surmountable.
 
+An excerpt from the README of this: https://github.com/borkdude/clj-reflector-graal-java11-fix
 
+> tada Great news! Starting with GraalVM v21, this fix should no longer be needed.
+
+> Instead, you will probably need to add this to your reflection config:
+
+> ```[{"name": "java.lang.reflect.AccessibleObject",
+  "methods" : [{"name":"canAccess"}]},
+  ...
+]```

@@ -1,4 +1,7 @@
 [
+    {"name": "java.lang.reflect.AccessibleObject",
+"methods" : [{"name":"canAccess"}]},
+
 {
   "name":"boolean[]"
 },
