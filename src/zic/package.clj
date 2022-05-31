@@ -289,6 +289,7 @@
                     (str (:name package-info) "." (:version package-info) ".backup"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
     (db/remove-files! c (:id package-info))
+    (db/remove-uses! c (:id package-info))
     (db/remove-package! c (:id package-info))))
 
 (defn remove-package!
