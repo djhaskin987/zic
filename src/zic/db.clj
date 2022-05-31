@@ -1,5 +1,6 @@
 (ns zic.db
   (:require
+   [zic.util :as util]
    [cheshire.core :as json]
    [next.jdbc :as jdbc]))
 
@@ -70,11 +71,11 @@
 
 (defn deserialize-package
   [pkg]
-  {:id (:packages/id pkg)
-   :name (:packages/name pkg)
-   :version (:packages/version pkg)
-   :location (:packages/location pkg)
-   :metadata (deserialize-metadata (:packages/metadata pkg))})
+  {:id (:PACKAGES/ID pkg)
+   :name (:PACKAGES/NAME pkg)
+   :version (:PACKAGES/VERSION pkg)
+   :location (:PACKAGES/LOCATION pkg)
+   :metadata (deserialize-metadata (:PACKAGES/METADATA pkg))})
 
 (def file-classes {1 :normal-file
                    2 :config-file
@@ -87,10 +88,10 @@
 
 (defn deserialize-file
   [fil]
-  {:path (:files/path fil)
-   :size (:files/size fil)
-   :file-class (get file-classes (:files/file_class fil) :unknown-file-class)
-   :checksum (:files/checksum fil)})
+  {:path (:FILES/PATH fil)
+   :size (:FILES/SIZE fil)
+   :file-class (get file-classes (:FILES/FILE_CLASS fil) :unknown-file-class)
+   :checksum (:FILES/CHECKSUM fil)})
 
 #_(zic.session/with-database
     "jdbc:h2:file:.zic;AUTOCOMMIT=OFF"
@@ -98,7 +99,7 @@
 
 (defn get-package-id!
   [c package-name]
-  (:packages/id (jdbc/execute-one!
+  (:PACKAGES/ID (jdbc/execute-one!
                  c
                  ["
                    SELECT id
@@ -113,7 +114,7 @@
    or nil if no such package exists.
    "
   [c file]
-  (:packages/name (jdbc/execute-one!
+  (:PACKAGES/NAME (jdbc/execute-one!
                    c
                    ["
           SELECT
@@ -143,7 +144,7 @@
 
 (defn dependers-by-id!
   [c pkg-id]
-  (map :uses/depender
+  (map :USES/DEPENDER
        (jdbc/execute! c
                       ["
                     SELECT
@@ -158,7 +159,7 @@
 (defn package-dependers!
   [c package-name]
   (map
-   :packages/name
+   :PACKAGES/NAME
    (jdbc/execute! c
                   ["
                         SELECT dependers.name
@@ -180,7 +181,7 @@
 (defn package-dependees!
   [c package-name]
   (map
-   :packages/name
+   :PACKAGES/NAME
    (jdbc/execute! c
                   ["
                         SELECT dependees.name

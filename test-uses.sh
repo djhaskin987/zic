@@ -1,43 +1,63 @@
 #!/bin/sh
 set -ex
 
+usage() {
+    echo "Usage: test.sh [-h] [--tracing|--native]" >&2
+    echo "  --tracing: Record runs for future use with native-image" >&2
+    echo "  --native: Run using the natively-compiled executable" >&2
+    exit 1
+}
 
 # Dependency tree testing
-rm -rf .zic.db
+rm -rf .zic.mv.db
+rm -rf .zic.trace.db
 rm -rf .staging
+mkdir -p .staging
 rm -rf a
 rm -rf b
 rm -rf c
 rm -rf changes
 rm -rf failure
 
-if [ "${1}" = "tracing" ]
+name=$(lein print :name | sed 's|"||g')
+version=$(lein print :version | sed 's|"||g')
+
+execmd=
+java='java'
+while [ -n "${1}" ]
+do
+    case "${1}" in
+        --tracing)
+            shift
+            # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
+            java='java -agentlib:native-image-agent=config-merge-dir=META-INF/native-image/'
+            ;;
+        --native)
+            shift
+            execmd="./${name}-${version}-standalone -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf"
+            ;;
+        -h|*)
+            usage
+            ;;
+    esac
+done
+
+if [ -z "${execmd}" ]
 then
-    # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
-    java='java -agentlib:native-image-agent=config-merge-dir=META-INF/native-image/'
-else
-    java='java'
+    execmd="${java} -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf -jar target/uberjar/${name}-${version}-standalone.jar"
 fi
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+
+$execmd \
     init
 
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'c' \
     --set-package-version 0.1.0 \
     --set-package-location "https://djhaskin987.me:8443/c.zip"
 
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'b' \
@@ -46,10 +66,7 @@ $java -jar \
     --add-package-dependency 'c'
 
 # Test that unmet dependencies stop installation.
-if $java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if $execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -61,10 +78,7 @@ then
     exit 1
 fi
 
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -74,41 +88,31 @@ $java -jar \
     -u 'c'
 
 # TODO: The output of these commands need to be checked manually at the moment
-
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependers \
     -k 'c'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependers \
     -k 'b'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependers \
     -k 'a'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependees \
     -k 'c'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependees \
     -k 'b'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependees \
     -k 'a'
 
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -117,15 +121,11 @@ $java -jar \
     --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
     -u 'b'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependees \
     -k 'a'
 
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -135,63 +135,52 @@ $java -jar \
     -u 'b' \
     -u 'c'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependees \
     -k 'a'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     dependees \
     -k 'nonexistent'
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     remove \
     --set-package-name 'a' \
     --enable-dry-run
 
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'a' | jq -r '.result')" = "not-found" ]
 then
     exit 1
 fi
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     remove \
     --set-package-name 'a'
 
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'a' | jq -r '.result')" != "not-found" ]
 then
     exit 1
 fi
 
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'b' | jq -r '.result')" != "package-found" ]
 then
     exit 1
 fi
 
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'c' | jq -r '.result')" != "package-found" ]
 then
     exit 1
 fi
 
-$java -jar \
-    -Djavax.net.ssl.trustStore="test.keystore" \
-    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'a' \
@@ -201,46 +190,40 @@ $java -jar \
     -u 'b' \
     -u 'c'
 
-if $java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if $execmd \
     remove \
     --set-package-name 'c'
 then
     exit 1
 fi
 
-$java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+$execmd \
     remove \
     --enable-cascade \
     --set-package-name 'c'
 # TODO: THIS IS THE COMMAND THAT IS FAILING
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'c' | jq -r '.result')" != "not-found" ]
 then
     exit 1
 fi
 
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'b' | jq -r '.result')" != "not-found" ]
 then
     exit 1
 fi
 
-if [ "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+if [ "$($execmd \
     info \
     --set-package-name 'a' | jq -r '.result')" != "not-found" ]
 then
     exit 1
 fi
 
-test "$($java -jar \
-    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+test "$($execmd \
     remove \
     --enable-cascade \
     --set-package-name 'c' | jq -r '.result')" = "not-found"

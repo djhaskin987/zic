@@ -117,4 +117,4 @@
    (let [spath (str (.toAbsolutePath path))
          pend (.length spath)]
      (subs spath 0 (- pend 6)))
-   ";MODE=PostgreSQL;AUTOCOMMIT=OFF"))
+   ";AUTOCOMMIT=OFF"))

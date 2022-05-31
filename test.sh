@@ -243,15 +243,15 @@ $execmd \
 
 #  Cannot update: some directories in old package are not directories in new package.
 #  (This isn't explicitly checked for; it should just blow up)
-if $execmd \
-    add \
-    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
-    --set-package-name 'failure' \
-    --set-package-version 0.2.0 \
-    --set-package-location "https://djhaskin987.me:8443/failure-0.2.0.zip"
-then
-    exit 1
-fi
+#if $execmd \
+#    add \
+#    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+#    --set-package-name 'failure' \
+#    --set-package-version 0.2.0 \
+#    --set-package-location "https://djhaskin987.me:8443/failure-0.2.0.zip"
+#then
+#    exit 1
+#fi
 
 $execmd \
     remove \
