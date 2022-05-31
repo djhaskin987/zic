@@ -737,8 +737,10 @@
   "name":"java.lang.StackTraceElement"
 },
 {
-  "name":"java.lang.String",
-  "allPublicMethods":true
+  "name":"java.lang.StackTraceElement[]"
+},
+{
+  "name":"java.lang.String"
 },
 {
   "name":"java.lang.String[]"
@@ -778,7 +780,8 @@
   "name":"java.math.BigDecimal"
 },
 {
-  "name":"java.math.BigInteger"
+  "name":"java.math.BigInteger",
+  "allPublicConstructors":true
 },
 {
   "name":"java.net.HttpURLConnection"
@@ -836,6 +839,9 @@
   "name":"java.nio.file.OpenOption"
 },
 {
+  "name":"java.nio.file.OpenOption[]"
+},
+{
   "name":"java.nio.file.Path",
   "allPublicMethods":true
 },
@@ -858,7 +864,8 @@
   "name":"java.security.AlgorithmParametersSpi"
 },
 {
-  "name":"java.security.DigestInputStream"
+  "name":"java.security.DigestInputStream",
+  "allPublicMethods":true
 },
 {
   "name":"java.security.KeyStoreSpi"
@@ -933,8 +940,7 @@
   "name":"java.util.Map"
 },
 {
-  "name":"java.util.Properties",
-  "allPublicMethods":true
+  "name":"java.util.Properties"
 },
 {
   "name":"java.util.RandomAccess"
@@ -1078,7 +1084,55 @@
   "name":"onecli.core__init"
 },
 {
-  "name":"org.sqlite.JDBC"
+  "name":"org.h2.Driver"
+},
+{
+  "name":"org.h2.engine.Engine",
+  "methods":[{"name":"getInstance","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.mvstore.db.MVTableEngine",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathDisk",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathMem",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathMemLZF",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathNio",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathNioMapped",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathNioMem",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathNioMemLZF",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathRetryOnInterrupt",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathSplit",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.FilePathZip",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
   "name":"serovers.core.DebianPartCompare"
@@ -1155,6 +1209,10 @@
 },
 {
   "name":"sun.security.provider.SHA5$SHA512",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SecureRandom",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {

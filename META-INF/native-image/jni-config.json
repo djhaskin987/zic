@@ -7,13 +7,6 @@
   "name":"java.lang.NoSuchMethodError"
 },
 {
-  "name":"org.sqlite.core.NativeDB",
-  "fields":[
-    {"name":"pointer"}, 
-    {"name":"udfdatalist"}
-  ]
-},
-{
   "name":"zic.cli",
   "methods":[{"name":"main","parameterTypes":["java.lang.String[]"] }]
 }

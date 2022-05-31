@@ -1,7 +1,6 @@
 #!/bin/sh
 set -ex
 
-
 # Dependency tree testing
 rm -rf .zic.db
 rm -rf .staging
