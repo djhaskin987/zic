@@ -41,6 +41,8 @@ native-image \
     -H:+JNI \
     -H:Name="${name}" \
     -jar target/uberjar/${name}-${version}-standalone.jar \
+    --trace-object-instantiation=java.nio.DirectByteBuffer \
+    --initialize-at-run-time=org.h2.value.ValueGeometry \
     "-H:ReflectionConfigurationFiles=META-INF/native-image/reflect-config.json" \
     "-H:JNIConfigurationFiles=META-INF/native-image/jni-config.json" \
     "-H:ResourceConfigurationFiles=META-INF/native-image/resource-config.json" \
