@@ -55,3 +55,5 @@ An excerpt from the README of this: https://github.com/borkdude/clj-reflector-gr
   "methods" : [{"name":"canAccess"}]},
   ...
 ]```
+
+So like, that worked. Now I'm just sorting through SSL exceptions trying to get my janky web server recognized.
