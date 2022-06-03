@@ -74,7 +74,8 @@
            package-version
            package-location
            ^Path
-           staging-path]
+           staging-path
+           insecure]
     :as options}]
   (when (or
          (nil? package-location)
@@ -99,7 +100,7 @@
       (Files/createDirectories staging-path (into-array
                                              java.nio.file.attribute.FileAttribute
                                              [])))
-    (fs/download package-location download-dest auth)
+    (fs/download package-location download-dest auth insecure)
     (ZipFile. (.toFile download-dest))))
 
 (defn decide-config-fate

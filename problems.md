@@ -57,3 +57,24 @@ An excerpt from the README of this: https://github.com/borkdude/clj-reflector-gr
 ]```
 
 So like, that worked. Now I'm just sorting through SSL exceptions trying to get my janky web server recognized.
+
+Something like this would be good, a run-time solution that would allow the user to specify a cert: https://stackoverflow.com/questions/1201048/allowing-java-to-use-an-untrusted-certificate-for-ssl-https-connection/1201102#1201102
+
+Maybe something clojure-specific?
+
+https://gist.github.com/mikeananev/76346532933bd9ff108ccbb04a89b849
+
+I don't know, man. Maybe just make sure the -D stuff works like it used to? That would be nice. https://www.graalvm.org/22.1/reference-manual/native-image/Properties/
+
+The offending command: `./zic-0.1.0-SNAPSHOT-standalone -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf add --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' --set-package-name a --set-package-version 0.1.0 --set-package-location https://djhaskin987.me:8443/a.zip --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}'`
+o the system property is `javax.net.ssl.trustStore` and its associated `trustStorePassword`. Let's research those.0lA
+
+https://stackoverflow.com/a/59056537 <-- what is a TRUST STORE TYPE!??!!?
+
+Maybe this? https://github.com/aphyr/less-awful-ssl
+
+WELL THEN. https://www.graalvm.org/22.1/reference-manual/native-image/CertificateManagement/
+
+But that's for 22.1 . Guess I have to upgrade my graalvm. Maybe if I do so, this will work?!?
+
+Where have you been all my life. https://github.com/clj-easy/graal-docs#jdk11-and-clojurelangreflector

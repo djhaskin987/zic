@@ -146,12 +146,13 @@
   Optionally, an auth object may be provided, allowing support for basic, token
   and header authorization.
   "
-  [^String resource ^Path dest auth]
+  [^String resource ^Path dest auth insecure?]
   (if (Files/exists dest (into-array LinkOption []))
     (Long/valueOf 0)
     (let [basic-args
           (if (empty? auth)
-            {:as :stream}
+            {:as :stream
+             :insecure? insecure?}
             (into {:as :stream}
                   (when-let [host (.getHost (io/as-url resource))]
                     (when-let [auth-record (get auth (keyword host))]

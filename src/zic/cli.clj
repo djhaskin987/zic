@@ -243,7 +243,7 @@
      ["info"] 'zic.cli/info!
      ["init"] 'zic.cli/init!
      ["list"] 'zic.cli/list!
-     ["orphans"] 'zic.cli/orphans!
+;;     ["orphans"] 'zic.cli/orphans!
      ["remove"] 'zic.cli/remove!
      ["dependers"] 'zic.cli/dependers!
      ["dependees"] 'zic.cli/dependees!
@@ -261,6 +261,8 @@
      "-u" "--add-package-dependency"
      "-W" "--disable-download-package"
      "-w" "--enable-download-package"
+     "-n" "--enable-insecure"
+     "-N" "--disable-insecure"
      "-O" "--disable-allow-downgrades"
      "-o" "--enable-allow-downgrades"
      "-I" "--disable-allow-inplace"
