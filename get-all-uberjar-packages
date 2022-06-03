@@ -1,0 +1,11 @@
+#!/bin/sh
+name=$(lein print :name | sed -e 's|"||g')
+version=$(lein print :version | sed -e 's|"||g')
+
+jar -tf target/uberjar/${name}-${version}-standalone.jar |
+    grep -E '\.class$' |
+    sed -e 's|/[^/]\{1,\}[.]class$|/.class|g' |
+    grep -v 'META-INF|classes' |
+    sort -u |
+    sed -e 's|/[.]class$||g' \
+        -e 's|[/]|.|g'
