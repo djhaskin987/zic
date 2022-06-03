@@ -38,6 +38,7 @@ lighttpd-environment/test-data
 /*.zip
 output-from-last-test
 /zic-*-standalone
+/zic-*-standalone*.txt
 
 
 # editor files

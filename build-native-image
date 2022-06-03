@@ -13,7 +13,6 @@ native-image \
     --enable-all-security-services \
     --no-server \
     --report-unsupported-elements-at-runtime \
-    --initialize-at-build-time \
     --static \
     --libc=musl \
     -H:+ReportExceptionStackTraces \
@@ -21,6 +20,10 @@ native-image \
     -H:Name="${name}" \
     -jar target/uberjar/${name}-${version}-standalone.jar \
     --initialize-at-build-time=buddy.util \
+    --initialize-at-build-time=java.lang \
+    --initialize-at-build-time=java.lang.reflect \
+    --initialize-at-build-time=java.sql \
+    --initialize-at-build-time=java.util \
     --initialize-at-build-time=cheshire \
     --initialize-at-build-time=cheshire.generate \
     --initialize-at-build-time=cheshire.prettyprint \
@@ -98,247 +101,253 @@ native-image \
     --initialize-at-build-time=slingshot \
     --initialize-at-build-time=zic \
     --initialize-at-build-time=zic.session \
+    --initialize-at-build-time=org.h2.api \
+    --initialize-at-build-time=org.h2.bnf \
+    --initialize-at-build-time=org.h2.bnf.context \
+    --initialize-at-build-time=org.h2 \
+    --initialize-at-build-time=org.h2.command \
+    --initialize-at-build-time=org.h2.command.ddl \
+    --initialize-at-build-time=org.h2.command.dml \
+    --initialize-at-build-time=org.h2.compress \
+    --initialize-at-build-time=org.h2.constraint \
+    --initialize-at-build-time=org.h2.engine \
+    --initialize-at-build-time=org.h2.expression \
+    --initialize-at-build-time=org.h2.fulltext \
+    --initialize-at-build-time=org.h2.index \
+    --initialize-at-build-time=org.h2.jdbc \
+    --initialize-at-build-time=org.h2.jdbcx \
+    --initialize-at-build-time=org.h2.jmx \
+    --initialize-at-build-time=org.h2.message \
+    --initialize-at-build-time=org.h2.mvstore.cache \
+    --initialize-at-build-time=org.h2.mvstore \
+    --initialize-at-build-time=org.h2.mvstore.db \
+    --initialize-at-build-time=org.h2.mvstore.rtree \
+    --initialize-at-build-time=org.h2.mvstore.type \
+    --initialize-at-build-time=org.h2.result \
+    --initialize-at-build-time=org.h2.schema \
+    --initialize-at-build-time=org.h2.security \
+    --initialize-at-build-time=org.h2.server \
+    --initialize-at-build-time=org.h2.server.pg \
+    --initialize-at-build-time=org.h2.server.web \
+    --initialize-at-build-time=org.h2.store \
+    --initialize-at-build-time=org.h2.store.fs \
+    --initialize-at-build-time=org.h2.table \
+    --initialize-at-build-time=org.h2.tools \
+    --initialize-at-build-time=org.h2.upgrade \
+    --initialize-at-build-time=org.h2.util \
+    --initialize-at-build-time=org.h2.value \
+    --initialize-at-build-time=org.bouncycastle.asn1.anssi \
+    --initialize-at-build-time=org.bouncycastle.asn1.bc \
+    --initialize-at-build-time=org.bouncycastle.asn1.bsi \
+    --initialize-at-build-time=org.bouncycastle.asn1 \
+    --initialize-at-build-time=org.bouncycastle.asn1.cmc \
+    --initialize-at-build-time=org.bouncycastle.asn1.cmp \
+    --initialize-at-build-time=org.bouncycastle.asn1.cms \
+    --initialize-at-build-time=org.bouncycastle.asn1.cms.ecc \
+    --initialize-at-build-time=org.bouncycastle.asn1.crmf \
+    --initialize-at-build-time=org.bouncycastle.asn1.cryptlib \
+    --initialize-at-build-time=org.bouncycastle.asn1.cryptopro \
+    --initialize-at-build-time=org.bouncycastle.asn1.dvcs \
+    --initialize-at-build-time=org.bouncycastle.asn1.eac \
+    --initialize-at-build-time=org.bouncycastle.asn1.edec \
+    --initialize-at-build-time=org.bouncycastle.asn1.esf \
+    --initialize-at-build-time=org.bouncycastle.asn1.ess \
+    --initialize-at-build-time=org.bouncycastle.asn1.est \
+    --initialize-at-build-time=org.bouncycastle.asn1.gm \
+    --initialize-at-build-time=org.bouncycastle.asn1.gnu \
+    --initialize-at-build-time=org.bouncycastle.asn1.iana \
+    --initialize-at-build-time=org.bouncycastle.asn1.icao \
+    --initialize-at-build-time=org.bouncycastle.asn1.isara \
+    --initialize-at-build-time=org.bouncycastle.asn1.isismtt \
+    --initialize-at-build-time=org.bouncycastle.asn1.isismtt.ocsp \
+    --initialize-at-build-time=org.bouncycastle.asn1.isismtt.x509 \
+    --initialize-at-build-time=org.bouncycastle.asn1.iso \
+    --initialize-at-build-time=org.bouncycastle.asn1.kisa \
+    --initialize-at-build-time=org.bouncycastle.asn1.microsoft \
+    --initialize-at-build-time=org.bouncycastle.asn1.misc \
+    --initialize-at-build-time=org.bouncycastle.asn1.mozilla \
+    --initialize-at-build-time=org.bouncycastle.asn1.nist \
+    --initialize-at-build-time=org.bouncycastle.asn1.nsri \
+    --initialize-at-build-time=org.bouncycastle.asn1.ntt \
+    --initialize-at-build-time=org.bouncycastle.asn1.ocsp \
+    --initialize-at-build-time=org.bouncycastle.asn1.oiw \
+    --initialize-at-build-time=org.bouncycastle.asn1.pkcs \
+    --initialize-at-build-time=org.bouncycastle.asn1.rosstandart \
+    --initialize-at-build-time=org.bouncycastle.asn1.sec \
+    --initialize-at-build-time=org.bouncycastle.asn1.smime \
+    --initialize-at-build-time=org.bouncycastle.asn1.teletrust \
+    --initialize-at-build-time=org.bouncycastle.asn1.tsp \
+    --initialize-at-build-time=org.bouncycastle.asn1.ua \
+    --initialize-at-build-time=org.bouncycastle.asn1.util \
+    --initialize-at-build-time=org.bouncycastle.asn1.x500 \
+    --initialize-at-build-time=org.bouncycastle.asn1.x500.style \
+    --initialize-at-build-time=org.bouncycastle.asn1.x509 \
+    --initialize-at-build-time=org.bouncycastle.asn1.x509.qualified \
+    --initialize-at-build-time=org.bouncycastle.asn1.x509.sigi \
+    --initialize-at-build-time=org.bouncycastle.asn1.x9 \
+    --initialize-at-build-time=org.bouncycastle.cert.bc \
+    --initialize-at-build-time=org.bouncycastle.cert \
+    --initialize-at-build-time=org.bouncycastle.cert.cmp \
+    --initialize-at-build-time=org.bouncycastle.cert.crmf.bc \
+    --initialize-at-build-time=org.bouncycastle.cert.crmf \
+    --initialize-at-build-time=org.bouncycastle.cert.crmf.jcajce \
+    --initialize-at-build-time=org.bouncycastle.cert.dane \
+    --initialize-at-build-time=org.bouncycastle.cert.dane.fetcher \
+    --initialize-at-build-time=org.bouncycastle.cert.jcajce \
+    --initialize-at-build-time=org.bouncycastle.cert.ocsp \
+    --initialize-at-build-time=org.bouncycastle.cert.ocsp.jcajce \
+    --initialize-at-build-time=org.bouncycastle.cert.path \
+    --initialize-at-build-time=org.bouncycastle.cert.path.validations \
+    --initialize-at-build-time=org.bouncycastle.cert.selector \
+    --initialize-at-build-time=org.bouncycastle.cert.selector.jcajce \
+    --initialize-at-build-time=org.bouncycastle \
+    --initialize-at-build-time=org.bouncycastle.cmc \
+    --initialize-at-build-time=org.bouncycastle.cms.bc \
+    --initialize-at-build-time=org.bouncycastle.cms \
+    --initialize-at-build-time=org.bouncycastle.cms.jcajce \
+    --initialize-at-build-time=org.bouncycastle.crypto.agreement \
+    --initialize-at-build-time=org.bouncycastle.crypto.agreement.jpake \
+    --initialize-at-build-time=org.bouncycastle.crypto.agreement.kdf \
+    --initialize-at-build-time=org.bouncycastle.crypto.agreement.srp \
+    --initialize-at-build-time=org.bouncycastle.crypto \
+    --initialize-at-build-time=org.bouncycastle.crypto.commitments \
+    --initialize-at-build-time=org.bouncycastle.crypto.digests \
+    --initialize-at-build-time=org.bouncycastle.crypto.ec \
+    --initialize-at-build-time=org.bouncycastle.crypto.encodings \
+    --initialize-at-build-time=org.bouncycastle.crypto.engines \
+    --initialize-at-build-time=org.bouncycastle.crypto.examples \
+    --initialize-at-build-time=org.bouncycastle.crypto.generators \
+    --initialize-at-build-time=org.bouncycastle.crypto.io \
+    --initialize-at-build-time=org.bouncycastle.crypto.kems \
+    --initialize-at-build-time=org.bouncycastle.crypto.macs \
+    --initialize-at-build-time=org.bouncycastle.crypto.modes \
+    --initialize-at-build-time=org.bouncycastle.crypto.modes.gcm \
+    --initialize-at-build-time=org.bouncycastle.crypto.modes.kgcm \
+    --initialize-at-build-time=org.bouncycastle.crypto.paddings \
+    --initialize-at-build-time=org.bouncycastle.crypto.params \
+    --initialize-at-build-time=org.bouncycastle.crypto.parsers \
+    --initialize-at-build-time=org.bouncycastle.crypto.prng \
+    --initialize-at-build-time=org.bouncycastle.crypto.prng.drbg \
+    --initialize-at-build-time=org.bouncycastle.crypto.signers \
+    --initialize-at-build-time=org.bouncycastle.crypto.util \
+    --initialize-at-build-time=org.bouncycastle.dvcs \
+    --initialize-at-build-time=org.bouncycastle.eac \
+    --initialize-at-build-time=org.bouncycastle.eac.jcajce \
+    --initialize-at-build-time=org.bouncycastle.eac.operator \
+    --initialize-at-build-time=org.bouncycastle.eac.operator.jcajce \
+    --initialize-at-build-time=org.bouncycastle.est \
+    --initialize-at-build-time=org.bouncycastle.est.jcajce \
+    --initialize-at-build-time=org.bouncycastle.i18n \
+    --initialize-at-build-time=org.bouncycastle.i18n.filter \
+    --initialize-at-build-time=org.bouncycastle.iana \
+    --initialize-at-build-time=org.bouncycastle.its.asn1 \
+    --initialize-at-build-time=org.bouncycastle.jcajce \
+    --initialize-at-build-time=org.bouncycastle.jcajce.interfaces \
+    --initialize-at-build-time=org.bouncycastle.jcajce.io \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.dh \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.dsa \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.dstu \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.ec \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.ecgost12 \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.ecgost \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.edec \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.elgamal \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.gost \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.ies \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.rsa \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.util \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.asymmetric.x509 \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.config \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.digest \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.drbg \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.keystore.bc \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.keystore.bcfks \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.keystore \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.keystore.pkcs12 \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.symmetric \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.symmetric.util \
+    --initialize-at-build-time=org.bouncycastle.jcajce.provider.util \
+    --initialize-at-build-time=org.bouncycastle.jcajce.spec \
+    --initialize-at-build-time=org.bouncycastle.jcajce.util \
+    --initialize-at-build-time=org.bouncycastle.jce \
+    --initialize-at-build-time=org.bouncycastle.jce.exception \
+    --initialize-at-build-time=org.bouncycastle.jce.interfaces \
+    --initialize-at-build-time=org.bouncycastle.jce.netscape \
+    --initialize-at-build-time=org.bouncycastle.jce.provider \
+    --initialize-at-build-time=org.bouncycastle.jce.spec \
+    --initialize-at-build-time=org.bouncycastle.math \
+    --initialize-at-build-time=org.bouncycastle.math.ec \
+    --initialize-at-build-time=org.bouncycastle.math.ec.custom.djb \
+    --initialize-at-build-time=org.bouncycastle.math.ec.custom.gm \
+    --initialize-at-build-time=org.bouncycastle.math.ec.custom.sec \
+    --initialize-at-build-time=org.bouncycastle.math.ec.endo \
+    --initialize-at-build-time=org.bouncycastle.math.ec.rfc7748 \
+    --initialize-at-build-time=org.bouncycastle.math.ec.rfc8032 \
+    --initialize-at-build-time=org.bouncycastle.math.ec.tools \
+    --initialize-at-build-time=org.bouncycastle.math.field \
+    --initialize-at-build-time=org.bouncycastle.math.raw \
+    --initialize-at-build-time=org.bouncycastle.mime \
+    --initialize-at-build-time=org.bouncycastle.mime.encoding \
+    --initialize-at-build-time=org.bouncycastle.mime.smime \
+    --initialize-at-build-time=org.bouncycastle.mozilla \
+    --initialize-at-build-time=org.bouncycastle.mozilla.jcajce \
+    --initialize-at-build-time=org.bouncycastle.openssl.bc \
+    --initialize-at-build-time=org.bouncycastle.openssl \
+    --initialize-at-build-time=org.bouncycastle.openssl.jcajce \
+    --initialize-at-build-time=org.bouncycastle.operator.bc \
+    --initialize-at-build-time=org.bouncycastle.operator \
+    --initialize-at-build-time=org.bouncycastle.operator.jcajce \
+    --initialize-at-build-time=org.bouncycastle.pkcs.bc \
+    --initialize-at-build-time=org.bouncycastle.pkcs \
+    --initialize-at-build-time=org.bouncycastle.pkcs.jcajce \
+    --initialize-at-build-time=org.bouncycastle.pkix \
+    --initialize-at-build-time=org.bouncycastle.pkix.jcajce \
+    --initialize-at-build-time=org.bouncycastle.pqc.asn1 \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.gmss \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.gmss.util \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.lms \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.mceliece \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.newhope \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.qtesla \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.rainbow \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.rainbow.util \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.sphincs \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.util \
+    --initialize-at-build-time=org.bouncycastle.pqc.crypto.xmss \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.interfaces \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.gmss \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.lms \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.mceliece \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.newhope \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.qtesla \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.rainbow \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.sphincs \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.util \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.provider.xmss \
+    --initialize-at-build-time=org.bouncycastle.pqc.jcajce.spec \
+    --initialize-at-build-time=org.bouncycastle.pqc.math.linearalgebra \
+    --initialize-at-build-time=org.bouncycastle.tsp \
+    --initialize-at-build-time=org.bouncycastle.tsp.cms \
+    --initialize-at-build-time=org.bouncycastle.util \
+    --initialize-at-build-time=org.bouncycastle.util.encoders \
+    --initialize-at-build-time=org.bouncycastle.util.io \
+    --initialize-at-build-time=org.bouncycastle.util.io.pem \
+    --initialize-at-build-time=org.bouncycastle.util.test \
+    --initialize-at-build-time=org.bouncycastle.voms \
+    --initialize-at-build-time=org.bouncycastle.x509 \
+    --initialize-at-build-time=org.bouncycastle.x509.extension \
+    --initialize-at-build-time=org.bouncycastle.x509.util \
+    --initialize-at-run-time=org.h2.util.MathUtils \
+    --initialize-at-run-time=org.h2.engine.ConnectionInfo \
+    --initialize-at-run-time=org.h2.engine.SysProperties \
+    --initialize-at-run-time=org.h2.store.fs.FileNioMemData \
+    --initialize-at-run-time=org.h2.value.ValueGeometry \
     -H:+AllowIncompleteClasspath \
     -J-Dclojure.compiler.direct-linking=true \
     -J-Dclojure.spec.skip-macros=true \
-    -J-Xmx4G
+    -J-Xmx4G \
+    "${@}"
 
-#org.h2.api
-#org.h2.bnf
-#org.h2.bnf.context
-#org.h2
-#org.h2.command
-#org.h2.command.ddl
-#org.h2.command.dml
-#org.h2.compress
-#org.h2.constraint
-#org.h2.engine
-#org.h2.expression
-#org.h2.fulltext
-#org.h2.index
-#org.h2.jdbc
-#org.h2.jdbcx
-#org.h2.jmx
-#org.h2.message
-#org.h2.mvstore.cache
-#org.h2.mvstore
-#org.h2.mvstore.db
-#org.h2.mvstore.rtree
-#org.h2.mvstore.type
-#org.h2.result
-#org.h2.schema
-#org.h2.security
-#org.h2.server
-#org.h2.server.pg
-#org.h2.server.web
-#org.h2.store
-#org.h2.store.fs
-#org.h2.table
-#org.h2.tools
-#org.h2.upgrade
-#org.h2.util
-#org.h2.value
-#org.bouncycastle.asn1.anssi
-#org.bouncycastle.asn1.bc
-#org.bouncycastle.asn1.bsi
-#org.bouncycastle.asn1
-#org.bouncycastle.asn1.cmc
-#org.bouncycastle.asn1.cmp
-#org.bouncycastle.asn1.cms
-#org.bouncycastle.asn1.cms.ecc
-#org.bouncycastle.asn1.crmf
-#org.bouncycastle.asn1.cryptlib
-#org.bouncycastle.asn1.cryptopro
-#org.bouncycastle.asn1.dvcs
-#org.bouncycastle.asn1.eac
-#org.bouncycastle.asn1.edec
-#org.bouncycastle.asn1.esf
-#org.bouncycastle.asn1.ess
-#org.bouncycastle.asn1.est
-#org.bouncycastle.asn1.gm
-#org.bouncycastle.asn1.gnu
-#org.bouncycastle.asn1.iana
-#org.bouncycastle.asn1.icao
-#org.bouncycastle.asn1.isara
-#org.bouncycastle.asn1.isismtt
-#org.bouncycastle.asn1.isismtt.ocsp
-#org.bouncycastle.asn1.isismtt.x509
-#org.bouncycastle.asn1.iso
-#org.bouncycastle.asn1.kisa
-#org.bouncycastle.asn1.microsoft
-#org.bouncycastle.asn1.misc
-#org.bouncycastle.asn1.mozilla
-#org.bouncycastle.asn1.nist
-#org.bouncycastle.asn1.nsri
-#org.bouncycastle.asn1.ntt
-#org.bouncycastle.asn1.ocsp
-#org.bouncycastle.asn1.oiw
-#org.bouncycastle.asn1.pkcs
-#org.bouncycastle.asn1.rosstandart
-#org.bouncycastle.asn1.sec
-#org.bouncycastle.asn1.smime
-#org.bouncycastle.asn1.teletrust
-#org.bouncycastle.asn1.tsp
-#org.bouncycastle.asn1.ua
-#org.bouncycastle.asn1.util
-#org.bouncycastle.asn1.x500
-#org.bouncycastle.asn1.x500.style
-#org.bouncycastle.asn1.x509
-#org.bouncycastle.asn1.x509.qualified
-#org.bouncycastle.asn1.x509.sigi
-#org.bouncycastle.asn1.x9
-#org.bouncycastle.cert.bc
-#org.bouncycastle.cert
-#org.bouncycastle.cert.cmp
-#org.bouncycastle.cert.crmf.bc
-#org.bouncycastle.cert.crmf
-#org.bouncycastle.cert.crmf.jcajce
-#org.bouncycastle.cert.dane
-#org.bouncycastle.cert.dane.fetcher
-#org.bouncycastle.cert.jcajce
-#org.bouncycastle.cert.ocsp
-#org.bouncycastle.cert.ocsp.jcajce
-#org.bouncycastle.cert.path
-#org.bouncycastle.cert.path.validations
-#org.bouncycastle.cert.selector
-#org.bouncycastle.cert.selector.jcajce
-#org.bouncycastle
-#org.bouncycastle.cmc
-#org.bouncycastle.cms.bc
-#org.bouncycastle.cms
-#org.bouncycastle.cms.jcajce
-#org.bouncycastle.crypto.agreement
-#org.bouncycastle.crypto.agreement.jpake
-#org.bouncycastle.crypto.agreement.kdf
-#org.bouncycastle.crypto.agreement.srp
-#org.bouncycastle.crypto
-#org.bouncycastle.crypto.commitments
-#org.bouncycastle.crypto.digests
-#org.bouncycastle.crypto.ec
-#org.bouncycastle.crypto.encodings
-#org.bouncycastle.crypto.engines
-#org.bouncycastle.crypto.examples
-#org.bouncycastle.crypto.generators
-#org.bouncycastle.crypto.io
-#org.bouncycastle.crypto.kems
-#org.bouncycastle.crypto.macs
-#org.bouncycastle.crypto.modes
-#org.bouncycastle.crypto.modes.gcm
-#org.bouncycastle.crypto.modes.kgcm
-#org.bouncycastle.crypto.paddings
-#org.bouncycastle.crypto.params
-#org.bouncycastle.crypto.parsers
-#org.bouncycastle.crypto.prng
-#org.bouncycastle.crypto.prng.drbg
-#org.bouncycastle.crypto.signers
-#org.bouncycastle.crypto.util
-#org.bouncycastle.dvcs
-#org.bouncycastle.eac
-#org.bouncycastle.eac.jcajce
-#org.bouncycastle.eac.operator
-#org.bouncycastle.eac.operator.jcajce
-#org.bouncycastle.est
-#org.bouncycastle.est.jcajce
-#org.bouncycastle.i18n
-#org.bouncycastle.i18n.filter
-#org.bouncycastle.iana
-#org.bouncycastle.its.asn1
-#org.bouncycastle.jcajce
-#org.bouncycastle.jcajce.interfaces
-#org.bouncycastle.jcajce.io
-#org.bouncycastle.jcajce.provider.asymmetric
-#org.bouncycastle.jcajce.provider.asymmetric.dh
-#org.bouncycastle.jcajce.provider.asymmetric.dsa
-#org.bouncycastle.jcajce.provider.asymmetric.dstu
-#org.bouncycastle.jcajce.provider.asymmetric.ec
-#org.bouncycastle.jcajce.provider.asymmetric.ecgost12
-#org.bouncycastle.jcajce.provider.asymmetric.ecgost
-#org.bouncycastle.jcajce.provider.asymmetric.edec
-#org.bouncycastle.jcajce.provider.asymmetric.elgamal
-#org.bouncycastle.jcajce.provider.asymmetric.gost
-#org.bouncycastle.jcajce.provider.asymmetric.ies
-#org.bouncycastle.jcajce.provider.asymmetric.rsa
-#org.bouncycastle.jcajce.provider.asymmetric.util
-#org.bouncycastle.jcajce.provider.asymmetric.x509
-#org.bouncycastle.jcajce.provider.config
-#org.bouncycastle.jcajce.provider.digest
-#org.bouncycastle.jcajce.provider.drbg
-#org.bouncycastle.jcajce.provider.keystore.bc
-#org.bouncycastle.jcajce.provider.keystore.bcfks
-#org.bouncycastle.jcajce.provider.keystore
-#org.bouncycastle.jcajce.provider.keystore.pkcs12
-#org.bouncycastle.jcajce.provider.symmetric
-#org.bouncycastle.jcajce.provider.symmetric.util
-#org.bouncycastle.jcajce.provider.util
-#org.bouncycastle.jcajce.spec
-#org.bouncycastle.jcajce.util
-#org.bouncycastle.jce
-#org.bouncycastle.jce.exception
-#org.bouncycastle.jce.interfaces
-#org.bouncycastle.jce.netscape
-#org.bouncycastle.jce.provider
-#org.bouncycastle.jce.spec
-#org.bouncycastle.math
-#org.bouncycastle.math.ec
-#org.bouncycastle.math.ec.custom.djb
-#org.bouncycastle.math.ec.custom.gm
-#org.bouncycastle.math.ec.custom.sec
-#org.bouncycastle.math.ec.endo
-#org.bouncycastle.math.ec.rfc7748
-#org.bouncycastle.math.ec.rfc8032
-#org.bouncycastle.math.ec.tools
-#org.bouncycastle.math.field
-#org.bouncycastle.math.raw
-#org.bouncycastle.mime
-#org.bouncycastle.mime.encoding
-#org.bouncycastle.mime.smime
-#org.bouncycastle.mozilla
-#org.bouncycastle.mozilla.jcajce
-#org.bouncycastle.openssl.bc
-#org.bouncycastle.openssl
-#org.bouncycastle.openssl.jcajce
-#org.bouncycastle.operator.bc
-#org.bouncycastle.operator
-#org.bouncycastle.operator.jcajce
-#org.bouncycastle.pkcs.bc
-#org.bouncycastle.pkcs
-#org.bouncycastle.pkcs.jcajce
-#org.bouncycastle.pkix
-#org.bouncycastle.pkix.jcajce
-#org.bouncycastle.pqc.asn1
-#org.bouncycastle.pqc.crypto
-#org.bouncycastle.pqc.crypto.gmss
-#org.bouncycastle.pqc.crypto.gmss.util
-#org.bouncycastle.pqc.crypto.lms
-#org.bouncycastle.pqc.crypto.mceliece
-#org.bouncycastle.pqc.crypto.newhope
-#org.bouncycastle.pqc.crypto.qtesla
-#org.bouncycastle.pqc.crypto.rainbow
-#org.bouncycastle.pqc.crypto.rainbow.util
-#org.bouncycastle.pqc.crypto.sphincs
-#org.bouncycastle.pqc.crypto.util
-#org.bouncycastle.pqc.crypto.xmss
-#org.bouncycastle.pqc.jcajce.interfaces
-#org.bouncycastle.pqc.jcajce.provider
-#org.bouncycastle.pqc.jcajce.provider.gmss
-#org.bouncycastle.pqc.jcajce.provider.lms
-#org.bouncycastle.pqc.jcajce.provider.mceliece
-#org.bouncycastle.pqc.jcajce.provider.newhope
-#org.bouncycastle.pqc.jcajce.provider.qtesla
-#org.bouncycastle.pqc.jcajce.provider.rainbow
-#org.bouncycastle.pqc.jcajce.provider.sphincs
-#org.bouncycastle.pqc.jcajce.provider.util
-#org.bouncycastle.pqc.jcajce.provider.xmss
-#org.bouncycastle.pqc.jcajce.spec
-#org.bouncycastle.pqc.math.linearalgebra
-#org.bouncycastle.tsp
-#org.bouncycastle.tsp.cms
-#org.bouncycastle.util
-#org.bouncycastle.util.encoders
-#org.bouncycastle.util.io
-#org.bouncycastle.util.io.pem
-#org.bouncycastle.util.test
-#org.bouncycastle.voms
-#org.bouncycastle.x509
-#org.bouncycastle.x509.extension
-#org.bouncycastle.x509.util
