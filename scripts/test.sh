@@ -12,34 +12,69 @@ usage() {
     echo "Usage: test.sh [-h] [--tracing|--native]" >&2
     echo "  --tracing: Record runs for future use with native-image" >&2
     echo "  --native: Run using the natively-compiled executable" >&2
-    exit 1
+    echo "" >&2
+    echo "This script pre-supposes graalvm installed and \`native-image\`," >&2
+    echo "  \`java\`, and \`javac\` as commands originating from the" >&2
+    echo "  GraalVM installation being targeted." >&2
+    exit 128
 }
 
-rm -rf .zic.mv.db
-rm -rf .zic.trace.db
-rm -rf .staging
-mkdir -p .staging
-rm -rf a
-rm -rf c
-rm -rf changes
-rm -rf failure
 
-name=$(lein print :name | sed 's|"||g')
-version=$(lein print :version | sed 's|"||g')
+if [ ! -f "project.clj" ]
+then
+    echo "This script must be run from the root of the project." >&2
+    usage
+fi
+
+root_path=${PWD}
+test_home="${root_path}/test/resources/data/all"
+rm -rf "${test_home}"
+mkdir -p "${test_home}"
+cd "${test_home}"
+
+name=$(scripts/name)
+version=$(scripts/version)
+
+cleanup_files() {
+
+    rm -rf .${name}.mv.db
+    rm -rf .${name}.trace.db
+    rm -rf .staging
+    mkdir -p .staging
+    rm -rf a
+    rm -rf c
+    rm -rf changes
+    rm -rf failure
+}
+
+cleanup_files
 
 execmd=
 java='java'
+first_java=
+tracing=0
+keystore="${root_path}/test/resources/test.keystore"
+
 while [ -n "${1}" ]
 do
     case "${1}" in
         --tracing)
             shift
+            tracing=1
+            native_image_config="${root_path}/META-INF/native-image"
             # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
-            java='java -agentlib:native-image-agent=config-merge-dir=META-INF/native-image/'
+            java="java -agentlib:native-image-agent=config-merge-dir=${native_image_config}/"
+
+            # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
+            # Make sure to run `gu install native-image` first or you will get an "so file
+            # not found" error
+            first_java="java -agentlib:native-image-agent=config-output-dir=${native_image_config}/"
+            rm -rf "${native_image_config}"
+            mkdir -p "${native_image_config}"
             ;;
         --native)
             shift
-            execmd="./${name}-${version}-standalone -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf"
+            execmd="${root_path}/target/native-image/${name}-${version}-standalone -Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf --enable-insecure"
             ;;
         -h|*)
             usage
@@ -49,11 +84,140 @@ done
 
 if [ -z "${execmd}" ]
 then
-    execmd="${java} -Djavax.net.ssl.trustStore=test.keystore -Djavax.net.ssl.trustStorePassword=asdfasdf -jar target/uberjar/${name}-${version}-standalone.jar"
+    args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
+    execmd="${java} ${args}"
+    if [ -z "${first_java}" ]
+    then
+        first_exe="${first_java} ${args}"
+    else
+        first_exe="${execmd}"
+    fi
 fi
 
+start_server="${root_path}/lighttpd-environment/lighttpd.exp"
+set +x
+echo "Starting server..."
+set -x
+${start_server} &
+server_pid=$!
+
+cleanup_server() {
+    kill -9 "${server_pid}"
+}
+
+cleanup() {
+    set +x
+    echo "Cleaning up..."
+    set -x
+    cleanup_files
+    cleanup_server
+}
+
+# https://unix.stackexchange.com/q/235582/9696
+trap "exit 129" HUP
+trap "exit 130" INT
+trap "exit 143" TERM
+trap cleanup EXIT
+$first_exe \
+    init \
+
+
+# OneCLI, for tracing
 $execmd \
-    init
+    --file-tar-valon test/resources/tar-valon.yaml \
+    --yaml-places '["Two Rivers", "Gealdan", "Tar Valon"]' \
+    --yaml-eyes '16' \
+    --yaml-pocahontas '1607' \
+    --yaml-fire 'false' \
+    --add-places "The Dragon" \
+    options
+
+# Insert onecli's test.sh nearly verbatim for tracing's sake
+export ZIC_ITEM_OUTPUT_FORMAT="json"
+
+$execmd \
+    options show
+
+cat > "${test_home}/zic.json" <<ZIC
+{
+"one": {
+"two": 238,
+"three": 543
+},
+"zed": {
+"a": true,
+"b": false
+}
+}
+ZIC
+rm ${test_home}/zic.json
+
+$execmd \
+    options show
+
+cat > "${test_home}/zic.yaml" <<ZIC
+one:
+  two: 238
+  three: 543
+zed:
+  a: true
+  b: false
+ZIC
+
+cat > "${test_home}/a.json" <<A
+{
+"afound": true
+}
+A
+cat > "${test_home}/b.json" <<B
+{
+"bfound": true
+}
+B
+ls ./zic.yaml
+
+answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="${test_home}/a.json,${test_home}/b.json" ${execmd} options show --add-config-files '-' --json-fart '123' <<ALSO
+{
+    "ifihadtodoitagain": "i would"
+}
+ALSO
+)
+
+expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","println":"setup","bfound":true,"output-format":"json","filename":null,"commands":["options","show"],"fart":123,"ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true}'
+
+if [ ! "${answer}" = "${expected}" ]
+then
+    echo "AAAAH"
+    exit 1
+fi
+
+answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="./a.json,./b.json" ${execmd} options show --set-output-format yaml --add-config-files '-' --yaml-fart '123' << ALSO
+ifihadtodoitagain: i would
+ALSO
+)
+
+expected='one:
+  two: 238
+  three: 543
+anonymous-coward: I was never here
+println: setup
+bfound: true
+output-format: yaml
+filename: null
+commands:
+ - options
+ - show
+fart: 123
+ifihadtodoitagain: i would
+zed:
+  a: true
+  b: false
+afound: true'
+if [ ! "${answer}" = "${expected}" ]
+then
+    echo "AAAAH"
+    exit 1
+fi
 
 if $execmd \
     add \
@@ -65,7 +229,7 @@ then
     exit 1
 fi
 
-# make sure the test DOES NOT replace existing files in the staging directory
+# Make sure the test DOES NOT replace existing files in the staging directory
 # by putting a bogus file where a good one should be downloaded.
 # BTW, because verybad was downloaded previously, the .staging directory
 # SHOULD ALREADY BE THERE
@@ -257,8 +421,6 @@ $execmd \
     remove \
     --set-package-name 'failure'
 
-rm -rf failure
-
 # Clean slate for tests.
 rm -rf changes
 # File cases:
@@ -425,7 +587,7 @@ fi
 
 # THEN, DELETE IT
 #$java -jar \
-#    -Djavax.net.ssl.trustStore="test.keystore" \
+#    -Djavax.net.ssl.trustStore="${keystore}" \
 #    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
 #    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
 #    remove \
@@ -433,3 +595,200 @@ fi
 # AND CHECK THE FILES AGAIN
 
 # [ ] TODO: CHECK package file conflicts on upgrade apply between ghost-file/normal file pairs
+
+
+# Dependency tree testing
+
+cleanup_files
+
+$execmd \
+    init
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'c' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/c.zip"
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'b' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/b.zip" \
+    --add-package-dependency 'c'
+
+# Test that unmet dependencies stop installation.
+if $execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'd'
+then
+    exit 1
+fi
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'c'
+
+# TODO: The output of these commands need to be checked manually at the moment
+$execmd \
+    dependers \
+    -k 'c'
+
+$execmd \
+    dependers \
+    -k 'b'
+
+$execmd \
+    dependers \
+    -k 'a'
+
+$execmd \
+    dependees \
+    -k 'c'
+
+$execmd \
+    dependees \
+    -k 'b'
+
+$execmd \
+    dependees \
+    -k 'a'
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.2.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b'
+
+$execmd \
+    dependees \
+    -k 'a'
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.3.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b' \
+    -u 'c'
+
+$execmd \
+    dependees \
+    -k 'a'
+
+$execmd \
+    dependees \
+    -k 'nonexistent'
+
+$execmd \
+    remove \
+    --set-package-name 'a' \
+    --enable-dry-run
+
+if [ "$($execmd \
+    info \
+    --set-package-name 'a' | jq -r '.result')" = "not-found" ]
+then
+    exit 1
+fi
+
+$execmd \
+    remove \
+    --set-package-name 'a'
+
+if [ "$($execmd \
+    info \
+    --set-package-name 'a' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+if [ "$($execmd \
+    info \
+    --set-package-name 'b' | jq -r '.result')" != "package-found" ]
+then
+    exit 1
+fi
+
+if [ "$($execmd \
+    info \
+    --set-package-name 'c' | jq -r '.result')" != "package-found" ]
+then
+    exit 1
+fi
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'a' \
+    --set-package-version 0.3.0 \
+    --set-package-location "https://djhaskin987.me:8443/a.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' \
+    -u 'b' \
+    -u 'c'
+
+if $execmd \
+    remove \
+    --set-package-name 'c'
+then
+    exit 1
+fi
+
+$execmd \
+    remove \
+    --enable-cascade \
+    --set-package-name 'c'
+# TODO: THIS IS THE COMMAND THAT IS FAILING
+if [ "$($execmd \
+    info \
+    --set-package-name 'c' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+if [ "$($execmd \
+    info \
+    --set-package-name 'b' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+if [ "$($execmd \
+    info \
+    --set-package-name 'a' | jq -r '.result')" != "not-found" ]
+then
+    exit 1
+fi
+
+test "$($execmd \
+    remove \
+    --enable-cascade \
+    --set-package-name 'c' | jq -r '.result')" = "not-found"
+
+# Cleanup that should only run if the script ran successfully
+
+ed META-INF/native-image/reflect-config.json << ED
+/^\[
+a
+    {"name": "java.lang.reflect.AccessibleObject", "methods" : [{"name":"canAccess"}]},
+.
+w
+q
+ED

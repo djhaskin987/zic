@@ -11,7 +11,7 @@
                  [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]
-                 [com.h2database/h2 "1.4.194"]
+                 [com.h2database/h2 "1.4.199"]
                  ;;[org.xerial/sqlite-jdbc "3.28.0"]
                  [seancorfield/next.jdbc "1.0.10"]
                  [serovers "1.6.2"]

@@ -263,8 +263,8 @@
      "-w" "--enable-download-package"
      "-n" "--enable-insecure"
      "-N" "--disable-insecure"
-     "-O" "--disable-allow-downgrades"
-     "-o" "--enable-allow-downgrades"
+     "-G" "--disable-allow-downgrades"
+     "-g" "--enable-allow-downgrades"
      "-I" "--disable-allow-inplace"
      "-i" "--enable-allow-inplace"
      ;; On remove
@@ -274,7 +274,8 @@
      "-R" "--disable-dry-run"}
 
     :defaults
-    {:start-directory (System/getProperty "user.dir")
+    {:output-format "yaml"
+     :start-directory (System/getProperty "user.dir")
      :cascade false
      :dry-run false
      :download-package true}

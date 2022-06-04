@@ -39,6 +39,7 @@ lighttpd-environment/test-data
 output-from-last-test
 /zic-*-standalone
 /zic-*-standalone*.txt
+META-INF/
 
 
 # editor files

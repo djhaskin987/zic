@@ -9,3 +9,9 @@ jar -tf target/uberjar/${name}-${version}-standalone.jar |
     sort -u |
     sed -e 's|/[.]class$||g' \
         -e 's|[/]|.|g'
+grep -r -E '\(java\.' src | sed -e 's|^.\{1,\}java|java|g' -e 's|[.][A-Z].*$||g'
+
+echo 'java.lang'
+echo 'java.lang.reflect'
+echo 'java.util'
+echo 'java.sql'

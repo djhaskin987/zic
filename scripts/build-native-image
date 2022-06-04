@@ -1,0 +1,69 @@
+#!/bin/sh
+root_path=${PWD}
+
+name=$(lein print :name | sed 's|"||g')
+version=$(lein print :version | sed 's|"||g')
+
+packages=$(./get-all-uberjar-packages)
+num_packages=$(printf '%s' "${packages} | wc -l)
+echo "Used to initialize ${packages} packages"
+
+packages=$(java \
+    -verbose:class \
+    -jar \
+    target/uberjar/${name}-${version}-standalone.jar  |
+    awk '/^\[[^ ]* /{print $2}' |
+    sed -e 's|\.[^.]*$||g' |
+    sort -u)
+num_packages=$(printf '%s' "${packages} | wc -l)
+echo "Initializing ${num_packages} packages"
+
+
+# https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
+verbatim="
+--verbose \
+--enable-url-protocols=https,http \
+--report-unsupported-elements-at-runtime \
+--static \
+--libc=musl \
+--no-fallback \
+--no-server \
+--no-fallback \
+-H:+ReportExceptionStackTraces \
+-H:+JNI \
+-H:Name=${name} \
+-jar target/uberjar/${name}-${version}-standalone.jar \
+-H:+AllowIncompleteClasspath \
+-J-Dclojure.compiler.direct-linking=true \
+-J-Dclojure.spec.skip-macros=true \
+-J-Xmx4G"
+exceptions="\
+org.h2.util.JdbcUtils \
+org.h2.engine.ConnectionInfo \
+org.h2.engine.Engine \
+org.h2.engine.SysProperties \
+org.h2.store.fs.FileNioMemData \
+org.h2.util.MathUtils \
+org.h2.value.DataType \
+org.h2.value.ValueGeometry \
+org.h2.mvstore.db.MVTable \
+org.h2.result.SortOrder \
+org.h2.mvstore.db.MVPrimaryIndex \
+org.h2.engine.Mode \
+org.h2.value.ValueLong \
+org.h2.util.MemoryUnmapper \
+"
+for i in ${verbatim}
+do
+    arguments="${arguments} ${i}"
+done
+for i in ${packages}
+do
+    arguments="${arguments} --initialize-at-build-time=${i}"
+done
+for i in ${exceptions}
+do
+    arguments="${arguments} --initialize-at-run-time=${i}"
+done
+native-image ${arguments} "${@}"
+

@@ -1,0 +1,31 @@
+aes: sedai
+towers:
+  white:
+    inhabitants:
+      - name: Sarah
+        age: 174
+        house: Blue
+      - name: Leah
+        age: 432
+        house: Green
+      - name: Rebekah
+        age: 37
+        house: Brown
+    amicable_to_dragon: false
+    age: 5348.37
+  black:
+    amicable_to_dragon: true
+    inhabitants:
+      - name: Perin
+        age: 17
+        specialty: wolf_man
+        prior_occupation: smith
+      - name: Mattram
+        age: 17
+        specialty: devils_luck
+        prior_occupation: toom-foolery
+      - name: Rand
+        age: 17
+        specialty: dragon_reborn
+        prior_occupation: farmer
+    age: 5.48

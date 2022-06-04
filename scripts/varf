@@ -1,0 +1,8 @@
+ed ../META-INF/native-image/reflect-config.json << ED
+/^\[
+a
+    {"name": "java.lang.reflect.AccessibleObject", "methods" : [{"name":"canAccess"}]},
+.
+w
+q
+ED
