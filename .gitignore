@@ -25,18 +25,14 @@ pom.xml.asc
 # testing
 .zic.sqlite3
 .zic.db
+.zic.mv.db
 /*.db
 lighttpd-environment/lighttpd.conf
 lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
-/a/
-/b/
-/c/
-/failure/
-/changes/
-/*.zip
-output-from-last-test
+
+test/resources/data/all
 /zic-*-standalone
 /zic-*-standalone*.txt
 META-INF/
