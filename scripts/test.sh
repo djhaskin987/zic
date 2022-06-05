@@ -32,8 +32,8 @@ rm -rf "${test_home}"
 mkdir -p "${test_home}"
 cd "${test_home}"
 
-name=$(scripts/name)
-version=$(scripts/version)
+name=$(${root_path}/scripts/name)
+version=$(${root_path}/scripts/version)
 
 cleanup_files() {
 
@@ -86,7 +86,7 @@ if [ -z "${execmd}" ]
 then
     args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
     execmd="${java} ${args}"
-    if [ -z "${first_java}" ]
+    if [ -n "${first_java}" ]
     then
         first_exe="${first_java} ${args}"
     else
@@ -118,13 +118,14 @@ trap "exit 129" HUP
 trap "exit 130" INT
 trap "exit 143" TERM
 trap cleanup EXIT
+
 $first_exe \
     init \
 
 
 # OneCLI, for tracing
 $execmd \
-    --file-tar-valon test/resources/tar-valon.yaml \
+    --file-tar-valon "${root_path}/test/resources/tar-valon.yaml" \
     --yaml-places '["Two Rivers", "Gealdan", "Tar Valon"]' \
     --yaml-eyes '16' \
     --yaml-pocahontas '1607' \

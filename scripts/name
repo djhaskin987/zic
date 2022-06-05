@@ -1,2 +1,8 @@
 #!/bin/sh
-lein print :name 2>/dev/null | sed -e 's|"||g'
+
+if [ ! -e build/name ]
+then
+    mkdir -p build/
+    lein print :name 2>/dev/null | sed -e 's|"||g'  > build/name
+fi
+cat build/name

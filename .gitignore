@@ -22,7 +22,7 @@ pom.xml.asc
 /.staging
 /.classpath
 
-# testing
+# testing, building
 .zic.sqlite3
 .zic.db
 .zic.mv.db
@@ -31,6 +31,7 @@ lighttpd-environment/lighttpd.conf
 lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
+/build
 
 test/resources/data/all
 /zic-*-standalone
