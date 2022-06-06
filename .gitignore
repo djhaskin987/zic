@@ -36,7 +36,6 @@ lighttpd-environment/test-data
 test/resources/data/all
 /zic-*-standalone
 /zic-*-standalone*.txt
-META-INF/
 
 
 # editor files

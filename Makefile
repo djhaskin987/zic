@@ -42,7 +42,7 @@ $(jar_file): $(sources)
 $(tracing_config_files): $(jar_file)
 	$(test_script) --tracing
 
-$(native_file): $(build_native_script) $(jar_file) $(tracing_config_files)
+$(native_file): $(build_native_script) $(jar_file) #$(tracing_config_files)
 	$(build_native_script)
 	mkdir -p $(native_dir)
 	mv $(native_fname)* $(native_dir)
