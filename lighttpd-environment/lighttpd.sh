@@ -180,4 +180,3 @@ cd "${testing_path}"
 
 mkdir -p ${root_path}/build/
 lighttpd -f "${config_file}" -D
-echo "${!}" > "${root_path}/build/server-pid"

@@ -50,7 +50,7 @@ cleanup_files() {
 cleanup_server() {
     if [ -f "${root_path}/build/server-pid" ]
     then
-        kill -9 "$(cat ${root_path}/build/server-pid)"
+        kill -9 "$(cat ${root_path}/build/server-pid)" || :
         rm -rf "${root_path}/build/server-pid"
     fi
 }
@@ -115,7 +115,11 @@ set +x
 echo "Starting server..."
 set -x
 cd "${root_path}"
-(${start_server} & ) || :
+set +e
+mkdir -p "${root_path}/build"
+${start_server} &
+echo "${!}" > build/server-pid
+set -e
 cd "${test_home}"
 
 # https://unix.stackexchange.com/q/235582/9696
