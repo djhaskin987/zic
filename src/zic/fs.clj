@@ -1,5 +1,6 @@
 (ns zic.fs
   (:require
+   [clj-yaml.core :as yaml]
    [clj-http.lite.client :as client]
    [clojure.java.io :as io])
   (:import
@@ -21,6 +22,11 @@
     CRC32
     ZipFile
     ZipEntry)))
+
+(extend-protocol yaml/YAMLCodec
+  java.nio.file.Path
+  (encode [data] (str data))
+  (decode [data keywords] data))
 
 (defn new-unique-path [base pathstr]
   (loop [n 0]

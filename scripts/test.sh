@@ -47,7 +47,23 @@ cleanup_files() {
     rm -rf failure
 }
 
-cleanup_files
+cleanup_server() {
+    if [ -f "${root_path}/build/server-pid" ]
+    then
+        kill -9 "$(cat ${root_path}/build/server-pid)"
+        rm -rf "${root_path}/build/server-pid"
+    fi
+}
+
+cleanup() {
+    set +x
+    echo "Cleaning up..."
+    set -x
+    cleanup_files
+    cleanup_server
+}
+
+cleanup
 
 execmd=
 java='java'
@@ -98,20 +114,9 @@ start_server="${root_path}/lighttpd-environment/lighttpd.exp"
 set +x
 echo "Starting server..."
 set -x
-${start_server} &
-server_pid=$!
-
-cleanup_server() {
-    kill -9 "${server_pid}"
-}
-
-cleanup() {
-    set +x
-    echo "Cleaning up..."
-    set -x
-    cleanup_files
-    cleanup_server
-}
+cd "${root_path}"
+(${start_server} & ) || :
+cd "${test_home}"
 
 # https://unix.stackexchange.com/q/235582/9696
 trap "exit 129" HUP
@@ -132,9 +137,6 @@ $execmd \
     --yaml-fire 'false' \
     --add-places "The Dragon" \
     options
-
-# Insert onecli's test.sh nearly verbatim for tracing's sake
-export ZIC_ITEM_OUTPUT_FORMAT="json"
 
 $execmd \
     options show
@@ -177,14 +179,14 @@ cat > "${test_home}/b.json" <<B
 B
 ls ./zic.yaml
 
-answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="${test_home}/a.json,${test_home}/b.json" ${execmd} options show --add-config-files '-' --json-fart '123' <<ALSO
+answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="${test_home}/a.json,${test_home}/b.json" ${execmd} options show --set-output-format json --add-config-files '-' --json-fart '123' <<ALSO
 {
     "ifihadtodoitagain": "i would"
 }
 ALSO
 )
 
-expected='{"one":{"two":238,"three":543},"anonymous-coward":"I was never here","println":"setup","bfound":true,"output-format":"json","filename":null,"commands":["options","show"],"fart":123,"ifihadtodoitagain":"i would","zed":{"a":true,"b":false},"afound":true}'
+expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic/test/resources/data/all","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:h2:file:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic;AUTOCOMMIT=OFF","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.lock"}'
 
 if [ ! "${answer}" = "${expected}" ]
 then
@@ -192,7 +194,7 @@ then
     exit 1
 fi
 
-answer=$(ONECLI_ITEM_ANONYMOUS_COWARD="I was never here" ONECLI_LIST_CONFIG_FILES="./a.json,./b.json" ${execmd} options show --set-output-format yaml --add-config-files '-' --yaml-fart '123' << ALSO
+answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="./a.json,./b.json" ${execmd} options show --add-config-files '-' --yaml-fart '123' << ALSO
 ifihadtodoitagain: i would
 ALSO
 )
@@ -200,26 +202,35 @@ ALSO
 expected='one:
   two: 238
   three: 543
+start-directory: /home/djhaskin987/Development/src/zic/test/resources/data/all
+cascade: false
 anonymous-coward: I was never here
-println: setup
+db-connection-string: jdbc:h2:file:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic;AUTOCOMMIT=OFF
 bfound: true
 output-format: yaml
-filename: null
 commands:
  - options
  - show
+staging-path: /home/djhaskin987/Development/src/zic/test/resources/data/all/.staging
 fart: 123
+download-package: true
 ifihadtodoitagain: i would
+root-path: /home/djhaskin987/Development/src/zic/test/resources/data/all
 zed:
   a: true
   b: false
-afound: true'
+dry-run: false
+afound: true
+package-metadata: null
+lock-path: /home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.lock'
+
 if [ ! "${answer}" = "${expected}" ]
 then
     echo "AAAAH"
     exit 1
 fi
 
+# And now back to your regularly scheduled program.
 if $execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
@@ -273,7 +284,7 @@ then
 fi
 
 # and back to normal
-sed -i  's/W/w/g' a/willows.txt
+sed -i 's/W/w/g' a/willows.txt
 
 $execmd \
     verify \
@@ -342,7 +353,23 @@ test -f "c/echo.txt.c.0.1.0.new.1"
 
 if [ "$($execmd \
     files \
-    --set-package-name a)" != '{"result":"package-found","package-files":[{"path":"a/poem.txt","size":44,"file-class":"config-file","checksum":"f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e"},{"path":"a/willows.txt","size":16,"file-class":"normal-file","checksum":"bf20da2e626d608e486160cad938868e588603cd91fa71b4b7f604a5a4e90dfd"},{"path":"a/log.txt","size":0,"file-class":"ghost-file","checksum":null}]}' ]
+    --set-package-name a)" != 'result: package-found
+package-files:
+ -
+  path: a/poem.txt
+  size: 44
+  file-class: config-file
+  checksum: f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e
+ -
+  path: a/willows.txt
+  size: 16
+  file-class: normal-file
+  checksum: bf20da2e626d608e486160cad938868e588603cd91fa71b4b7f604a5a4e90dfd
+ -
+  path: a/log.txt
+  size: 0
+  file-class: ghost-file
+  checksum: null' ]
 then
     exit 1
 fi
@@ -556,7 +583,8 @@ $execmd \
     --set-package-metadata '{"zic": {"config-files": ["a/b"]}}' \
     --set-package-location "https://djhaskin987.me:8443/empty-0.1.0.zip"
 
-if [ "$($execmd files --set-package-name 'extraconfigfile')" != '{"result":"package-found","package-files":[]}' ]
+if [ "$($execmd files --set-package-name 'extraconfigfile')" != 'result: package-found
+package-files: []' ]
 then
     exit 1
 fi
@@ -705,7 +733,7 @@ $execmd \
 
 if [ "$($execmd \
     info \
-    --set-package-name 'a' | jq -r '.result')" = "not-found" ]
+    --set-package-name 'a' | yq '.result')" = "not-found" ]
 then
     exit 1
 fi
@@ -716,21 +744,21 @@ $execmd \
 
 if [ "$($execmd \
     info \
-    --set-package-name 'a' | jq -r '.result')" != "not-found" ]
+    --set-package-name 'a' | yq '.result')" != "not-found" ]
 then
     exit 1
 fi
 
 if [ "$($execmd \
     info \
-    --set-package-name 'b' | jq -r '.result')" != "package-found" ]
+    --set-package-name 'b' | yq '.result')" != "package-found" ]
 then
     exit 1
 fi
 
 if [ "$($execmd \
     info \
-    --set-package-name 'c' | jq -r '.result')" != "package-found" ]
+    --set-package-name 'c' | yq '.result')" != "package-found" ]
 then
     exit 1
 fi
@@ -759,21 +787,21 @@ $execmd \
 # TODO: THIS IS THE COMMAND THAT IS FAILING
 if [ "$($execmd \
     info \
-    --set-package-name 'c' | jq -r '.result')" != "not-found" ]
+    --set-package-name 'c' | yq '.result')" != "not-found" ]
 then
     exit 1
 fi
 
 if [ "$($execmd \
     info \
-    --set-package-name 'b' | jq -r '.result')" != "not-found" ]
+    --set-package-name 'b' | yq '.result')" != "not-found" ]
 then
     exit 1
 fi
 
 if [ "$($execmd \
     info \
-    --set-package-name 'a' | jq -r '.result')" != "not-found" ]
+    --set-package-name 'a' | yq '.result')" != "not-found" ]
 then
     exit 1
 fi
@@ -781,11 +809,12 @@ fi
 test "$($execmd \
     remove \
     --enable-cascade \
-    --set-package-name 'c' | jq -r '.result')" = "not-found"
+    --set-package-name 'c' | yq '.result')" = "not-found"
 
 # Cleanup that should only run if the script ran successfully
-
-ed META-INF/native-image/reflect-config.json << ED
+if [ "${tracing}" -ne 0 ]
+then
+    ed "${root_path}/META-INF/native-image/reflect-config.json" <<ED
 /^\[
 a
     {"name": "java.lang.reflect.AccessibleObject", "methods" : [{"name":"canAccess"}]},
@@ -793,3 +822,4 @@ a
 w
 q
 ED
+fi

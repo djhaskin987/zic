@@ -31,7 +31,6 @@ test: $(jar_file) $(test_script)
 	$(test_script)
 
 test-native: $(native_file) $(test_script)
-	$(lein) test
 	$(test_script) --native
 
 tracing: $(tracing_config_files)
@@ -40,7 +39,7 @@ $(jar_file): $(sources)
 	$(lein) test
 	$(lein) uberjar
 
-$(tracing_config_files): $(jar_file) $(test_script)
+$(tracing_config_files): $(jar_file)
 	$(test_script) --tracing
 
 $(native_file): $(build_native_script) $(jar_file) $(tracing_config_files)

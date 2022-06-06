@@ -1,11 +1,18 @@
 #!/bin/sh
+
+if [ ! -f "project.clj" ]
+then
+    echo "This script must be run from the root of the project." >&2
+    usage
+fi
+
 root_path=${PWD}
 
-name=$(lein print :name | sed 's|"||g')
-version=$(lein print :version | sed 's|"||g')
+name=$(scripts/name)
+version=$(scripts/version)
 
-packages=$(./get-all-uberjar-packages)
-num_packages=$(printf '%s' "${packages} | wc -l)
+packages=$("${root_path}/scripts/get-all-uberjar-packages")
+num_packages=$(printf '%s' "${packages}" | wc -l)
 echo "Used to initialize ${packages} packages"
 
 packages=$(java \
@@ -15,7 +22,7 @@ packages=$(java \
     awk '/^\[[^ ]* /{print $2}' |
     sed -e 's|\.[^.]*$||g' |
     sort -u)
-num_packages=$(printf '%s' "${packages} | wc -l)
+num_packages=$(printf '%s' "${packages}" | wc -l)
 echo "Initializing ${num_packages} packages"
 
 
