@@ -1,5 +1,4 @@
 [
-    {"name": "java.lang.reflect.AccessibleObject", "methods" : [{"name":"canAccess"}]},
 {
   "name":"[B"
 },
@@ -34,13 +33,7 @@
   "name":"[Ljava.nio.file.LinkOption;"
 },
 {
-  "name":"[Ljava.nio.file.OpenOption;"
-},
-{
   "name":"[Ljava.nio.file.StandardOpenOption;"
-},
-{
-  "name":"[Ljava.nio.file.attribute.FileAttribute;"
 },
 {
   "name":"[Lsun.security.pkcs.SignerInfo;"
@@ -897,9 +890,7 @@
   "name":"java.math.BigDecimal"
 },
 {
-  "name":"java.math.BigInteger",
-  "queryAllPublicConstructors":true,
-  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+  "name":"java.math.BigInteger"
 },
 {
   "name":"java.net.HttpURLConnection"
@@ -958,7 +949,6 @@
     {"name":"getFileName","parameterTypes":[] }, 
     {"name":"getParent","parameterTypes":[] }, 
     {"name":"resolve","parameterTypes":["java.lang.String"] }, 
-    {"name":"resolve","parameterTypes":["java.nio.file.Path"] }, 
     {"name":"toFile","parameterTypes":[] }
   ]
 },
@@ -975,9 +965,7 @@
   "name":"java.security.AlgorithmParametersSpi"
 },
 {
-  "name":"java.security.DigestInputStream",
-  "queryAllPublicMethods":true,
-  "methods":[{"name":"read","parameterTypes":["byte[]","int","int"] }]
+  "name":"java.security.DigestInputStream"
 },
 {
   "name":"java.security.KeyStoreSpi"

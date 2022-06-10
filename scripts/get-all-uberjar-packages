@@ -15,13 +15,13 @@ version=$(scripts/version)
 jar -tf "${root_path}/target/uberjar/${name}-${version}-standalone.jar" |
     grep -E '\.class$' |
     sed -e 's|/[^/]\{1,\}[.]class$|/.class|g' |
-    grep -v 'META-INF|classes' |
+    grep -v -E '^META-INF' |
+    grep -v -E '^classes' |
     sort -u |
     sed -e 's|/[.]class$||g' \
         -e 's|[/]|.|g'
-grep -r -E '\(java\.' src | sed -e 's|^.\{1,\}java|java|g' -e 's|[.][A-Z].*$||g'
-
-echo 'java.lang'
-echo 'java.lang.reflect'
-echo 'java.util'
-echo 'java.sql'
+ grep -r -E '\(java\.' src | sed -e 's|^.\{1,\}java|java|g' -e 's|[.][A-Z].*$||g'
+ echo 'java.lang'
+ echo 'java.lang.reflect'
+ echo 'java.util'
+ echo 'java.sql'

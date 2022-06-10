@@ -25,4 +25,7 @@
                    :integration :integration
                    :unit :unit}
   :profiles {:uberjar {:aot :all
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+                                  "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
+                                  "-Dclojure.spec.skip-macros=true"
+                                  ]}})

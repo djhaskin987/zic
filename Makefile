@@ -1,9 +1,9 @@
 .POSIX:
-.PHONY: all clean test test-native tracing jar
+.PHONY: all clean test native test-native tracing jar
 
 name=$(shell scripts/name)
 version=$(shell scripts/version)
-tracing_config_files=META-INF/native-image/jni-config.json META-INF/native-image/proxy-config.json META-INF/native-image/reflect-config.json META-INF/native-image/resource-config.json META-INF/native-image/serialization-config.json
+tracing_config_files=META-INF/native-image/jni-config.json META-INF/native-image/proxy-config.json META-INF/native-image/reflect-config.json META-INF/native-image/resource-config.json META-INF/native-image/serialization-config.json build/loaded-packages
 target_dir=target
 native_dir=$(target_dir)/native-image
 jar_dir=$(target_dir)/uberjar
@@ -29,6 +29,8 @@ all: $(jar_file) $(native_file)
 
 test: $(jar_file) $(test_script)
 	$(test_script)
+
+native: $(native_file)
 
 test-native: $(native_file) $(test_script)
 	$(test_script) --native

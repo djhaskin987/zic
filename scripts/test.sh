@@ -102,13 +102,18 @@ if [ -z "${execmd}" ]
 then
     args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
     execmd="${java} ${args}"
-    if [ -n "${first_java}" ]
-    then
-        first_exe="${first_java} ${args}"
-    else
-        first_exe="${execmd}"
-    fi
 fi
+
+if [ -n "${first_java}" ]
+then
+    first_exe="${first_java} ${args}"
+else
+    first_exe="${execmd}"
+fi
+
+# Run this first just in case there's a real problem before starting
+# the lighttpd server, as a sort of smoke test
+$first_exe init
 
 start_server="${root_path}/lighttpd-environment/lighttpd.exp"
 set +x
@@ -118,7 +123,7 @@ cd "${root_path}"
 set +e
 mkdir -p "${root_path}/build"
 ${start_server} &
-echo "${!}" > build/server-pid
+echo "${!}" > "${root_path}/build/server-pid"
 set -e
 cd "${test_home}"
 
@@ -127,9 +132,6 @@ trap "exit 129" HUP
 trap "exit 130" INT
 trap "exit 143" TERM
 trap cleanup EXIT
-
-$first_exe \
-    init \
 
 
 # OneCLI, for tracing
@@ -234,6 +236,7 @@ then
     exit 1
 fi
 
+
 # And now back to your regularly scheduled program.
 if $execmd \
     add \
@@ -265,13 +268,28 @@ fi
 
 rm -rf .staging/a-0.1.0.zip
 
-$execmd \
-    add \
-    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
-    --set-package-name 'a' \
-    --set-package-version 0.1.0 \
-    --set-package-location "https://djhaskin987.me:8443/a.zip" \
-    --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}'
+if [ "${tracing}" -ne 0 ]
+then
+    $execmd \
+        -verbose:class \
+        add \
+        --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+        --set-package-name 'a' \
+        --set-package-version 0.1.0 \
+        --set-package-location "https://djhaskin987.me:8443/a.zip" \
+        --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}' |
+        awk '/^\[[^ ]* /{print $2}' |
+        sed -e 's|\.[^.]*$||g' |
+        sort -u > "${root_path}/build/loaded-packages"
+else
+    $execmd \
+        add \
+        --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+        --set-package-name 'a' \
+        --set-package-version 0.1.0 \
+        --set-package-location "https://djhaskin987.me:8443/a.zip" \
+        --set-package-metadata '{"zic": {"config-files": ["a/poem.txt"], "ghost-files": ["a/log.txt"]}}'
+fi
 
 $execmd \
     verify \

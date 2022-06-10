@@ -11,55 +11,45 @@ root_path=${PWD}
 name=$(scripts/name)
 version=$(scripts/version)
 
-packages=$("${root_path}/scripts/get-all-uberjar-packages")
+packages=$(build/load-${root_path}/scripts/get-all-uberjar-packages |
+    cat - build/loaded-packages | sort -u)
 num_packages=$(printf '%s' "${packages}" | wc -l)
-echo "Used to initialize ${packages} packages"
-
-packages=$(java \
-    -verbose:class \
-    -jar \
-    target/uberjar/${name}-${version}-standalone.jar  |
-    awk '/^\[[^ ]* /{print $2}' |
-    sed -e 's|\.[^.]*$||g' |
-    sort -u)
-num_packages=$(printf '%s' "${packages}" | wc -l)
-echo "Initializing ${num_packages} packages"
-
+echo "Recognized ${num_packages} packages"
 
 # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
+#--no-fallback \
 verbatim="
 --verbose \
 --enable-url-protocols=https,http \
 --report-unsupported-elements-at-runtime \
 --static \
+--link-at-build-time \
 --libc=musl \
---no-fallback \
---no-server \
---no-fallback \
 -H:+ReportExceptionStackTraces \
+-H:+PrintClassInitialization \
 -H:+JNI \
 -H:Name=${name} \
 -jar target/uberjar/${name}-${version}-standalone.jar \
 -H:+AllowIncompleteClasspath \
--J-Dclojure.compiler.direct-linking=true \
--J-Dclojure.spec.skip-macros=true \
 -J-Xmx4G"
-exceptions="\
-org.h2.util.JdbcUtils \
-org.h2.engine.ConnectionInfo \
-org.h2.engine.Engine \
-org.h2.engine.SysProperties \
-org.h2.store.fs.FileNioMemData \
-org.h2.util.MathUtils \
-org.h2.value.DataType \
-org.h2.value.ValueGeometry \
-org.h2.mvstore.db.MVTable \
-org.h2.result.SortOrder \
-org.h2.mvstore.db.MVPrimaryIndex \
-org.h2.engine.Mode \
-org.h2.value.ValueLong \
-org.h2.util.MemoryUnmapper \
-"
+
+#org.h2.store.fs.FileNioMemData \
+#exceptions="\
+#org.h2.util.JdbcUtils \
+#org.h2.engine.ConnectionInfo \
+#org.h2.engine.Engine \
+#org.h2.engine.SysProperties \
+#org.h2.util.MathUtils \
+#org.h2.value.DataType \
+#org.h2.value.ValueGeometry \
+#org.h2.mvstore.db.MVTable \
+#org.h2.result.SortOrder \
+#org.h2.mvstore.db.MVPrimaryIndex \
+#org.h2.engine.Mode \
+#org.h2.value.ValueLong \
+#org.h2.util.MemoryUnmapper
+#"
+exceptions=""
 for i in ${verbatim}
 do
     arguments="${arguments} ${i}"
@@ -73,4 +63,3 @@ do
     arguments="${arguments} --initialize-at-run-time=${i}"
 done
 native-image ${arguments} "${@}"
-

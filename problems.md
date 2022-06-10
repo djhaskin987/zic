@@ -78,3 +78,10 @@ WELL THEN. https://www.graalvm.org/22.1/reference-manual/native-image/Certificat
 But that's for 22.1 . Guess I have to upgrade my graalvm. Maybe if I do so, this will work?!?
 
 Where have you been all my life. https://github.com/clj-easy/graal-docs#jdk11-and-clojurelangreflector
+
+# The failproof project
+
+The idea is to use the fallback image, then bake the JVM in via AppImage.
+- https://clojure.org/reference/compilation
+- AppImage
+- 
