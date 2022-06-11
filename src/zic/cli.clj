@@ -5,7 +5,6 @@
    [onecli.core :as onecli]
    [zic.db :as db]
    [zic.fs :as fs]
-   [zic.util :as util]
    [zic.package :as package]
    [zic.session :as session])
   (:import
@@ -178,7 +177,7 @@
   Initialize database in the start directory.
   Non-Global Options:
   - `-d <path>`, `--set-start-directory <path>`: Set start directory. This
-    directory is where the file `.zic.mv.db` will be placed. The default path
+    directory is where the file `.zic.db` will be placed. The default path
     if no start directory is given is the present working directory.
     Configuration item: `start-directory`
   "
@@ -189,7 +188,7 @@
      (Paths/get
       (:start-directory options)
       (into-array
-       [".zic.mv.db"])))
+       [".zic.db"])))
     db/init-database!)
   {:result :successful})
 
@@ -289,7 +288,7 @@
                    (into-array
                     java.lang.String
                     []))
-                  ".zic.mv.db")]
+                  ".zic.db")]
           (-> options
               (assoc
                :db-connection-string

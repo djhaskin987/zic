@@ -10,15 +10,7 @@
                  [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]
-
-                 [com.h2database/h2 "1.4.199"]
-
-                 ;; Optional dependency of h2, needed by native-image
-                 ;; https://groups.google.com/g/h2-database/c/xWaIXbqIgqA
-                 ;; https://mvnrepository.com/artifact/org.locationtech.jts/jts-core
-                 [org.locationtech.jts/jts-core "1.18.2"]
-
-                 ;;[org.xerial/sqlite-jdbc "3.28.0"]
+                 [org.xerial/sqlite-jdbc "3.28.0"]
                  [seancorfield/next.jdbc "1.0.10"]
                  [serovers "1.6.2"]
                  [onecli "0.8.0" :exclusions [org.clojure/clojure]]

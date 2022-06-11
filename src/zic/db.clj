@@ -1,38 +1,37 @@
 (ns zic.db
   (:require
-   [zic.util :as util]
    [cheshire.core :as json]
    [next.jdbc :as jdbc]))
 
 (def ^:private init-statements
-  [;; \"
-   ;; PRAGMA foreign_keys = ON
-   ;; \"
+  ["
+   PRAGMA foreign_keys = ON
+   "
    "
    CREATE TABLE IF NOT EXISTS file_classes (
-     id IDENTITY NOT NULL PRIMARY KEY,
-     name VARCHAR(512) UNIQUE NOT NULL
+     id INTEGER NOT NULL PRIMARY KEY,
+     name TEXT UNIQUE NOT NULL
    )
    "
    "
-   INSERT INTO file_classes (id, name) VALUES (1, 'normal-file'), (2, 'config-file'), (3, 'ghost-file')
+   INSERT INTO file_classes (id, name) VALUES (1, \"normal-file\"), (2, \"config-file\"), (3, \"ghost-file\")
    "
    "
     CREATE TABLE IF NOT EXISTS packages (
-      id IDENTITY NOT NULL PRIMARY KEY,
-      name VARCHAR(512) UNIQUE NOT NULL,
-      version VARCHAR(4096) NOT NULL,
-      location VARCHAR(4096),
-      metadata VARCHAR(4096))
+      id INTEGER NOT NULL PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL UNIQUE,
+      version TEXT NOT NULL,
+      location TEXT,
+      metadata TEXT)
     "
    "
     CREATE TABLE IF NOT EXISTS files (
-      id IDENTITY NOT NULL PRIMARY KEY,
-      pid BIGINT,
-      path VARCHAR(4096) UNIQUE NOT NULL,
+      id INTEGER NOT NULL PRIMARY KEY,
+      pid INTEGER,
+      path TEXT UNIQUE NOT NULL,
       size INTEGER NOT NULL,
-      file_class BIGINT NOT NULL,
-      checksum VARCHAR(4096),
+      file_class INTEGER NOT NULL,
+      checksum TEXT,
       CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
       CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id),
       CONSTRAINT size_positive CHECK (size >= 0),
@@ -43,9 +42,9 @@
    "
    "
     CREATE TABLE IF NOT EXISTS uses (
-      id IDENTITY NOT NULL PRIMARY KEY,
-      depender BIGINT,
-      dependee BIGINT,
+      id INTEGER NOT NULL PRIMARY KEY,
+      depender INTEGER,
+      dependee INTEGER,
       CONSTRAINT depender_c FOREIGN KEY (depender) REFERENCES packages(id),
       CONSTRAINT dependee_c FOREIGN KEY (dependee) REFERENCES packages(id)
     )
@@ -71,11 +70,11 @@
 
 (defn deserialize-package
   [pkg]
-  {:id (:PACKAGES/ID pkg)
-   :name (:PACKAGES/NAME pkg)
-   :version (:PACKAGES/VERSION pkg)
-   :location (:PACKAGES/LOCATION pkg)
-   :metadata (deserialize-metadata (:PACKAGES/METADATA pkg))})
+  {:id (:packages/id pkg)
+   :name (:packages/name pkg)
+   :version (:packages/version pkg)
+   :location (:packages/location pkg)
+   :metadata (deserialize-metadata (:packages/metadata pkg))})
 
 (def file-classes {1 :normal-file
                    2 :config-file
@@ -88,18 +87,18 @@
 
 (defn deserialize-file
   [fil]
-  {:path (:FILES/PATH fil)
-   :size (:FILES/SIZE fil)
-   :file-class (get file-classes (:FILES/FILE_CLASS fil) :unknown-file-class)
-   :checksum (:FILES/CHECKSUM fil)})
+  {:path (:files/path fil)
+   :size (:files/size fil)
+   :file-class (get file-classes (:files/file_class fil) :unknown-file-class)
+   :checksum (:files/checksum fil)})
 
 #_(zic.session/with-database
-    "jdbc:h2:file:.zic;AUTOCOMMIT=OFF"
+    "jdbc:sqlite:.zic.db"
     (fn [c] (get-package-id! c "w")))
 
 (defn get-package-id!
   [c package-name]
-  (:PACKAGES/ID (jdbc/execute-one!
+  (:packages/id (jdbc/execute-one!
                  c
                  ["
                    SELECT id
@@ -114,7 +113,7 @@
    or nil if no such package exists.
    "
   [c file]
-  (:PACKAGES/NAME (jdbc/execute-one!
+  (:packages/name (jdbc/execute-one!
                    c
                    ["
           SELECT
@@ -144,7 +143,7 @@
 
 (defn dependers-by-id!
   [c pkg-id]
-  (map :USES/DEPENDER
+  (map :uses/depender
        (jdbc/execute! c
                       ["
                     SELECT
@@ -159,7 +158,7 @@
 (defn package-dependers!
   [c package-name]
   (map
-   :PACKAGES/NAME
+   :packages/name
    (jdbc/execute! c
                   ["
                         SELECT dependers.name
@@ -181,7 +180,7 @@
 (defn package-dependees!
   [c package-name]
   (map
-   :PACKAGES/NAME
+   :packages/name
    (jdbc/execute! c
                   ["
                         SELECT dependees.name
@@ -268,12 +267,16 @@
   (let [serialized-metadata (serialize-metadata package-metadata)]
     (jdbc/execute! c
                    ["
-                    MERGE INTO packages (name, version, location, metadata)
-                    KEY (name)
-                    VALUES
-                    (?,?,?,?)
+                  INSERT INTO packages
+                  (name, version, location, metadata)
+                  VALUES
+                  (?,?,?,?)
+                  ON CONFLICT (name) DO UPDATE SET version=?, location=?, metadata=?
                   "
                     package-name
+                    package-version
+                    package-location
+                    serialized-metadata
                     package-version
                     package-location
                     serialized-metadata]))
