@@ -270,8 +270,12 @@ rm -rf .staging/a-0.1.0.zip
 
 if [ "${tracing}" -ne 0 ]
 then
-    $execmd \
+    java \
         -verbose:class \
+        "-agentlib:native-image-agent=config-merge-dir=${native_image_config}/" \
+        "-Djavax.net.ssl.trustStore=${keystore}" \
+        "-Djavax.net.ssl.trustStorePassword=asdfasdf" \
+        -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" \
         add \
         --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
         --set-package-name 'a' \

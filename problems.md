@@ -84,4 +84,51 @@ Where have you been all my life. https://github.com/clj-easy/graal-docs#jdk11-an
 The idea is to use the fallback image, then bake the JVM in via AppImage.
 - https://clojure.org/reference/compilation
 - AppImage
-- 
+
+DO NOT USE AppImage. AppImage unpacks a file system, runs the program, then
+cleans up the FS after. Great for UIs, but not CLIs.
+
+Class initialization if +PrintClassInitialization is specified to native-image gets saved to src/zic/reports/class_initialization_configuration_20220610_165104.csv
+
+A very helpful guide, which put build time vs. runtime into perspective.
+https://www.graalvm.org/22.1/reference-manual/native-image/Limitations/ .
+Basically, if it loads classes dynamically or via reflection or whatever, load
+it at build time. Also, fallback ain't so bad. It just requires a VM, but it
+still way speeds up start up time.
+
+And now with the `IllegalArgumentException`:
+
+```
+  Caused by: java.lang.IllegalArgumentException: Path: nio:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.mv.db
+      at org.h2.store.fs.FilePathWrapper.create(FilePathWrapper.java:49)
+      at org.h2.store.fs.FilePathWrapper.getPath(FilePathWrapper.java:24)
+      at org.h2.store.fs.FilePathWrapper.getPath(FilePathWrapper.java:18)
+      at org.h2.store.fs.FilePath.get(FilePath.java:62)
+      at org.h2.mvstore.FileStore.open(FileStore.java:142)
+      at org.h2.mvstore.MVStore.<init>(MVStore.java:390)
+      at org.h2.mvstore.MVStore$Builder.open(MVStore.java:3343)
+      at org.h2.mvstore.db.MVTableEngine$Store.open(MVTableEngine.java:162)
+      at org.h2.mvstore.db.MVTableEngine.init(MVTableEngine.java:95)
+      at org.h2.engine.Database.getPageStore(Database.java:2739)
+      at org.h2.engine.Database.open(Database.java:769)
+      at org.h2.engine.Database.openDatabase(Database.java:319)
+      ... 29 more
+  Caused by: java.lang.NoSuchMethodException: org.h2.store.fs.FilePathNio.<init>()
+      at java.lang.Class.getConstructor0(DynamicHub.java:3585)
+      at java.lang.Class.getDeclaredConstructor(DynamicHub.java:2754)
+      at org.h2.store.fs.FilePathWrapper.create(FilePathWrapper.java:44)
+      ... 40 more
+```
+D'OH! I didn't see the `NoSuchMethodException` below.
+
+https://github.com/oracle/graal/issues/865
+
+
+
+
+Using `-Dhibernate.bytecode.provider=none` may help, or installing this one thingamarig:
+https://docs.jboss.org/hibernate/orm/5.0/topical/html/bytecode/BytecodeEnhancement.html
+
+
+Apparently this in known: https://github.com/oracle/graal/issues/3248#issuecomment-816665688
+

@@ -11,30 +11,44 @@ root_path=${PWD}
 name=$(scripts/name)
 version=$(scripts/version)
 
-packages=$(build/load-${root_path}/scripts/get-all-uberjar-packages |
-    cat - build/loaded-packages | sort -u)
+packages=$(${root_path}/scripts/get-all-uberjar-packages |
+    cat - "${root_path}/build/loaded-packages" | sort -u)
 num_packages=$(printf '%s' "${packages}" | wc -l)
 echo "Recognized ${num_packages} packages"
+sleep 2
 
 # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
 #--no-fallback \
+#-H:+AllowIncompleteClasspath \
+#https://groups.google.com/g/h2-database/c/xWaIXbqIgqA
+
+# This gums up the fallback gears
+#--link-at-build-time \
+
+# This stuff is hard to do well for all OSes
+#--static \
+#--libc=musl \
+
 verbatim="
 --verbose \
 --enable-url-protocols=https,http \
 --report-unsupported-elements-at-runtime \
---static \
---link-at-build-time \
---libc=musl \
+--install-exit-handlers \
 -H:+ReportExceptionStackTraces \
 -H:+PrintClassInitialization \
 -H:+JNI \
 -H:Name=${name} \
 -jar target/uberjar/${name}-${version}-standalone.jar \
--H:+AllowIncompleteClasspath \
 -J-Xmx4G"
 
-#org.h2.store.fs.FileNioMemData \
-#exceptions="\
+exceptions="\
+org.h2.mvstore.cache.FilePathCache \
+org.h2.store.fs.FileNioMemData \
+org.h2.store.fs.FilePath \
+org.h2.store.fs.FilePathNio \
+org.h2.store.fs.FileUtils
+
+"
 #org.h2.util.JdbcUtils \
 #org.h2.engine.ConnectionInfo \
 #org.h2.engine.Engine \
@@ -49,7 +63,7 @@ verbatim="
 #org.h2.value.ValueLong \
 #org.h2.util.MemoryUnmapper
 #"
-exceptions=""
+#exceptions=""
 for i in ${verbatim}
 do
     arguments="${arguments} ${i}"

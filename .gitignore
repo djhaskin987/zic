@@ -32,6 +32,7 @@ lighttpd-environment/wwwroot
 lighttpd-environment/lighttpd
 lighttpd-environment/test-data
 /build
+/reports
 
 test/resources/data/all
 /zic-*-standalone
