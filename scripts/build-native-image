@@ -18,19 +18,19 @@ echo "Recognized ${num_packages} packages"
 sleep 2
 
 # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
-#--no-fallback \
 #-H:+AllowIncompleteClasspath \
 #https://groups.google.com/g/h2-database/c/xWaIXbqIgqA
 
 # This gums up the fallback gears
-#--link-at-build-time \
 
 # This stuff is hard to do well for all OSes
-#--static \
-#--libc=musl \
 
 verbatim="
 --verbose \
+--link-at-build-time \
+--static \
+--libc=musl \
+--no-fallback \
 --enable-url-protocols=https,http \
 --report-unsupported-elements-at-runtime \
 --install-exit-handlers \
@@ -42,12 +42,6 @@ verbatim="
 -J-Xmx4G"
 
 exceptions="\
-org.h2.mvstore.cache.FilePathCache \
-org.h2.store.fs.FileNioMemData \
-org.h2.store.fs.FilePath \
-org.h2.store.fs.FilePathNio \
-org.h2.store.fs.FileUtils
-
 "
 #org.h2.util.JdbcUtils \
 #org.h2.engine.ConnectionInfo \
