@@ -15,4 +15,4 @@
                (Paths/get
                 ""
                 (into-array String []))))
-         "jdbc:h2:file:"))))
+         "jdbc:sqlite:"))))

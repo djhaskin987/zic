@@ -1,4 +1,5 @@
 [
+    {"name": "java.lang.reflect.AccessibleObject", "methods" : [{"name":"canAccess"}]},
 {
   "name":"[B"
 },
@@ -21,7 +22,28 @@
   "name":"[Ljava.lang.Object;"
 },
 {
+  "name":"[Ljava.lang.StackTraceElement;"
+},
+{
   "name":"[Ljava.lang.String;"
+},
+{
+  "name":"[Ljava.nio.file.CopyOption;"
+},
+{
+  "name":"[Ljava.nio.file.LinkOption;"
+},
+{
+  "name":"[Ljava.nio.file.OpenOption;"
+},
+{
+  "name":"[Ljava.nio.file.StandardOpenOption;"
+},
+{
+  "name":"[Ljava.nio.file.attribute.FileAttribute;"
+},
+{
+  "name":"[Lsun.security.pkcs.SignerInfo;"
 },
 {
   "name":"[S"
@@ -629,6 +651,58 @@
   "name":"com.fasterxml.jackson.dataformat.smile.SmileFactory"
 },
 {
+  "name":"com.sun.crypto.provider.AESCipher$General",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.ARCFOURCipher",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.ChaCha20Cipher$ChaCha20Poly1305",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.DESCipher",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.DESedeCipher",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.DHParameters",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.GaloisCounterMode$AESGCM",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.HmacCore$HmacSHA384",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.HmacPKCS12PBECore$HmacPKCS12PBE_SHA1",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.PBEKeyFactory$PBEWithMD5AndDES",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.PBEParameters",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.PKCS12PBECipherCore$PBEWithSHA1AndRC2_40",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"com.sun.crypto.provider.TlsMasterSecretGenerator",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
   "name":"flatland.ordered.common.Compactable"
 },
 {
@@ -651,6 +725,9 @@
 },
 {
   "name":"flatland.ordered.set__init"
+},
+{
+  "name":"java.beans.PropertyVetoException"
 },
 {
   "name":"java.io.BufferedInputStream"
@@ -687,6 +764,11 @@
 },
 {
   "name":"java.io.FileWriter"
+},
+{
+  "name":"java.io.FilterInputStream",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"close","parameterTypes":[] }]
 },
 {
   "name":"java.io.IOException"
@@ -767,6 +849,7 @@
 },
 {
   "name":"java.lang.Object",
+  "allDeclaredFields":true,
   "queryAllDeclaredMethods":true,
   "queryAllPublicMethods":true
 },
@@ -814,7 +897,9 @@
   "name":"java.math.BigDecimal"
 },
 {
-  "name":"java.math.BigInteger"
+  "name":"java.math.BigInteger",
+  "queryAllPublicConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
 },
 {
   "name":"java.net.HttpURLConnection"
@@ -856,7 +941,9 @@
   "name":"java.nio.file.CopyOption"
 },
 {
-  "name":"java.nio.file.Files"
+  "name":"java.nio.file.Files",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"copy","parameterTypes":["java.io.InputStream","java.nio.file.Path","java.nio.file.CopyOption[]"] }]
 },
 {
   "name":"java.nio.file.LinkOption"
@@ -870,7 +957,9 @@
   "methods":[
     {"name":"getFileName","parameterTypes":[] }, 
     {"name":"getParent","parameterTypes":[] }, 
-    {"name":"resolve","parameterTypes":["java.lang.String"] }
+    {"name":"resolve","parameterTypes":["java.lang.String"] }, 
+    {"name":"resolve","parameterTypes":["java.nio.file.Path"] }, 
+    {"name":"toFile","parameterTypes":[] }
   ]
 },
 {
@@ -883,13 +972,27 @@
   "name":"java.nio.file.attribute.FileAttribute"
 },
 {
-  "name":"java.security.DigestInputStream"
+  "name":"java.security.AlgorithmParametersSpi"
+},
+{
+  "name":"java.security.DigestInputStream",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"read","parameterTypes":["byte[]","int","int"] }]
+},
+{
+  "name":"java.security.KeyStoreSpi"
 },
 {
   "name":"java.security.MessageDigest"
 },
 {
   "name":"java.security.SecureRandomParameters"
+},
+{
+  "name":"java.security.interfaces.RSAPrivateKey"
+},
+{
+  "name":"java.security.interfaces.RSAPublicKey"
 },
 {
   "name":"java.sql.Clob"
@@ -1008,7 +1111,9 @@
   "name":"java.util.zip.CRC32"
 },
 {
-  "name":"java.util.zip.CheckedInputStream"
+  "name":"java.util.zip.CheckedInputStream",
+  "queryAllPublicMethods":true,
+  "methods":[{"name":"read","parameterTypes":["byte[]","int","int"] }]
 },
 {
   "name":"java.util.zip.DeflaterInputStream"
@@ -1026,7 +1131,16 @@
   "name":"java.util.zip.ZipEntry"
 },
 {
-  "name":"java.util.zip.ZipFile"
+  "name":"java.util.zip.ZipFile",
+  "allDeclaredFields":true,
+  "queryAllPublicMethods":true,
+  "queryAllPublicConstructors":true,
+  "methods":[{"name":"<init>","parameterTypes":["java.io.File"] }]
+},
+{
+  "name":"javax.security.auth.x500.X500Principal",
+  "fields":[{"name":"thisX500Name"}],
+  "methods":[{"name":"<init>","parameterTypes":["sun.security.x509.X500Name"] }]
 },
 {
   "name":"javax.sql.DataSource"
@@ -1140,8 +1254,36 @@
   "name":"slingshot.support__init"
 },
 {
+  "name":"sun.net.www.protocol.http.HttpURLConnection$HttpInputStream",
+  "queryAllPublicMethods":true
+},
+{
   "name":"sun.nio.fs.UnixPath",
   "queryAllPublicMethods":true
+},
+{
+  "name":"sun.security.pkcs12.PKCS12KeyStore",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.DSA$SHA224withDSA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.DSA$SHA256withDSA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.JavaKeyStore$DualFormatJKS",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.JavaKeyStore$JKS",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
   "name":"sun.security.provider.NativePRNG",
@@ -1150,6 +1292,108 @@
 {
   "name":"sun.security.provider.SHA",
   "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA2$SHA224",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA2$SHA256",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA5$SHA384",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SHA5$SHA512",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.X509Factory",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.rsa.PSSParameters",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.rsa.RSAKeyFactory$Legacy",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.rsa.RSAPSSSignature",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.rsa.RSASignature$SHA224withRSA",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.ssl.KeyManagerFactoryImpl$SunX509",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.ssl.SSLContextImpl$DefaultSSLContext",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.ssl.TrustManagerFactoryImpl$PKIXFactory",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.util.ObjectIdentifier"
+},
+{
+  "name":"sun.security.x509.AuthorityInfoAccessExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.AuthorityKeyIdentifierExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.BasicConstraintsExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.CRLDistributionPointsExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.CertificateExtensions"
+},
+{
+  "name":"sun.security.x509.CertificatePoliciesExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.ExtendedKeyUsageExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.IssuerAlternativeNameExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.KeyUsageExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.NetscapeCertTypeExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.PrivateKeyUsageExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.SubjectAlternativeNameExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
+},
+{
+  "name":"sun.security.x509.SubjectKeyIdentifierExtension",
+  "methods":[{"name":"<init>","parameterTypes":["java.lang.Boolean","java.lang.Object"] }]
 },
 {
   "name":"zic.cli__init"

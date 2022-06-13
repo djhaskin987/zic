@@ -37,8 +37,7 @@ version=$(${root_path}/scripts/version)
 
 cleanup_files() {
 
-    rm -rf .${name}.mv.db
-    rm -rf .${name}.trace.db
+    rm -rf .${name}.db
     rm -rf .staging
     mkdir -p .staging
     rm -rf a
@@ -192,7 +191,7 @@ answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="${t
 ALSO
 )
 
-expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic/test/resources/data/all","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:h2:file:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic;AUTOCOMMIT=OFF","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.lock"}'
+expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic/test/resources/data/all","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:sqlite:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.lock"}'
 
 if [ ! "${answer}" = "${expected}" ]
 then
@@ -211,7 +210,7 @@ expected='one:
 start-directory: /home/djhaskin987/Development/src/zic/test/resources/data/all
 cascade: false
 anonymous-coward: I was never here
-db-connection-string: jdbc:h2:file:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic;AUTOCOMMIT=OFF
+db-connection-string: jdbc:sqlite:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.db
 bfound: true
 output-format: yaml
 commands:
