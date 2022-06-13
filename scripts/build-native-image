@@ -21,10 +21,6 @@ sleep 2
 #-H:+AllowIncompleteClasspath \
 #https://groups.google.com/g/h2-database/c/xWaIXbqIgqA
 
-# This gums up the fallback gears
-
-# This stuff is hard to do well for all OSes
-
 verbatim="
 --verbose \
 --link-at-build-time \
