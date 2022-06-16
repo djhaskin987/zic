@@ -20,18 +20,27 @@ sleep 2
 # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
 #-H:+AllowIncompleteClasspath \
 #https://groups.google.com/g/h2-database/c/xWaIXbqIgqA
+# https://github.com/oracle/graal/issues/3398
 
+#--static \
+#--no-fallback \
+#--libc=musl \
+#-H:CCompilerOption=-Wl,-z,stack-size=2097152 \
+#--link-at-build-time \
 verbatim="
 --verbose \
---link-at-build-time \
---static \
---libc=musl \
---no-fallback \
 --enable-url-protocols=https,http \
 --report-unsupported-elements-at-runtime \
 --install-exit-handlers \
 -H:+ReportExceptionStackTraces \
 -H:+PrintClassInitialization \
+-Dfile.encoding=UTF-8 \
+-J-Dclojure.compiler.direct-linking=true \
+-J-Dclojure.spec.skip-macros=true \
+-H:-CheckToolchain \
+-H:+InlineBeforeAnalysis \
+-H:Log=registerResource: \
+-H:IncludeResources=.*/org/sqlite/.*|org/sqlite/.*|.*/sqlite-jdbc.properties \
 -H:+JNI \
 -H:Name=${name} \
 -jar target/uberjar/${name}-${version}-standalone.jar \

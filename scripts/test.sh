@@ -1,5 +1,5 @@
 #!/bin/sh
-set -ex
+set -e
 
 # https://docs.oracle.com/javadb/10.8.3.0/adminguide/cadminsslclient.html
 # https://stackoverflow.com/questions/65376092/can-jvm-trust-a-self-signed-certificate-for-only-a-single-run
@@ -30,6 +30,8 @@ root_path=${PWD}
 test_home="${root_path}/test/resources/data/all"
 rm -rf "${test_home}"
 mkdir -p "${test_home}"
+
+rep "(System/setProperty \"user.dir\" \"${test_home}\")"
 cd "${test_home}"
 
 name=$(${root_path}/scripts/name)
@@ -57,14 +59,45 @@ cleanup_server() {
 cleanup() {
     set +x
     echo "Cleaning up..."
-    set -x
     cleanup_files
     cleanup_server
 }
 
+replexec() {
+    echo "+ zic ${@}" >&2
+    arg='(zic.cli/run ['
+    stdin_in_play=0
+    for i in "${@}"
+    do
+        cleaned="$(echo "${i}" | sed -e 's|"|\\"|g')"
+        if [ "${cleaned}" = "-" ]
+        then
+            if [ "${std_in_play}" -eq 0 ]
+            then
+                input="$(IFS='' read -r -s)"
+            fi
+            stdin_in_play=1
+        fi
+        arg="${arg} \"${cleaned}\""
+    done
+    arg="${arg}])"
+    if [ "${stdin_in_play}" -ne 0 ]
+    then
+        arg="(with-in-str \"${input}\" ${arg})"
+    fi
+
+    set +x
+    response=$(rep "${arg}")
+    set -x
+    text=$(echo "${response}" | head -n -1)
+    return=$(echo "${response}" | tail -n 1)
+    printf '%s\n' "${text}"
+    test "${return}" -eq 0
+}
+
 cleanup
 
-execmd=
+execmd=replexec
 java='java'
 first_java=
 tracing=0
@@ -86,22 +119,20 @@ do
             first_java="java -agentlib:native-image-agent=config-output-dir=${native_image_config}/"
             rm -rf "${native_image_config}"
             mkdir -p "${native_image_config}"
+            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
+            execmd="${java} ${args}"
+            set -x
             ;;
         --native)
             shift
             execmd="${root_path}/target/native-image/${name}-${version}-standalone -Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf --enable-insecure"
+            set -x
             ;;
         -h|*)
             usage
             ;;
     esac
 done
-
-if [ -z "${execmd}" ]
-then
-    args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
-    execmd="${java} ${args}"
-fi
 
 if [ -n "${first_java}" ]
 then
@@ -115,9 +146,7 @@ fi
 $first_exe init
 
 start_server="${root_path}/lighttpd-environment/lighttpd.exp"
-set +x
 echo "Starting server..."
-set -x
 cd "${root_path}"
 set +e
 mkdir -p "${root_path}/build"

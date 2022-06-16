@@ -24,7 +24,11 @@
   :test-selectors {:default (complement :integration)
                    :integration :integration
                    :unit :unit}
-  :profiles {:uberjar {:aot :all
+
+  :profiles {:test-repl {:jvm-opts ["-Djavax.net.ssl.trustStore=test/resources/test.keystore"
+                                    "-Djavax.net.ssl.trustStorePassword=asdfasdf"]}
+
+             :uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
                                   "-Dclojure.spec.skip-macros=true"
