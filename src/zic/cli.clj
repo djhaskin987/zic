@@ -231,10 +231,11 @@
   Main entry point for zic, but without System/exit
   and other such non-repl-friendly oddities
   "
-  [args]
+  [args env properties]
   (onecli/go!
    {:program-name "zic"
-    :env (System/getenv)
+    :env env
+    :properties properties
     :args args
     :functions
     {["add"] 'zic.cli/add!
@@ -274,7 +275,7 @@
 
     :defaults
     {:output-format "yaml"
-     :start-directory (System/getProperty "user.dir")
+     :start-directory (get properties "user.dir")
      :cascade false
      :dry-run false
      :download-package true}
@@ -318,7 +319,7 @@
   Main entry point for zic
   "
   [& args]
-  (let [exit-code (run args)]
+  (let [exit-code (run args (System/getenv) (System/getProperties))]
     ;; when calling shell/sh, we need to use `shutdown-agents`
     ;; https://clojuredocs.org/clojure.core/future
     ;; https://clojuredocs.org/clojure.java.shell/sh

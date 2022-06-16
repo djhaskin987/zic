@@ -33,6 +33,10 @@ lighttpd-environment/lighttpd
 lighttpd-environment/test-data
 /build
 /reports
+/a.json
+/b.json
+/zic.yaml
+/test.keystore
 
 test/resources/data/all
 /zic-*-standalone

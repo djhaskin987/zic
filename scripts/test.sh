@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -ex
 
 # https://docs.oracle.com/javadb/10.8.3.0/adminguide/cadminsslclient.html
 # https://stackoverflow.com/questions/65376092/can-jvm-trust-a-self-signed-certificate-for-only-a-single-run
@@ -19,7 +19,6 @@ usage() {
     exit 128
 }
 
-
 if [ ! -f "project.clj" ]
 then
     echo "This script must be run from the root of the project." >&2
@@ -27,15 +26,22 @@ then
 fi
 
 root_path=${PWD}
-test_home="${root_path}/test/resources/data/all"
-rm -rf "${test_home}"
+test_home="${root_path}"
 mkdir -p "${test_home}"
 
-rep "(System/setProperty \"user.dir\" \"${test_home}\")"
-cd "${test_home}"
-
-name=$(${root_path}/scripts/name)
-version=$(${root_path}/scripts/version)
+#lein with-profile +repl,+test-repl trampoline repl :headless &
+#echo "${!}" > "${root_path}/build/repl-pid"
+#echo "Waiting for the repl to spin up..."
+#i=15
+#while [ "${i}" -ne 0 ]
+#do
+#    sleep 1
+#    if [ -f "${root_path}/.nrepl-port" ]
+#    then
+#        break
+#    fi
+#    i=$(( ${i} - 1 ))
+#done
 
 cleanup_files() {
 
@@ -56,51 +62,83 @@ cleanup_server() {
     fi
 }
 
+cleanup_repl() {
+    if [ -f "${root_path}/build/repl-pid" ]
+    then
+        kill -9 "$(cat ${root_path}/build/repl-pid)" || :
+        rm -rf "${root_path}/build/repl-pid"
+    fi
+}
+
 cleanup() {
     set +x
     echo "Cleaning up..."
-    cleanup_files
+    set -x
     cleanup_server
+    cleanup_repl
+    cleanup_files
 }
 
+# https://unix.stackexchange.com/q/235582/9696
+trap "exit 129" HUP
+trap "exit 130" INT
+trap "exit 143" TERM
+trap cleanup EXIT
+
+rep "(import '[jnr.posix POSIXFactory])"
+rep "(.chdir (POSIXFactory/getPOSIX ) \"${test_home}\")"
+cd "${test_home}"
+
+name=$(${root_path}/scripts/name)
+version=$(${root_path}/scripts/version)
+
 replexec() {
+    set +x
     echo "+ zic ${@}" >&2
     arg='(zic.cli/run ['
     stdin_in_play=0
+    cljenv="{$(env |
+        sort |
+        sed -e 's|^\([^=]\{1,\}\)=\(.*\)$|"\1" "\2"|g' \
+            -e 's|\\|\\\\|g')}"
+
     for i in "${@}"
     do
-        cleaned="$(echo "${i}" | sed -e 's|"|\\"|g')"
+        cleaned="$(echo "${i}" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')"
         if [ "${cleaned}" = "-" ]
         then
-            if [ "${std_in_play}" -eq 0 ]
+            if [ "${stdin_in_play}" -eq 0 ]
             then
-                input="$(IFS='' read -r -s)"
+                input="$(cat | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')"
+                echo "Input:" >&2
+                echo "${input}" >&2
             fi
             stdin_in_play=1
         fi
         arg="${arg} \"${cleaned}\""
     done
-    arg="${arg}])"
+    arg="${arg}] ${cljenv} {\"user.home\" \"${HOME}\" \"user.dir\" \"${PWD}\"})"
     if [ "${stdin_in_play}" -ne 0 ]
     then
         arg="(with-in-str \"${input}\" ${arg})"
     fi
 
-    set +x
     response=$(rep "${arg}")
-    set -x
     text=$(echo "${response}" | head -n -1)
     return=$(echo "${response}" | tail -n 1)
     printf '%s\n' "${text}"
+    set -x
     test "${return}" -eq 0
 }
 
-cleanup
+cleanup_server
+cleanup_files
 
 execmd=replexec
 java='java'
 first_java=
 tracing=0
+native=0
 keystore="${root_path}/test/resources/test.keystore"
 
 while [ -n "${1}" ]
@@ -121,12 +159,11 @@ do
             mkdir -p "${native_image_config}"
             args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
             execmd="${java} ${args}"
-            set -x
             ;;
         --native)
             shift
+            native=1
             execmd="${root_path}/target/native-image/${name}-${version}-standalone -Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf --enable-insecure"
-            set -x
             ;;
         -h|*)
             usage
@@ -139,6 +176,11 @@ then
     first_exe="${first_java} ${args}"
 else
     first_exe="${execmd}"
+    if [ ! -f "${root_path}/.nrepl-port" -a "${tracing}" -eq 0 -a "${native}" -eq 0 ]
+    then
+        echo "Please start a REPL." >&2
+        exit 1
+    fi
 fi
 
 # Run this first just in case there's a real problem before starting
@@ -146,7 +188,9 @@ fi
 $first_exe init
 
 start_server="${root_path}/lighttpd-environment/lighttpd.exp"
+set +x
 echo "Starting server..."
+set -x
 cd "${root_path}"
 set +e
 mkdir -p "${root_path}/build"
@@ -155,11 +199,6 @@ echo "${!}" > "${root_path}/build/server-pid"
 set -e
 cd "${test_home}"
 
-# https://unix.stackexchange.com/q/235582/9696
-trap "exit 129" HUP
-trap "exit 130" INT
-trap "exit 143" TERM
-trap cleanup EXIT
 
 
 # OneCLI, for tracing
@@ -220,7 +259,7 @@ answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="${t
 ALSO
 )
 
-expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic/test/resources/data/all","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:sqlite:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.lock"}'
+expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:sqlite:/home/djhaskin987/Development/src/zic/.zic.db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
 
 if [ ! "${answer}" = "${expected}" ]
 then
@@ -236,27 +275,27 @@ ALSO
 expected='one:
   two: 238
   three: 543
-start-directory: /home/djhaskin987/Development/src/zic/test/resources/data/all
+start-directory: /home/djhaskin987/Development/src/zic
 cascade: false
 anonymous-coward: I was never here
-db-connection-string: jdbc:sqlite:/home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.db
+db-connection-string: jdbc:sqlite:/home/djhaskin987/Development/src/zic/.zic.db
 bfound: true
 output-format: yaml
 commands:
  - options
  - show
-staging-path: /home/djhaskin987/Development/src/zic/test/resources/data/all/.staging
+staging-path: /home/djhaskin987/Development/src/zic/.staging
 fart: 123
 download-package: true
 ifihadtodoitagain: i would
-root-path: /home/djhaskin987/Development/src/zic/test/resources/data/all
+root-path: /home/djhaskin987/Development/src/zic
 zed:
   a: true
   b: false
 dry-run: false
 afound: true
 package-metadata: null
-lock-path: /home/djhaskin987/Development/src/zic/test/resources/data/all/.zic.lock'
+lock-path: /home/djhaskin987/Development/src/zic/.zic.lock'
 
 if [ ! "${answer}" = "${expected}" ]
 then
