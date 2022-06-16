@@ -27,7 +27,10 @@ fi
 
 root_path=${PWD}
 test_home="${root_path}"
-mkdir -p "${test_home}"
+
+name=$(${root_path}/scripts/name)
+version=$(${root_path}/scripts/version)
+
 
 #lein with-profile +repl,+test-repl trampoline repl :headless &
 #echo "${!}" > "${root_path}/build/repl-pid"
@@ -54,28 +57,28 @@ cleanup_files() {
     rm -rf failure
 }
 
-cleanup_server() {
-    if [ -f "${root_path}/build/server-pid" ]
-    then
-        kill -9 "$(cat ${root_path}/build/server-pid)" || :
-        rm -rf "${root_path}/build/server-pid"
-    fi
-}
+#cleanup_server() {
+#    if [ -f "${root_path}/build/server-pid" ]
+#    then
+#        kill -9 "$(cat ${root_path}/build/server-pid)" || :
+#        rm -rf "${root_path}/build/server-pid"
+#    fi
+#}
 
-cleanup_repl() {
-    if [ -f "${root_path}/build/repl-pid" ]
-    then
-        kill -9 "$(cat ${root_path}/build/repl-pid)" || :
-        rm -rf "${root_path}/build/repl-pid"
-    fi
-}
+#cleanup_repl() {
+#    if [ -f "${root_path}/build/repl-pid" ]
+#    then
+#        kill -9 "$(cat ${root_path}/build/repl-pid)" || :
+#        rm -rf "${root_path}/build/repl-pid"
+#    fi
+#}
 
 cleanup() {
     set +x
     echo "Cleaning up..."
     set -x
-    cleanup_server
-    cleanup_repl
+    #cleanup_server
+    #cleanup_repl
     cleanup_files
 }
 
@@ -84,13 +87,6 @@ trap "exit 129" HUP
 trap "exit 130" INT
 trap "exit 143" TERM
 trap cleanup EXIT
-
-rep "(import '[jnr.posix POSIXFactory])"
-rep "(.chdir (POSIXFactory/getPOSIX ) \"${test_home}\")"
-cd "${test_home}"
-
-name=$(${root_path}/scripts/name)
-version=$(${root_path}/scripts/version)
 
 replexec() {
     set +x
@@ -131,7 +127,7 @@ replexec() {
     test "${return}" -eq 0
 }
 
-cleanup_server
+#cleanup_server
 cleanup_files
 
 execmd=replexec
@@ -187,15 +183,15 @@ fi
 # the lighttpd server, as a sort of smoke test
 $first_exe init
 
-start_server="${root_path}/lighttpd-environment/lighttpd.exp"
-set +x
-echo "Starting server..."
-set -x
+#start_server="${root_path}/lighttpd-environment/lighttpd.exp"
+#set +x
+#echo "Starting server..."
+#set -x
+#${start_server} &
+#echo "${!}" > "${root_path}/build/server-pid"
 cd "${root_path}"
 set +e
 mkdir -p "${root_path}/build"
-${start_server} &
-echo "${!}" > "${root_path}/build/server-pid"
 set -e
 cd "${test_home}"
 

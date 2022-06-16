@@ -27,10 +27,6 @@
 
   :profiles {:test-repl {:jvm-opts ["-Djavax.net.ssl.trustStore=test/resources/test.keystore"
                                     "-Djavax.net.ssl.trustStorePassword=asdfasdf"]
-                         :dependencies [
-                                        ;; https://mvnrepository.com/artifact/com.github.jnr/jnr-posix
-                                        [com.github.jnr/jnr-posix "3.1.15"]
-                                        ]
                          }
 
              :uberjar {:aot :all
