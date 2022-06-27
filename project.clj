@@ -6,17 +6,18 @@
   :plugins [[lein-cljfmt "0.7.0"]
             [lein-licenses "0.2.2"]
             [lein-print "0.1.0"]]
-  :dependencies [;;[serovers "1.6.2"]
+  :jvm-opts [
+             "--add-opens=java.base/java.nio=ALL-UNNAMED"
+             "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+             ]
+  :dependencies [
+                 [datalevin "0.6.14"]
                  [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]
-                 [org.xerial/sqlite-jdbc "3.28.0"]
-                 [seancorfield/next.jdbc "1.0.10"]
                  [serovers "1.6.2"]
                  [onecli "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
                  [clj-commons/clj-yaml "0.7.108"]
-
-                 ;;[borkdude/clj-reflector-graal-java11-fix "0.0.1-graalvm-20.1.0"]
                  ]
 
   :main zic.cli
@@ -25,12 +26,33 @@
                    :integration :integration
                    :unit :unit}
 
-  :profiles {:test-repl {:jvm-opts ["-Djavax.net.ssl.trustStore=test/resources/test.keystore"
-                                    "-Djavax.net.ssl.trustStorePassword=asdfasdf"]
+  :profiles {
+             :test-repl
+             {
+                         :jvm-opts [
+                                    "-Djavax.net.ssl.trustStore=test/resources/test.keystore"
+                                    "-Djavax.net.ssl.trustStorePassword=asdfasdf"
+                                    "--add-opens=java.base/java.nio=ALL-UNNAMED"
+                                    "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+                                    ]
                          }
 
-             :uberjar {:aot :all
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+             :uberjar {
+                       :aot :all
+                       :jvm-opts [
+                                  "-Dclojure.compiler.direct-linking=true"
                                   "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
                                   "-Dclojure.spec.skip-macros=true"
-                                  ]}})
+                                  "--add-opens=java.base/java.nio=ALL-UNNAMED"
+                                  "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+                                  ]
+                       :dependencies [
+                                      [datalevin-native "0.6.14"]
+                                      [org.clojure/clojure "1.11.1"]
+                                      [org.martinklepsch/clj-http-lite "0.4.3"]
+                                      [buddy/buddy-core "1.10.1"]
+                                      [serovers "1.6.2"]
+                                      [onecli "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
+                                      [clj-commons/clj-yaml "0.7.108"]
+                                      ]
+                       }})

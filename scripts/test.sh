@@ -153,7 +153,11 @@ do
             first_java="java -agentlib:native-image-agent=config-output-dir=${native_image_config}/"
             rm -rf "${native_image_config}"
             mkdir -p "${native_image_config}"
-            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
+            args="--add-opens=java.base/java.nio=ALL-UNNAMED"
+            args="${args} --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+            args="${args} -Djavax.net.ssl.trustStore=${keystore}"
+            args="${args} -Djavax.net.ssl.trustStorePassword=asdfasdf"
+            args="${args} -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
             execmd="${java} ${args}"
             ;;
         --native)
