@@ -1,118 +1,164 @@
 (ns zic.db
   (:require
    [cheshire.core :as json]
-   [next.jdbc :as jdbc]))
+   [datalevin.core :as d]))
 
-(def ^:private init-statements
-  ["
-   PRAGMA foreign_keys = ON
-   "
-   "
-   CREATE TABLE IF NOT EXISTS file_classes (
-     id INTEGER NOT NULL PRIMARY KEY,
-     name TEXT UNIQUE NOT NULL
-   )
-   "
-   "
-   INSERT INTO file_classes (id, name) VALUES (1, \"normal-file\"), (2, \"config-file\"), (3, \"ghost-file\")
-   "
-   "
-    CREATE TABLE IF NOT EXISTS packages (
-      id INTEGER NOT NULL PRIMARY KEY,
-      name TEXT UNIQUE NOT NULL UNIQUE,
-      version TEXT NOT NULL,
-      location TEXT,
-      metadata TEXT)
-    "
-   "
-    CREATE TABLE IF NOT EXISTS files (
-      id INTEGER NOT NULL PRIMARY KEY,
-      pid INTEGER,
-      path TEXT UNIQUE NOT NULL,
-      size INTEGER NOT NULL,
-      file_class INTEGER NOT NULL,
-      checksum TEXT,
-      CONSTRAINT pid_c FOREIGN KEY (pid) REFERENCES packages(id),
-      CONSTRAINT fc_c FOREIGN KEY (file_class) REFERENCES file_classes(id),
-      CONSTRAINT size_positive CHECK (size >= 0),
-      CONSTRAINT checksum_used CHECK (file_class = 3 OR checksum IS NOT NULL),
-      CONSTRAINT ghost_sum CHECK (file_class != 3 OR checksum IS NULL),
-      CONSTRAINT ghost_size CHECK (file_class != 3 OR size = 0)
-   )
-   "
-   "
-    CREATE TABLE IF NOT EXISTS uses (
-      id INTEGER NOT NULL PRIMARY KEY,
-      depender INTEGER,
-      dependee INTEGER,
-      CONSTRAINT depender_c FOREIGN KEY (depender) REFERENCES packages(id),
-      CONSTRAINT dependee_c FOREIGN KEY (dependee) REFERENCES packages(id)
-    )
-    "])
+(defn file-class?
+  [thing]
+  (#{:normal-file
+     :config-file
+     :ghost-file} thing))
+
+(def schema
+   {
+    :package/name #:db{
+                      :valueType :db.type/string
+                      :cardinality :db.cardinality/one
+                      :unique :db.unique/identity
+                      :doc "Name of an installed package"}
+   :package/version #:db{
+    :valueType :db.type/string
+    :cardinality :db.cardinality/one
+    :doc "Version of the package"}
+   :package/location #:db{
+    :valueType :db.type/string
+    :cardinality :db.cardinality/one
+    :doc "Location from which the package was fetched"}
+   :package/metadata #:db{
+    :cardinality :db.cardinality/one
+    :doc "Metadata of the package"}
+   :package/dependencies #:db{
+    :valueType :db.type/ref
+    :cardinality :db.cardinality/many
+    :isComponent false
+    :doc "Packages that this package depends on"}
+   :package/files #:db{
+    :cardinality :db.cardinality/many
+    :valueType :db.type/ref
+    :isComponent true
+    :doc "Files installed by a package"}
+   ;;les
+   :file/path, #:db{
+    :unique :db.unique/identity,
+    :valueType :db.type/string,
+    :cardinality :db.cardinality/one,
+    :doc "Path to the file on the filesystem relative to the project root"}
+   :file/size, #:db{
+    :valueType :db.type/long,
+    :cardinality :db.cardinality/one,
+    :attr/preds 'clojure.core/pos?
+    :doc "Size of the file"}
+   :file/class, #:db{
+    :db/valueType :db.type/keyword,
+    :db/cardinality :db.cardinality/one,
+    :db.attr/preds 'zic.db/file-class?
+    :db/doc "Class of the file"}
+   })
+
+(defn with-database
+  [connection-string
+   f]
+  (d/with-conn [conn connection-string schema]
+    (f conn)))
 
 (defn init-database!
   [c]
-  (doseq [statement init-statements]
-    (jdbc/execute! c [statement])))
+  (d/transact! c schema))
 
-(defn serialize-metadata
-  [metadata]
-  (if (nil? metadata)
-    metadata
-    (json/generate-string metadata)))
-
-(defn deserialize-metadata
-  [metadata]
-  (if (or (nil? metadata)
-          (empty? metadata))
-    nil
-    (json/parse-string metadata true)))
-
-(defn deserialize-package
-  [pkg]
-  {:id (:packages/id pkg)
-   :name (:packages/name pkg)
-   :version (:packages/version pkg)
-   :location (:packages/location pkg)
-   :metadata (deserialize-metadata (:packages/metadata pkg))})
-
-(def file-classes {1 :normal-file
-                   2 :config-file
-                   3 :ghost-file})
-
-(def file-class-indices
-  {:normal-file 1
-   :config-file 2
-   :ghost-file 3})
-
-(defn deserialize-file
-  [fil]
-  {:path (:files/path fil)
-   :size (:files/size fil)
-   :file-class (get file-classes (:files/file_class fil) :unknown-file-class)
-   :checksum (:files/checksum fil)})
-
-#_(zic.session/with-database
-    "jdbc:sqlite:.zic.db"
-    (fn [c] (get-package-id! c "w")))
-
-(defn get-package-id!
+(defn package-id
   [c package-name]
-  (:packages/id (jdbc/execute-one!
-                 c
-                 ["
-                   SELECT id
-                   FROM packages
-                   WHERE name = ?
-                   "
-                  package-name])))
+  (first
+    (first
+      (d/q
+   '[:find ?e
+     :in $ ?pname
+     :where
+     [?e :package/name ?pname]]
+   (d/db c)
+   package-name))))
 
-(defn owned-by?!
+#_(
+
+   (def c (d/get-conn "./.zic-db" schema))
+(d/transact!
+  c
+  [{:package/name "a"
+    :package/version "0.1.0"
+    :package/location "https://djhaskin987.me:8443/a.zip"
+    :package/metadata
+    {
+     :mood :rare
+     }}])
+;; This should succeed
+(package-id c "a")
+;; This should return nil
+(package-id c "not-exist")
+   )_
+
+
+(defn owned-by?
   "
    Returns the name of the package that owns the file in question,
    or nil if no such package exists.
    "
   [c file]
+  (first
+    (first
+      (d/q
+    '[:find ?n
+      :in $ ?fname
+      :where
+      [?e :package/file ?f]
+      [?f :file/path ?fname]]
+    (d/db c)
+    file))))
+
+#_(
+
+   (d/transact!
+     c
+     [{:package/name "c"
+       :package/version "0.1.0"
+       :pacakge/location "https://djhaskin987.me:8443/c.zip"
+       :package/metadata {
+                          :zic {
+                                :config-files ["c/echo.txt"]
+                                }
+                          }
+      :package/files "echo"
+      }
+      {
+       :db/id "echo"
+       :file/path "c/echo.txt"
+         :file/size 13
+         :file/class :config-file}
+      ]
+     )
+   ;; do the above twice
+   ;; test that the package name is unique
+   (count (d/q '[:find ?e :in $ :where [?e :package/name "c"]] (d/db c)))
+   ;; This shouldn't fail and should return just one thing.
+  (d/entity (d/db c) [:package/name "c"])
+   ;; test that the inserted file is there
+   (d/q '[:find (pull ?e {:package/_name ?e}) :in $ :where [?e :file/path "c/echo.txt"]] (d/db c))
+       )
+
+
+$execmd \
+    add \
+    --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
+    --set-package-name 'c' \
+    --set-package-version 0.1.0 \
+    --set-package-location "https://djhaskin987.me:8443/c.zip" \
+    --set-package-metadata '{"zic": {"config-files": ["c/echo.txt"]}}'
+
+test "$(cat c/echo.txt)" = "I am NOT JUST an echo."
+test -f "c/echo.txt"
+test -f "c/echo.txt.c.0.1.0.new"
+test -f "c/echo.txt.c.0.1.0.new.1"
+
+   )
+
   (:packages/name (jdbc/execute-one!
                    c
                    ["
@@ -280,7 +326,7 @@
                     package-version
                     package-location
                     serialized-metadata]))
-  (let [package-id (get-package-id! c package-name)
+  (let [package-id (package-id c package-name)
         config-files (into #{} (get-in package-metadata [:zic :config-files]))
         ghost-files (get-in package-metadata [:zic :ghost-files])]
     (doseq [{:keys [path size _ checksum]} (filter #(not (:is-directory %)) package-files)]

@@ -20,7 +20,7 @@
   (session/with-database
     db-connection-string
     (fn [c]
-      (let [package-id (db/get-package-id! c package-name)]
+      (let [package-id (db/package-id c package-name)]
         (if (nil? package-id)
           nil
           (db/package-files! c package-id))))))
@@ -354,7 +354,7 @@
     (fn [c]
       (let [dependencies-status
             (->> package-dependency
-                 (map (fn [d] [d (db/get-package-id! c d)]))
+                 (map (fn [d] [d (db/package-id c d)]))
                  (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
         (if (seq (:unmet dependencies-status))
           (throw (ex-info "Several dependencies are unmet."
