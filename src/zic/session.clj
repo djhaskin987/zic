@@ -71,7 +71,7 @@
   (close
     [this]
     (jdbc/execute! (:connection this) ["
-                                       COMMIT TRANSACTION
+                                       COMMIT
                                        "])
     this)
 
@@ -112,5 +112,9 @@
 
 (defn path-to-connection-string
   [^Path path]
-  (str "jdbc:sqlite:"
-       (.toAbsolutePath path)))
+  (str
+   "jdbc:h2:file:"
+   (let [spath (str (.toAbsolutePath path))
+         pend (.length spath)]
+     (subs spath 0 (- pend 6)))
+   ";AUTOCOMMIT=OFF"))
