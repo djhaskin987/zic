@@ -61,10 +61,6 @@
   (d/with-conn [conn connection-string schema]
     (f conn)))
 
-(defn init-database!
-  [c]
-  (d/transact! c schema))
-
 (defn package-id
   [c package-name]
   (first
@@ -79,7 +75,7 @@
 
 #_(
 
-   (def c (d/get-conn "./.zic-db" schema))
+(def c (d/get-conn "./.zic-db" schema))
 (d/transact!
   c
   [{:package/name "a"
@@ -93,8 +89,7 @@
 (package-id c "a")
 ;; This should return nil
 (package-id c "not-exist")
-   )_
-
+   )
 
 (defn owned-by?
   "

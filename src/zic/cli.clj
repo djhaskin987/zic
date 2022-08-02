@@ -172,26 +172,6 @@
       {:result :package-found
        :package-dependees result})))
 
-(defn init!
-  "
-  Initialize database in the start directory.
-  Non-Global Options:
-  - `-d <path>`, `--set-start-directory <path>`: Set start directory. This
-    directory is where the file `.zic.db` will be placed. The default path
-    if no start directory is given is the present working directory.
-    Configuration item: `start-directory`
-  "
-
-  [options]
-  (session/with-database
-    (session/path-to-connection-string
-     (Paths/get
-      (:start-directory options)
-      (into-array
-       [".zic.db"])))
-    db/init-database!)
-  {:result :successful})
-
 (defn list!
   "
   FIXME
@@ -241,7 +221,6 @@
     {["add"] 'zic.cli/add!
      ["files"] 'zic.cli/files!
      ["info"] 'zic.cli/info!
-     ["init"] 'zic.cli/init!
      ["list"] 'zic.cli/list!
 ;;     ["orphans"] 'zic.cli/orphans!
      ["remove"] 'zic.cli/remove!
