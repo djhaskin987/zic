@@ -1,19 +1,25 @@
 {
  :paths ["src"]
+ :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+            "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
+            "-Dclojure.spec.skip-macros=true"
+            ]
  :deps {
-                 org.clojure/clojure {:mvn/version "1.10.1"}
-                 org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
-                 org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}
-                 seancorfield/next.jdbc {:mvn/version "1.0.10"}
-                 djhaskin987/onecli {:mvn/version "0.7.0-SNAPSHOT"}
+        com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}
+        org.clojure/clojure {:mvn/version "1.11.1"}
+        org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
+        buddy/buddy-core {:mvn/version "1.10.1"}
+        org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}
+        seancorfield/next.jdbc {:mvn/version "1.0.10"}
+        serovers/serovers {:mvn/version "1.6.2"}
+        onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure]}
+        clj-commons/clj-yaml {:mvn/version "0.7.108"}
         }
-
  :aliases {
-           :zic/uberjar {
-                     :extra-deps {
-                                  org.clojure/clojure {:mvn/version "1.10.2-alpha1"}
-                                  borkdude/clj-reflector-graal-java11-fix {:mvn/version "0.0.1-graalvm-20.1.0"}
-                                  }
-                     }
+           :build {:paths ["tools"]
+                           :extra-deps {
+                                io.github.clojure/tools.build {:git/tag "v0.8.3" :git/sha "0d20256"}
+                                }
+                   }
            }
  }
