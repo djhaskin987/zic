@@ -7,6 +7,8 @@
             [lein-licenses "0.2.2"]
             [lein-print "0.1.0"]]
   :dependencies [;;[serovers "1.6.2"]
+                 [com.github.clj-easy/graal-build-time "0.1.4"]
+
                  [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]

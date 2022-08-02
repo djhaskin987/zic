@@ -25,6 +25,7 @@ echo 'java.lang'
 echo 'java.lang.reflect'
 echo 'java.util'
 echo 'java.sql'
+
 # https://www.mail-archive.com/h2-database@googlegroups.com/msg23413.html'
 #echo 'org.locationtech.jts.geom'
 #echo 'org.h2.store.fs.disk'

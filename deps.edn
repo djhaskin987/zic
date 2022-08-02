@@ -1,25 +1,62 @@
 {
  :paths ["src"]
- :jvm-opts ["-Dclojure.compiler.direct-linking=true"
-            "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
-            "-Dclojure.spec.skip-macros=true"
-            ]
- :deps {
-        com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}
-        org.clojure/clojure {:mvn/version "1.11.1"}
-        org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
-        buddy/buddy-core {:mvn/version "1.10.1"}
-        org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}
-        seancorfield/next.jdbc {:mvn/version "1.0.10"}
-        serovers/serovers {:mvn/version "1.6.2"}
-        onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure]}
-        clj-commons/clj-yaml {:mvn/version "0.7.108"}
-        }
- :aliases {
-           :build {:paths ["tools"]
-                           :extra-deps {
-                                io.github.clojure/tools.build {:git/tag "v0.8.3" :git/sha "0d20256"}
-                                }
-                   }
-           }
+ :deps
+ {
+  org.clojure/clojure {:mvn/version "1.11.1"}
+  org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
+  buddy/buddy-core {:mvn/version "1.10.1"}
+  org.xerial/sqlite-jdbc {:mvn/version "3.28.0"}
+  seancorfield/next.jdbc {:mvn/version "1.0.10"}
+  serovers/serovers {:mvn/version "1.6.2"}
+  ;; https://simonrobson.net/2019/04/16/clojure-deps-with-exclusions.html
+  onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure org.clojure/clojure]}
+  clj-commons/clj-yaml {:mvn/version "0.7.108"}
+  }
+ :aliases
+ {
+  :build
+  {
+   :paths ["tools"]
+   :extra-deps
+   {
+    io.github.clojure/tools.build
+    {
+     :git/url "https://github.com/clojure/tools.build.git"
+     :git/tag "v0.8.3"
+     :git/sha "0d20256"
+     }
+    }
+   :ns-default build
+   }
+  :uberjar
+  {
+   :jvm-opts
+   [
+    "-Dclojure.compiler.direct-linking=true"
+    "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
+    "-Dclojure.spec.skip-macros=true"
+    ]
+   :extra-deps
+   {
+    com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}
+    com.github.clj-easy/graal-config-cheshire
+    {
+     :git/url   "https://github.com/clj-easy/graal-config"
+     :git/sha   "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
+     :deps/root "config/cheshire/cheshire"
+     }
+    com.github.clj-easy/graal-config-h2
+    {
+     :git/url   "https://github.com/clj-easy/graal-config"
+     :git/sha   "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
+     :deps/root "config/com.h2database/h2"
+    }
+    com.github.clj-easy/next.jdbc
+    {
+     :git/url "https://github.com/clj-easy/graal-config"
+     :git/sha "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
+     :deps/root "config/com.github.seancorfield/next.jdbc"}
+    }
+   }
+  }
  }

@@ -13,6 +13,7 @@ pom.xml.asc
 .hgignore
 .hg/
 /.cpcache/
+/.lsp/.cache
 
 # IDE files
 /.vscode
@@ -49,3 +50,5 @@ test/resources/data/all
 \#*
 .*#
 .#*
+
+
