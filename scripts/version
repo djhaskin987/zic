@@ -1,8 +1,5 @@
 #!/bin/sh
 
-if [ ! -e build/version ]
-then
-    mkdir -p build/
-    lein print :version 2>/dev/null | sed -e 's|"||g'  > build/version
-fi
-cat build/version
+printf "%s.%s\n" \
+    "$(git describe --tags --abbrev=0)" \
+    "$(git rev-list --count HEAD)"

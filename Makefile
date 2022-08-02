@@ -23,7 +23,7 @@ clean:
 	- rm -rf build
 	- rm -rf META-INF
 	- rm -rf test/resources/data/all
-	- rm -rf target/
+	- clj -T:build clean
 
 all: $(jar_file) $(native_file)
 

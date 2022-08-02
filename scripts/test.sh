@@ -31,21 +31,6 @@ test_home="${root_path}"
 name=$(${root_path}/scripts/name)
 version=$(${root_path}/scripts/version)
 
-
-#lein with-profile +repl,+test-repl trampoline repl :headless &
-#echo "${!}" > "${root_path}/build/repl-pid"
-#echo "Waiting for the repl to spin up..."
-#i=15
-#while [ "${i}" -ne 0 ]
-#do
-#    sleep 1
-#    if [ -f "${root_path}/.nrepl-port" ]
-#    then
-#        break
-#    fi
-#    i=$(( ${i} - 1 ))
-#done
-
 cleanup_files() {
 
     rm -rf .${name}.db
@@ -56,22 +41,6 @@ cleanup_files() {
     rm -rf changes
     rm -rf failure
 }
-
-#cleanup_server() {
-#    if [ -f "${root_path}/build/server-pid" ]
-#    then
-#        kill -9 "$(cat ${root_path}/build/server-pid)" || :
-#        rm -rf "${root_path}/build/server-pid"
-#    fi
-#}
-
-#cleanup_repl() {
-#    if [ -f "${root_path}/build/repl-pid" ]
-#    then
-#        kill -9 "$(cat ${root_path}/build/repl-pid)" || :
-#        rm -rf "${root_path}/build/repl-pid"
-#    fi
-#}
 
 cleanup() {
     set +x

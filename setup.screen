@@ -1,6 +1,6 @@
 at 0 stuff "./lighttpd-environment/lighttpd.exp"
 at 0 title "lighttpd"
 screen -t "repl" 1
-at 1 stuff "lein with-profile +repl,+test-repl repl"
+at 1 stuff "scripts/repl"
 screen -t "test.sh" 2
 screen -t "editor" 3
