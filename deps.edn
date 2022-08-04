@@ -15,6 +15,7 @@
   }
  :aliases
  {
+  ;; Use: run clj -X:test
   :test
   {
    :extra-paths ["test"]
@@ -23,16 +24,19 @@
    :main-opts ["-m" "cognitect.test-runner"]
    :exec-fn cognitect.test-runner.api/test
    }
-  :repl
+  ;; Use: run clj -M:repl [-i] [-c] [-h] [-p], see nrepl docs
+  :nrepl
   {
    :paths ["src"]
    :jvm-opts ["-Djavax.net.ssl.trustStore=test/resources/test.keystore"
               "-Djavax.net.ssl.trustStorePassword=asdfasdf"]
+   :main-opts ["-m" "nrepl.cmdline"]
    :extra-deps
    {
     nrepl/nrepl {:mvn/version "0.5.3"}
     }
    }
+  ;; Use: run clj -T:build uber
   :build
   {
    :paths ["tools"]
