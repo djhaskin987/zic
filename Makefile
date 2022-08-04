@@ -13,7 +13,7 @@ native_fname=$(root_target_name)
 jar_file=$(jar_dir)/$(jar_fname)
 native_file=$(native_dir)/$(native_fname)
 build_native_script=scripts/build-native-image
-sources=src/zic/*.clj project.clj
+sources=tools/*.clj src/zic/*.clj deps.edn
 test_script=scripts/test.sh
 clj=clj
 

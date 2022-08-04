@@ -12,7 +12,7 @@ do
     sleep 1
 done
 
-clj -M:repl -m nrepl.cmdline -c -h localhost -p $(cat .nrepl-port) << NREPL
+clj -M:nrepl -c -h localhost -p $(cat .nrepl-port) >/dev/null 2>&1 << NREPL
 (use 'clojure.repl)
 (import '[java.nio.file Files Paths Path])
 (let [current-directory (Paths/get "."
@@ -32,4 +32,4 @@ NREPL
 
 # Okay, now that the repl is prepared, with our modules required,
 # We connect a client...
-clj -M:repl -m nrepl.cmdline -c -h localhost -p $(cat .nrepl-port)
+clj -M:nrepl -c -h localhost -p $(cat .nrepl-port)

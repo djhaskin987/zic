@@ -7,7 +7,7 @@ set -ex
 root_path="${PWD}"
 
 
-if [ ! -e "${root_path}/project.clj" ]
+if [ ! -e "${root_path}/deps.edn" ]
 then
     echo "This script must be run from the root of the project." >&2
     exit 1

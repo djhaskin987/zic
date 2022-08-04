@@ -29,6 +29,14 @@
                    :target-dir class-dir})
   (build/compile-clj {:basis basis
                       :src-dirs ["src"]
+                      :compile-opts {
+                                     :disable-locals-clearing false
+                                     :elide-meta [:doc :file :line :added]
+                                     :direct-linking true
+                                     }
+                      :jvm-opts [
+                                 "-Dclojure.spec.skip-macros=true"
+                                 ]
                       :class-dir class-dir})
   (build/uber {:class-dir class-dir
                :uber-file uber-file

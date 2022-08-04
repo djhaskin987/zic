@@ -19,7 +19,7 @@ usage() {
     exit 128
 }
 
-if [ ! -f "project.clj" ]
+if [ ! -f "deps.edn" ]
 then
     echo "This script must be run from the root of the project." >&2
     usage

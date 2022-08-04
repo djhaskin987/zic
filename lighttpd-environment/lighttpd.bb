@@ -17,7 +17,7 @@
 (def root-path (System/getProperty "user.dir"))
 (def sep (System/getProperty "path.separator"))
 
-(when (not (.exists (io/as-file (string/join "/" [root-path "project.clj"))))
+(when (not (.exists (io/as-file (string/join "/" [root-path "deps.edn"))))
  (binding [*out* *err*]
   (println "This script must be run from the root of the project."))
  (System/exit 1))
@@ -27,7 +27,7 @@
  (walk ltesting-path io/delete-file)
  (.mkdirs ltesting-path))
 (io/copy (io/as-file (string/join sep [testing-path "server.pem"]))
-         (io/as-file (string/join sep 
+         (io/as-file (string/join sep
 
 /iog
 # Make self-signed certificate
