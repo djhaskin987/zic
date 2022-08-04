@@ -2,9 +2,6 @@
   "resources":{
   "includes":[
     {
-      "pattern":"\\QMETA-INF/maven/org.xerial/sqlite-jdbc/pom.properties\\E"
-    }, 
-    {
       "pattern":"\\QMETA-INF/services/java.sql.Driver\\E"
     }, 
     {
@@ -311,7 +308,7 @@
       "pattern":"\\Qonecli/core__init.class\\E"
     }, 
     {
-      "pattern":"\\Qorg/sqlite/native/Linux/x86_64/libsqlitejdbc.so\\E"
+      "pattern":"\\Qorg/h2/util/data.zip\\E"
     }, 
     {
       "pattern":"\\Qserovers/core.clj\\E"
@@ -360,6 +357,12 @@
     }, 
     {
       "pattern":"\\Qzic/session__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qzic/util.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qzic/util__init.class\\E"
     }
   ]},
   "bundles":[]

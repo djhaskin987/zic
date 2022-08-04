@@ -1209,57 +1209,75 @@
   "name":"onecli.core__init"
 },
 {
-  "name":"org.sqlite.JDBC"
+  "name":"org.h2.Driver"
 },
 {
-    "name":"org.sqlite.core.DB",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "allDeclaredFields":true,
-    "methods":[{"name":"<init>","parameterTypes":["java.lang.String", "java.lang.String", "org.sqlite.SQLiteConfig"] }]
+  "name":"org.h2.mvstore.db.LobStorageMap$BlobMeta$Type",
+  "fields":[{"name":"INSTANCE"}]
 },
 {
-    "name":"org.sqlite.core.NativeDB",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "allDeclaredFields":true,
-    "methods":[{"name":"<init>","parameterTypes":["java.lang.String", "java.lang.String", "org.sqlite.SQLiteConfig"] }]
+  "name":"org.h2.mvstore.db.LobStorageMap$BlobReference$Type",
+  "fields":[{"name":"INSTANCE"}]
 },
 {
-    "name":"org.sqlite.BusyHandler",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+  "name":"org.h2.mvstore.db.NullValueDataType",
+  "fields":[{"name":"INSTANCE"}]
 },
 {
-    "name":"org.sqlite.Function",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "allDeclaredFields":true,
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+  "name":"org.h2.mvstore.db.RowDataType$Factory",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-    "name":"org.sqlite.ProgressHandler",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+  "name":"org.h2.mvstore.tx.VersionedValueType$Factory",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
-    "name":"org.sqlite.Function$Aggregate",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+  "name":"org.h2.mvstore.type.ByteArrayDataType",
+  "fields":[{"name":"INSTANCE"}]
 },
 {
-    "name":"org.sqlite.Function$Window",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true,
-    "methods":[{"name":"<init>","parameterTypes":[] }]
+  "name":"org.h2.mvstore.type.LongDataType",
+  "fields":[{"name":"INSTANCE"}]
 },
 {
-    "name":"org.sqlite.core.DB$ProgressObserver",
-    "allDeclaredMethods":true,
-    "allPublicMethods": true
+  "name":"org.h2.store.fs.async.FilePathAsync",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.disk.FilePathDisk",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.mem.FilePathMem",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.mem.FilePathMemLZF",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.niomapped.FilePathNioMapped",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.niomem.FilePathNioMem",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.niomem.FilePathNioMemLZF",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.retry.FilePathRetryOnInterrupt",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.split.FilePathSplit",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"org.h2.store.fs.zip.FilePathZip",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
   "name":"org.yaml.snakeyaml.DumperOptions"
@@ -1357,6 +1375,10 @@
 },
 {
   "name":"sun.security.provider.SHA5$SHA512",
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"sun.security.provider.SecureRandom",
   "methods":[{"name":"<init>","parameterTypes":[] }]
 },
 {
@@ -1468,5 +1490,8 @@
 },
 {
   "name":"zic.session__init"
+},
+{
+  "name":"zic.util__init"
 }
 ]
