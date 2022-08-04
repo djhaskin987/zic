@@ -27,10 +27,14 @@ sleep 2
 #--libc=musl \
 #-H:CCompilerOption=-Wl,-z,stack-size=2097152 \
 #--link-at-build-time \
+# the `--allow-incomplete-classpath` option is apparently needed
+# for the H2 dependency, see here:
+# https://github.com/clj-easy/graal-config
 verbatim="
 --verbose \
 --enable-url-protocols=https,http \
 --report-unsupported-elements-at-runtime \
+--allow-incomplete-classpath \
 --install-exit-handlers \
 -H:+ReportExceptionStackTraces \
 -H:+PrintClassInitialization \
@@ -43,7 +47,7 @@ verbatim="
 -H:IncludeResources=.*/org/sqlite/.*|org/sqlite/.*|.*/sqlite-jdbc.properties \
 -H:+JNI \
 -H:Name=${name} \
--jar target/uberjar/${name}-${version}-standalone.jar \
+-jar target/${name}-${version}-standalone.jar \
 -J-Xmx4G"
 
 exceptions="\
@@ -67,10 +71,10 @@ for i in ${verbatim}
 do
     arguments="${arguments} ${i}"
 done
-for i in ${packages}
-do
-    arguments="${arguments} --initialize-at-build-time=${i}"
-done
+#for i in ${packages}
+#do
+#    arguments="${arguments} --initialize-at-build-time=${i}"
+#done
 for i in ${exceptions}
 do
     arguments="${arguments} --initialize-at-run-time=${i}"

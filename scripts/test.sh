@@ -122,7 +122,7 @@ do
             first_java="java -agentlib:native-image-agent=config-output-dir=${native_image_config}/"
             rm -rf "${native_image_config}"
             mkdir -p "${native_image_config}"
-            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
+            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/${name}-${version}-standalone.jar"
             execmd="${java} ${args}"
             ;;
         --native)
@@ -307,7 +307,7 @@ then
         "-agentlib:native-image-agent=config-merge-dir=${native_image_config}/" \
         "-Djavax.net.ssl.trustStore=${keystore}" \
         "-Djavax.net.ssl.trustStorePassword=asdfasdf" \
-        -jar "${root_path}/target/uberjar/${name}-${version}-standalone.jar" \
+        -jar "${root_path}/target/${name}-${version}-standalone.jar" \
         add \
         --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
         --set-package-name 'a' \
@@ -676,7 +676,7 @@ fi
 #$java -jar \
 #    -Djavax.net.ssl.trustStore="${keystore}" \
 #    -Djavax.net.ssl.trustStorePassword="asdfasdf" \
-#    target/uberjar/zic-0.1.0-SNAPSHOT-standalone.jar \
+#    target/zic-0.1.0-SNAPSHOT-standalone.jar \
 #    remove \
 #    --set-package-name 'changes'
 # AND CHECK THE FILES AGAIN
