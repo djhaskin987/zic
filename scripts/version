@@ -2,4 +2,4 @@
 
 printf "%s.%s\n" \
     "$(git describe --tags --abbrev=0)" \
-    "$(git rev-list --count HEAD)"
+    "$(git rev-list --count $(git describe --tags --abbrev=0)..HEAD)"

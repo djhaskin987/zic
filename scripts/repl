@@ -1,3 +1,35 @@
 #!/bin/sh
 
-clj -A:repl -m nrepl.cmdline -i
+if [ ! -f .nrepl-port ]
+then
+    # Start a repl
+    clj -M:repl -m nrepl.cmdline &
+fi
+
+while [ ! -f .nrepl-port ]
+do
+    echo "Waiting for repl to be spun up..."
+    sleep 1
+done
+
+clj -M:repl -m nrepl.cmdline -c -h localhost -p $(cat .nrepl-port) << NREPL
+(use 'clojure.repl)
+(import '[java.nio.file Files Paths Path])
+(let [current-directory (Paths/get "."
+                          (into-array
+                           java.lang.String
+                           ["src"
+                           "zic"]))
+      pwd (.toAbsolutePath current-directory)
+      fls (-> (Files/list pwd)
+               .iterator
+               iterator-seq)
+      fnames (map #(str (.getFileName %)) fls)
+      modules (map #(symbol (str "zic." (subs % 0 (- (count %) 4)))) fnames)]
+      (apply require modules))
+(quit)
+NREPL
+
+# Okay, now that the repl is prepared, with our modules required,
+# We connect a client...
+clj -M:repl -m nrepl.cmdline -c -h localhost -p $(cat .nrepl-port)

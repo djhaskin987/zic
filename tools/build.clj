@@ -1,10 +1,19 @@
 (ns build
-  (:require [clojure.tools.build.api :as build]))
+  (:require [clojure.tools.build.api :as build]
+            [clojure.test :as tst]))
 
 (def lib 'zic/zic)
-(def version (format "%s.%s"
-                     (build/git-process {:git-args "describe --tags --abbrev=0"})
-                     (build/git-count-revs nil)))
+
+;; Get the number of commits reachable since the last tagged commit.
+(def version
+  (let [last-tag (build/git-process {:git-args "describe --tags --abbrev=0"})]
+    (format "%s.%s"
+            last-tag
+            (build/git-process {:git-args
+                                ["rev-list"
+                                (format "%s..HEAD"
+                                        last-tag)
+                                "--count"]}))))
 
 (def class-dir "target/classes")
 (def basis (build/create-basis {:aliases [:uberjar]
@@ -26,3 +35,6 @@
                :uber-file uber-file
                :basis basis
                :main 'zic.cli}))
+
+(defn unit-tests [_]
+  (tst/run-all-tests))

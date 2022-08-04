@@ -16,6 +16,7 @@
  {
   :repl
   {
+   :paths ["src"]
    :jvm-opts ["-Djavax.net.ssl.trustStore=test/resources/test.keystore"
               "-Djavax.net.ssl.trustStorePassword=asdfasdf"]
    :extra-deps
@@ -26,7 +27,7 @@
 
   :build
   {
-   :paths ["tools"]
+   :paths ["tools" "test" "src"]
    :extra-deps
    {
     io.github.clojure/tools.build
