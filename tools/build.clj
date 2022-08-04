@@ -1,6 +1,5 @@
 (ns build
-  (:require [clojure.tools.build.api :as build]
-            [clojure.test :as tst]))
+  (:require [clojure.tools.build.api :as build]))
 
 (def lib 'zic/zic)
 
@@ -35,6 +34,3 @@
                :uber-file uber-file
                :basis basis
                :main 'zic.cli}))
-
-(defn unit-tests [_]
-  (tst/run-all-tests))
