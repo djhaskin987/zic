@@ -3,7 +3,7 @@
 if [ ! -f .nrepl-port ]
 then
     # Start a repl
-    clj -M:repl -m nrepl.cmdline &
+    clj -M:nrepl &
 fi
 
 while [ ! -f .nrepl-port ]
