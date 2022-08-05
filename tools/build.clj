@@ -30,15 +30,17 @@
   (build/compile-clj {:basis basis
                       :src-dirs ["src"]
                       :compile-opts {
-                                     :disable-locals-clearing false
+                                     :disable-locals-clearing true
                                      :elide-meta [:doc :file :line :added]
                                      :direct-linking true
                                      }
                       :jvm-opts [
                                  "-Dclojure.spec.skip-macros=true"
                                  ]
-                      :class-dir class-dir})
+                      :class-dir class-dir
+                      :use-cp-file :always})
   (build/uber {:class-dir class-dir
                :uber-file uber-file
                :basis basis
-               :main 'zic.cli}))
+               :main 'zic.cli
+               }))

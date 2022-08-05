@@ -51,30 +51,49 @@ verbatim="
 -J-Xmx4G"
 
 exceptions="\
+org.h2.util.JdbcUtils \
+org.h2.engine.ConnectionInfo \
+org.h2.engine.Engine \
+org.h2.engine.SysProperties \
+org.h2.util.MathUtils \
+org.h2.value.DataType \
+org.h2.value.ValueGeometry \
+org.h2.mvstore.db.MVTable \
+org.h2.result.SortOrder \
+org.h2.mvstore.db.MVPrimaryIndex \
+org.h2.engine.Mode \
+org.h2.value.ValueLong \
+org.h2.util.MemoryUnmapper \
 "
-#org.h2.util.JdbcUtils \
-#org.h2.engine.ConnectionInfo \
-#org.h2.engine.Engine \
-#org.h2.engine.SysProperties \
-#org.h2.util.MathUtils \
-#org.h2.value.DataType \
-#org.h2.value.ValueGeometry \
-#org.h2.mvstore.db.MVTable \
-#org.h2.result.SortOrder \
-#org.h2.mvstore.db.MVPrimaryIndex \
-#org.h2.engine.Mode \
-#org.h2.value.ValueLong \
-#org.h2.util.MemoryUnmapper
-#"
-#exceptions=""
+exceptions=""
 for i in ${verbatim}
 do
     arguments="${arguments} ${i}"
 done
-#for i in ${packages}
-#do
-#    arguments="${arguments} --initialize-at-build-time=${i}"
-#done
+#Warning: Method org.h2.engine.Engine.getInstance() not found.
+explicit_pkgs="\
+org.graalvm.nativebridge.jni.JNIExceptionWrapperEntryPoints \
+org.h2.mvstore.db.MVTableEngine \
+org.h2.store.fs.FilePathAsync \
+org.h2.store.fs.FilePathDisk \
+org.h2.store.fs.FilePathMem
+org.h2.store.fs.FilePathMemLZF \
+org.h2.store.fs.FilePathNio \
+org.h2.store.fs.FilePathNioMapped \
+org.h2.store.fs.FilePathNioMem \
+org.h2.store.fs.FilePathNioMemLZF \
+org.h2.store.fs.FilePathRetryOnInterrupt \
+org.h2.store.fs.FilePathSplit \
+org.h2.store.fs.FilePathZip \
+"
+for i in ${explicit_pkgs}
+do
+    arguments="${arguments} --initialize-at-build-time=${i}"
+done
+for i in ${packages}
+do
+    arguments="${arguments} --initialize-at-build-time=${i}"
+done
 for i in ${exceptions}
 do
     arguments="${arguments} --initialize-at-run-time=${i}"

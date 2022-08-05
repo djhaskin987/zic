@@ -12,6 +12,7 @@ usage() {
     echo "Usage: test.sh [-h] [--tracing|--native]" >&2
     echo "  --tracing: Record runs for future use with native-image" >&2
     echo "  --native: Run using the natively-compiled executable" >&2
+    echo "  --jar: Run using the uberjar" >&2
     echo "" >&2
     echo "This script pre-supposes graalvm installed and \`native-image\`," >&2
     echo "  \`java\`, and \`javac\` as commands originating from the" >&2
@@ -109,6 +110,14 @@ keystore="${root_path}/test/resources/test.keystore"
 while [ -n "${1}" ]
 do
     case "${1}" in
+        --jar)
+            shift
+            tracing=0
+            java="java"
+            first_java="java"
+            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/${name}-${version}-standalone.jar"
+            execmd="${java} ${args}"
+            ;;
         --tracing)
             shift
             tracing=1

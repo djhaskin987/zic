@@ -2,7 +2,9 @@
   (:require
    [zic.util :as util]
    [cheshire.core :as json]
-   [next.jdbc :as jdbc]))
+   [next.jdbc :as jdbc])
+  (:import
+    [org.h2.tools Server]))
 
 (def ^:private init-statements
   [;; \"

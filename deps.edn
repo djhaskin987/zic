@@ -24,7 +24,7 @@
    :main-opts ["-m" "cognitect.test-runner"]
    :exec-fn cognitect.test-runner.api/test
    }
-  ;; Use: run clj -M:repl [-i] [-c] [-h] [-p], see nrepl docs
+  ;; Use: run clj -M:nrepl [-i] [-c] [-h] [-p], see nrepl docs
   :nrepl
   {
    :paths ["src"]
