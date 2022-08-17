@@ -130,7 +130,7 @@
   (seq (remove nil?
                (doall (map (fn [rec]
                              (when (not (:is-directory rec))
-                               (when-let [package (db/owned-by?! c (:path rec))]
+                               (when-let [package (db/owned-by? c (:path rec))]
                                  (when (not (= package-name package))
                                    (assoc rec :package package)))))
                            new-files)))))

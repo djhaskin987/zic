@@ -19,12 +19,14 @@ pom.xml.asc
 /.calva
 /.clj-kondo
 /.lsp/sqlite.db
+/.lsp/.cache
 /.staging
 /.classpath
 
 # testing, building
 .zic.sqlite3
 .zic.db
+.zic-db/*
 .zic.mv.db
 /*.db
 lighttpd-environment/lighttpd.conf
@@ -37,6 +39,8 @@ lighttpd-environment/test-data
 /b.json
 /zic.yaml
 /test.keystore
+/answer
+/expected
 
 test/resources/data/all
 /zic-*-standalone

@@ -185,7 +185,8 @@ fi
 
 # Run this first just in case there's a real problem before starting
 # the lighttpd server, as a sort of smoke test
-$first_exe init
+# EDIT: you don't need this command with datalevin
+#$first_exe init
 
 #start_server="${root_path}/lighttpd-environment/lighttpd.exp"
 #set +x
@@ -259,11 +260,14 @@ answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="${t
 ALSO
 )
 
-expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:sqlite:/home/djhaskin987/Development/src/zic/.zic.db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
+expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"/home/djhaskin987/Development/src/zic/.zic-db/data.mdb","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
 
 if [ ! "${answer}" = "${expected}" ]
 then
-    echo "AAAAH"
+    echo "AAAAH" >&2
+    printf "%s" "${answer}" | sed 's|\(.\)|\1\n|g' > "answer"
+    printf "%s" "${expected}" | sed 's|\(.\)|\1\n|g' > "expected"
+    diff -u answer expected >&2
     exit 1
 fi
 
@@ -278,7 +282,7 @@ expected='one:
 start-directory: /home/djhaskin987/Development/src/zic
 cascade: false
 anonymous-coward: I was never here
-db-connection-string: jdbc:sqlite:/home/djhaskin987/Development/src/zic/.zic.db
+db-connection-string: /home/djhaskin987/Development/src/zic/.zic-db/data.mdb
 bfound: true
 output-format: yaml
 commands:
@@ -300,6 +304,9 @@ lock-path: /home/djhaskin987/Development/src/zic/.zic.lock'
 if [ ! "${answer}" = "${expected}" ]
 then
     echo "AAAAH"
+    printf "%s" "${answer}" > "answer"
+    printf "%s" "${expected}" > "expected"
+    diff -u answer expected >&2
     exit 1
 fi
 

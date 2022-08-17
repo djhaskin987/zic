@@ -1,6 +1,7 @@
 (ns zic.session
   (:require
-   [datalevin.core :as d])
+   [datalevin.core :as d]
+   [zic.db :as db])
   (:import
    (java.nio.channels
     FileChannel)
@@ -42,12 +43,11 @@
          "Probably another zic process is running.")
         {:path path})))))
 
+#_{:clj-kondo/ignore [:unresolved-symbol]}
 (defn with-database
   [connection-string
    f]
-  (let [conn (d/get-conn connection-string)]
-    (d/with-conn conn
-      (f conn))))
+  (d/with-conn [conn connection-string (db/schema)] (f conn)))
 
 (defn with-zic-session
   [connection-string
@@ -58,5 +58,4 @@
 
 (defn path-to-connection-string
   [^Path path]
-  (str "jdbc:sqlite:"
-       (.toAbsolutePath path)))
+  (str (.toAbsolutePath path)))

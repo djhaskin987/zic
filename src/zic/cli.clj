@@ -3,9 +3,9 @@
   (:require
    [cheshire.core :as json]
    [onecli.core :as onecli]
-   [zic.db :as db]
    [zic.fs :as fs]
    [zic.package :as package]
+   [zic.util :as util]
    [zic.session :as session])
   (:import
    (java.nio.file
@@ -263,12 +263,14 @@
       (if (not (= (:commands options) ["init"]))
         (if-let [marking-file
                  (fs/find-marking-file
-                  (Paths/get
-                   (:start-directory options)
-                   (into-array
-                    java.lang.String
-                    []))
-                  ".zic.db")]
+                  (.resolve
+                   (Paths/get
+                    (:start-directory options)
+                    (into-array
+                     java.lang.String
+                     []))
+                   ".zic-db")
+                  "data.mdb")]
           (-> options
               (assoc
                :db-connection-string
@@ -276,16 +278,17 @@
                 marking-file))
               (assoc
                :root-path
-               (.getParent marking-file))
+               (.getParent (.getParent marking-file)))
               (assoc
                :staging-path
                (.resolve
-                (.getParent marking-file)
+                (.getParent (.getParent marking-file))
                 ".staging"))
               (assoc
                :lock-path
                (.resolve
-                (.getParent marking-file)
+                (.getParent
+                 (.getParent marking-file))
                 ".zic.lock"))
               (assoc
                :package-metadata

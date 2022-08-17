@@ -11,7 +11,7 @@
              "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
              ]
   :dependencies [
-                 [datalevin "0.6.14"]
+                 [datalevin "0.6.16"]
                  [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]
@@ -47,7 +47,7 @@
                                   "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
                                   ]
                        :dependencies [
-                                      [datalevin-native "0.6.14"]
+                                      [org.clojars.huahaiy/datalevin-native "0.6.16"]
                                       [org.clojure/clojure "1.11.1"]
                                       [org.martinklepsch/clj-http-lite "0.4.3"]
                                       [buddy/buddy-core "1.10.1"]
