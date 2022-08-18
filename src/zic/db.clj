@@ -1,5 +1,6 @@
 (ns zic.db
   (:require
+   [zic.util :as util]
    [datalevin.core :as d]))
 
 (defn- shear [mp]
@@ -106,7 +107,7 @@
    (d/pull
     (d/db c)
     '[{:package/_files [:package/name]}]
-    (:db/id (d/entity (d/db c) [:file/path file])))
+    (util/dbg (:db/id (util/dbg (d/entity (d/db c) [:file/path file])))))
    :package/_files
    :package/name))
 

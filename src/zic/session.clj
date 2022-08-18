@@ -47,12 +47,13 @@
 (defn with-database
   [connection-string
    f]
-  (d/with-conn [conn connection-string (db/schema)] (f conn)))
+  (d/with-conn [conn connection-string db/schema] (f conn)))
 
 (defn with-zic-session
   [connection-string
    ^Path path
    f]
+  (println "Then it goes here.")
   (with-database connection-string
     (fn [c] (with-filelock path (fn [] (f c))))))
 

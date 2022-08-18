@@ -1,6 +1,7 @@
 (ns zic.package
   (:require
    [zic.db :as db]
+   [zic.util :as util]
    [zic.fs :as fs]
    [zic.session :as session]
    [clojure.string :as str]
@@ -348,15 +349,17 @@
            ^Path
            lock-path]
     :as options}]
+  (println "It starts here.")
   (session/with-zic-session
     db-connection-string
     lock-path
     (fn [c]
+      (println "Is this a thing?")
       (let [dependencies-status
-            (->> package-dependency
-                 (map (fn [d] [d (db/package-id c d)]))
-                 (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
-        (if (seq (:unmet dependencies-status))
+            (util/dbg (->> package-dependency
+                           (map (fn [d] [d (db/package-id c d)]))
+                           (group-by (fn [[_ id]] (if (nil? id) :unmet :met)))))]
+        (if (util/dbg (seq (:unmet dependencies-status)))
           (throw (ex-info "Several dependencies are unmet."
                           {:unmet-dependencies
                            (map (fn [[d _]] d)

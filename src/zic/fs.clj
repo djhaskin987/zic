@@ -23,6 +23,7 @@
     ZipFile
     ZipEntry)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (extend-protocol yaml/YAMLCodec
   java.nio.file.Path
   (encode [data] (str data))

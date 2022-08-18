@@ -5,7 +5,6 @@
    [onecli.core :as onecli]
    [zic.fs :as fs]
    [zic.package :as package]
-   [zic.util :as util]
    [zic.session :as session])
   (:import
    (java.nio.file
@@ -263,14 +262,12 @@
       (if (not (= (:commands options) ["init"]))
         (if-let [marking-file
                  (fs/find-marking-file
-                  (.resolve
-                   (Paths/get
-                    (:start-directory options)
-                    (into-array
-                     java.lang.String
-                     []))
-                   ".zic-db")
-                  "data.mdb")]
+                  (Paths/get
+                   (:start-directory options)
+                   (into-array
+                    java.lang.String
+                    []))
+                  ".zic-db")]
           (-> options
               (assoc
                :db-connection-string
@@ -278,17 +275,16 @@
                 marking-file))
               (assoc
                :root-path
-               (.getParent (.getParent marking-file)))
+               (.getParent marking-file))
               (assoc
                :staging-path
                (.resolve
-                (.getParent (.getParent marking-file))
+                (.getParent marking-file)
                 ".staging"))
               (assoc
                :lock-path
                (.resolve
-                (.getParent
-                 (.getParent marking-file))
+                (.getParent marking-file)
                 ".zic.lock"))
               (assoc
                :package-metadata
