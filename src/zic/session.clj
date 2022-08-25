@@ -1,6 +1,7 @@
 (ns zic.session
   (:require
    [datalevin.core :as d]
+   [zic.util :as util]
    [zic.db :as db])
   (:import
    (java.nio.channels
@@ -20,7 +21,7 @@
    f]
   (let [channel
         (FileChannel/open
-         path
+         (util/dbg path)
          (into-array
           StandardOpenOption
           [StandardOpenOption/CREATE

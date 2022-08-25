@@ -22,9 +22,9 @@
     db-connection-string
     (fn [c]
       (let [package-id (db/package-id c package-name)]
-        (if (nil? package-id)
-          nil
-          (db/package-files! c package-id))))))
+        (util/dbg (if (nil? (util/dbg package-id))
+                    nil
+                    (util/dbg (db/package-files! c package-id))))))))
 
 (defn
   verify-package-files!

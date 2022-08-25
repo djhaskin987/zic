@@ -48,7 +48,7 @@ version=$(${root_path}/scripts/version)
 
 cleanup_files() {
 
-    rm -rf .${name}.db
+    #rm -rf .${name}-db
     rm -rf .staging
     mkdir -p .staging
     rm -rf a
@@ -185,8 +185,7 @@ fi
 
 # Run this first just in case there's a real problem before starting
 # the lighttpd server, as a sort of smoke test
-# EDIT: you don't need this command with datalevin
-#$first_exe init
+$first_exe init
 
 #start_server="${root_path}/lighttpd-environment/lighttpd.exp"
 #set +x

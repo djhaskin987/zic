@@ -66,6 +66,11 @@
                         :cardinality :db.cardinality/one,
                         :doc "SHA-256 checksum of the file"}})
 
+;; All that is needed to init the database is actually to open the
+;; connection to it in datalevin.
+(defn init-database!
+  [_])
+
 ;; Kondo doesn't pick up the conn binding below for some reason
 #_:clj-kondo/ignore
 (defn with-database
@@ -103,13 +108,14 @@
    or nil if no such package exists.
    "
   [c file]
-  (->>
-   (d/pull
-    (d/db c)
-    '[{:package/_files [:package/name]}]
-    (util/dbg (:db/id (util/dbg (d/entity (d/db c) [:file/path file])))))
-   :package/_files
-   :package/name))
+  (when-let [ent (d/entity (d/db c) [:file/path file])]
+    (->>
+     (d/pull
+      (d/db c)
+      '[{:package/_files [:package/name]}]
+      (:db/id ent))
+     :package/_files
+     :package/name)))
 
 ;;#_(
 ;;(d/q '[:find ?f :in $ :where [?e :package/name "c"] [?e :package/files ?f]] (d/db c))
@@ -187,23 +193,25 @@
 
 (defn package-dependers!
   [c package-name]
-  (->>
-   (d/pull
-    (d/db c)
-    '[{:package/_dependencies [*]}]
-    (:db/id (d/entity (d/db c) [:package/name package-name])))
-   :package/_dependencies
-   (mapv #(dissoc (dissoc (shear %) :id) :dependencies))))
+  (when-let [ent (d/entity (d/db c) [:package/name package-name])]
+    (->>
+     (d/pull
+      (d/db c)
+      '[{:package/_dependencies [*]}]
+      (:db/id ent))
+     :package/_dependencies
+     (mapv #(dissoc (dissoc (shear %) :id) :dependencies)))))
 
 (defn package-dependees!
   [c package-name]
-  (->>
-   (d/pull
-    (d/db c)
-    '[{:package/dependencies [*]}]
-    (:db/id (d/entity (d/db c) [:package/name package-name])))
-   :package/dependencies
-   (mapv present-package)))
+  (when-let [ent (d/entity (d/db c) [:package/name package-name])]
+    (->>
+     (d/pull
+      (d/db c)
+      '[{:package/dependencies [*]}]
+      (:db/id ent))
+     :package/dependencies
+     (mapv present-package))))
 
 ;;(package-dependers! c "a") =>
 ;(package-dependers! c "a")
@@ -211,13 +219,14 @@
 ;
 (defn package-info-by-id!
   [c pkg-id]
-  (assoc
-   (present-package
-    (d/pull (d/db c)
-            '[*]
-            pkg-id))
-   :id
-   pkg-id))
+  (when (not (nil? pkg-id))
+    (assoc
+     (present-package
+      (d/pull (d/db c)
+              '[*]
+              pkg-id))
+     :id
+     pkg-id)))
 
 (defn package-info!
   [c package-name]
@@ -226,13 +235,14 @@
    (:db/id (d/entity (d/db c) [:package/name package-name]))))
 
 (defn insert-file!
-  [c package-id path size file-class checksum]
-  (d/transact! c [{:db/id :the-file
-                   :file/path path
-                   :file/size size
-                   :file/class file-class
-                   :file/checksum checksum
-                   :package/_files package-id}]))
+  [c package-id file]
+  (let [datoms (util/dbg (reduce-kv (fn [c k v]
+                                      (when (not (nil? v))
+                                        (assoc c k v)))
+                                    {}
+                                    file))]
+    (d/transact! c [(assoc datoms
+                           :package/_files package-id)])))
 
 (defn insert-use!
   [c depender-id dependee-id]
@@ -245,25 +255,31 @@
              package-metadata]}
    package-files
    dependency-ids]
-  (d/transact! c [{:package/name package-name
-                   :package/version package-version
-                   :package/location package-location
-                   :package/metadata package-metadata}])
+  (println "Adding a package")
+  (util/dbg (d/transact! c [{:package/name package-name
+                             :package/version package-version
+                             :package/location package-location
+                             :package/metadata package-metadata}]))
 
-                  ;; I know, I know, don't hate me
-  (let [package-id (:db/id (d/entity (d/db c) [:package/name package-name]))
-        config-files (into #{} (get-in package-metadata [:zic :config-files]))
-        ghost-files (get-in package-metadata [:zic :ghost-files])]
-    (doseq [{:keys [path size _ checksum]} (filter #(not (:is-directory %)) package-files)]
-      (let [file-class
-            (if (contains? config-files path)
-              :config-file
-              :normal-file)]
-        (insert-file! c package-id path size file-class checksum)))
-    (doseq [path ghost-files]
-      (insert-file! c package-id path 0 :ghost-file nil))
-    (doseq [depid dependency-ids]
-      (insert-use! c package-id depid))))
+  (when-let [package-id (:db/id (d/entity (d/db c) [:package/name package-name]))]
+    (let [config-files (into #{} (get-in package-metadata [:zic :config-files]))
+          ghost-files (get-in package-metadata [:zic :ghost-files])]
+      (doseq [{:keys [path size _ checksum]} (filter #(not (:is-directory %)) package-files)]
+        (let [file-class
+              (if (contains? config-files path)
+                :config-file
+                :normal-file)]
+          (insert-file! c package-id {:file/path path
+                                      :file/size size
+                                      :file/class file-class
+                                      :file/checksum checksum})))
+      (doseq [path ghost-files]
+        (insert-file! c package-id {:file/path path
+                                    :file/size 0
+                                    :file/class :ghost-file
+                                    :file/checksum nil}))
+      (doseq [depid dependency-ids]
+        (insert-use! c package-id depid)))))
 
 (defn remove-package!
   [c package-id]
