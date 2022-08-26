@@ -48,7 +48,7 @@ version=$(${root_path}/scripts/version)
 
 cleanup_files() {
 
-    #rm -rf .${name}-db
+    rm -rf .${name}-db
     rm -rf .staging
     mkdir -p .staging
     rm -rf a
@@ -455,20 +455,19 @@ if [ "$($execmd \
     --set-package-name a)" != 'result: package-found
 package-files:
  -
-  path: a/poem.txt
   size: 44
-  file-class: config-file
+  class: config-file
+  path: a/poem.txt
   checksum: f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e
  -
-  path: a/willows.txt
   size: 16
-  file-class: normal-file
+  class: normal-file
+  path: a/willows.txt
   checksum: bf20da2e626d608e486160cad938868e588603cd91fa71b4b7f604a5a4e90dfd
  -
-  path: a/log.txt
   size: 0
-  file-class: ghost-file
-  checksum: null' ]
+  class: ghost-file
+  path: a/log.txt' ]
 then
     exit 1
 fi
@@ -504,13 +503,18 @@ fi
 
 #  "Option `allow-downgrades` is enabled and downgrade detected."
 # used to be a normal file, is now a directory
-$execmd \
+if $execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
     --enable-allow-downgrades \
     --set-package-version 0.1.0 \
     --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
+then
+    exit 1
+else
+    rm -f failure/directory-to-normal
+fi
 
 $execmd \
     remove \

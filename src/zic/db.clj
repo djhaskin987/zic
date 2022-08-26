@@ -234,13 +234,18 @@
    c
    (:db/id (d/entity (d/db c) [:package/name package-name]))))
 
+(defn clean-for-insert
+  [stuff]
+  (reduce-kv (fn [c k v]
+               (if (nil? v)
+                 c
+                 (assoc c k v)))
+             {}
+             stuff))
+
 (defn insert-file!
   [c package-id file]
-  (let [datoms (util/dbg (reduce-kv (fn [c k v]
-                                      (when (not (nil? v))
-                                        (assoc c k v)))
-                                    {}
-                                    file))]
+  (let [datoms (clean-for-insert file)]
     (d/transact! c [(assoc datoms
                            :package/_files package-id)])))
 
@@ -256,10 +261,10 @@
    package-files
    dependency-ids]
   (println "Adding a package")
-  (util/dbg (d/transact! c [{:package/name package-name
-                             :package/version package-version
-                             :package/location package-location
-                             :package/metadata package-metadata}]))
+  (util/dbg (d/transact! c [(clean-for-insert {:package/name package-name
+                                               :package/version package-version
+                                               :package/location package-location
+                                               :package/metadata package-metadata})]))
 
   (when-let [package-id (:db/id (d/entity (d/db c) [:package/name package-name]))]
     (let [config-files (into #{} (get-in package-metadata [:zic :config-files]))
