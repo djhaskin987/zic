@@ -23,6 +23,7 @@
     ZipFile
     ZipEntry)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (extend-protocol yaml/YAMLCodec
   java.nio.file.Path
   (encode [data] (str data))
@@ -200,26 +201,27 @@
   "
   Verify a path on the filesystem.
   "
-  [^Path base {:keys [path size file-class checksum] :as path-info}]
+  [^Path base {:keys [path size class checksum] :as path-info}]
+  path-info
   (let [target-path (.resolve base path)
         is-target-dir (Files/isDirectory target-path (into-array LinkOption []))
         target-exists (Files/exists target-path (into-array LinkOption []))]
     (cond
-      (= file-class :ghost-file)
+      (= class :ghost-file)
       (if is-target-dir
         {:result :path-not-file}
         {:result :correct})
-      (= file-class :config-file)
+      (= class :config-file)
       (if is-target-dir
         {:result :path-not-file}
         (if target-exists
           {:result :correct}
           {:result :config-file-missing}))
-      (= file-class :directory)
+      (= class :directory)
       (if is-target-dir
         {:result :correct}
         {:result :path-not-directory})
-      (= file-class :normal-file)
+      (= class :normal-file)
       (if is-target-dir
         {:result :path-not-file}
         (if target-exists
@@ -235,7 +237,7 @@
                   {:result :correct}))))
           {:result :file-missing}))
       :else
-      (throw (ex-info (str "Unknown file-class `" file-class "`.")
+      (throw (ex-info (str "Unknown file class `" class "`.")
                       {:base base :path-info path-info})))))
 
 #_(crc-violations (java.util.zip.ZipFile. (java.io.File. "lighttpd-environment/wwwroot/bad.zip")))

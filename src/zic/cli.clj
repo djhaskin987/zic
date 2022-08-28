@@ -3,9 +3,8 @@
   (:require
    [cheshire.core :as json]
    [onecli.core :as onecli]
-   [zic.db :as db]
    [zic.fs :as fs]
-   [zic.util :as util]
+   [zic.db :as db]
    [zic.package :as package]
    [zic.session :as session])
   (:import
@@ -173,6 +172,10 @@
       {:result :package-found
        :package-dependees result})))
 
+;; Calls a function that does nothing. However, the real magic is when the
+;; database is opened. Then it is created if it doesn't exist. This is
+;; important because then in subsequent commands the file `.zic-db/*` is looked
+;; for as a marking file to determine the root of the project.
 (defn init!
   "
   Initialize database in the start directory.
@@ -189,7 +192,7 @@
      (Paths/get
       (:start-directory options)
       (into-array
-       [".zic.mv.db"])))
+       [".zic-db"])))
     db/init-database!)
   {:result :successful})
 
@@ -290,7 +293,7 @@
                    (into-array
                     java.lang.String
                     []))
-                  ".zic.mv.db")]
+                  ".zic-db")]
           (-> options
               (assoc
                :db-connection-string

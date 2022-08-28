@@ -34,7 +34,7 @@ version=$(${root_path}/scripts/version)
 
 cleanup_files() {
 
-    rm -rf .${name}.mv.db
+    rm -rf .${name}-db
     rm -rf .staging
     mkdir -p .staging
     rm -rf a
@@ -131,7 +131,11 @@ do
             first_java="java -agentlib:native-image-agent=config-output-dir=${native_image_config}/"
             rm -rf "${native_image_config}"
             mkdir -p "${native_image_config}"
-            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/${name}-${version}-standalone.jar"
+            args="--add-opens=java.base/java.nio=ALL-UNNAMED"
+            args="${args} --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+            args="${args} -Djavax.net.ssl.trustStore=${keystore}"
+            args="${args} -Djavax.net.ssl.trustStorePassword=asdfasdf"
+            args="${args} -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
             execmd="${java} ${args}"
             ;;
         --native)
@@ -233,11 +237,14 @@ answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="${t
 ALSO
 )
 
-expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"jdbc:h2:file:/home/djhaskin987/Development/src/zic/.zic;AUTOCOMMIT=OFF","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
+expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"/home/djhaskin987/Development/src/zic/.zic-db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
 
 if [ ! "${answer}" = "${expected}" ]
 then
-    echo "AAAAH"
+    echo "AAAAH" >&2
+    printf "%s" "${answer}" | sed 's|\(.\)|\1\n|g' > "answer"
+    printf "%s" "${expected}" | sed 's|\(.\)|\1\n|g' > "expected"
+    diff -u answer expected >&2
     exit 1
 fi
 
@@ -252,7 +259,7 @@ expected='one:
 start-directory: /home/djhaskin987/Development/src/zic
 cascade: false
 anonymous-coward: I was never here
-db-connection-string: jdbc:h2:file:/home/djhaskin987/Development/src/zic/.zic;AUTOCOMMIT=OFF
+db-connection-string: /home/djhaskin987/Development/src/zic/.zic-db
 bfound: true
 output-format: yaml
 commands:
@@ -274,6 +281,9 @@ lock-path: /home/djhaskin987/Development/src/zic/.zic.lock'
 if [ ! "${answer}" = "${expected}" ]
 then
     echo "AAAAH"
+    printf "%s" "${answer}" > "answer"
+    printf "%s" "${expected}" > "expected"
+    diff -u answer expected >&2
     exit 1
 fi
 
@@ -423,20 +433,19 @@ if [ "$($execmd \
     --set-package-name a)" != 'result: package-found
 package-files:
  -
-  path: a/poem.txt
   size: 44
-  file-class: config-file
+  class: config-file
+  path: a/poem.txt
   checksum: f5804ac61aa4b37500ea52077f984d7224a35d3e2d05644d62ac4940384cfa6e
  -
-  path: a/willows.txt
   size: 16
-  file-class: normal-file
+  class: normal-file
+  path: a/willows.txt
   checksum: bf20da2e626d608e486160cad938868e588603cd91fa71b4b7f604a5a4e90dfd
  -
-  path: a/log.txt
   size: 0
-  file-class: ghost-file
-  checksum: null' ]
+  class: ghost-file
+  path: a/log.txt' ]
 then
     exit 1
 fi
@@ -851,7 +860,7 @@ $execmd \
     remove \
     --enable-cascade \
     --set-package-name 'c'
-# TODO: THIS IS THE COMMAND THAT IS FAILING
+
 if [ "$($execmd \
     info \
     --set-package-name 'c' | yq '.result')" != "not-found" ]

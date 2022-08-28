@@ -75,7 +75,7 @@ echo 'used to be normal, now a directory' > failure/directory-to-normal/normal
 zip -r "${testing_path}/wwwroot/failure-0.1.0.zip" failure
 rm -rf failure
 mkdir failure
-echo 'used to be normal, now a directory' > failure/directory-to-normal
+echo 'used to be a directory, now normal' > failure/directory-to-normal
 zip -r "${testing_path}/wwwroot/failure-0.2.0.zip" failure
 
 zip -r "${testing_path}/wwwroot/empty-0.1.0.zip" empty

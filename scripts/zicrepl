@@ -1,0 +1,42 @@
+#!/bin/sh
+
+replexec() {
+    set +x
+    echo "+ zic ${@}" >&2
+    arg='(zic.cli/run ['
+    stdin_in_play=0
+    cljenv="{$(env |
+        sort |
+        sed -e 's|^\([^=]\{1,\}\)=\(.*\)$|"\1" "\2"|g' \
+            -e 's|\\|\\\\|g')}"
+
+    for i in "${@}"
+    do
+        cleaned="$(echo "${i}" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')"
+        if [ "${cleaned}" = "-" ]
+        then
+            if [ "${stdin_in_play}" -eq 0 ]
+            then
+                input="$(cat | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')"
+                echo "Input:" >&2
+                echo "${input}" >&2
+            fi
+            stdin_in_play=1
+        fi
+        arg="${arg} \"${cleaned}\""
+    done
+    arg="${arg}] ${cljenv} {\"user.home\" \"${HOME}\" \"user.dir\" \"${PWD}\"})"
+    if [ "${stdin_in_play}" -ne 0 ]
+    then
+        arg="(with-in-str \"${input}\" ${arg})"
+    fi
+
+    response=$(rep "${arg}")
+    text=$(echo "${response}" | head -n -1)
+    return=$(echo "${response}" | tail -n 1)
+    printf '%s\n' "${text}"
+    set -x
+    test "${return}" -eq 0
+}
+
+replexec "${@}"

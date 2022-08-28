@@ -20,7 +20,7 @@
   (session/with-database
     db-connection-string
     (fn [c]
-      (let [package-id (db/get-package-id! c package-name)]
+      (let [package-id (db/package-id c package-name)]
         (if (nil? package-id)
           nil
           (db/package-files! c package-id))))))
@@ -130,7 +130,7 @@
   (seq (remove nil?
                (doall (map (fn [rec]
                              (when (not (:is-directory rec))
-                               (when-let [package (db/owned-by?! c (:path rec))]
+                               (when-let [package (db/owned-by? c (:path rec))]
                                  (when (not (= package-name package))
                                    (assoc rec :package package)))))
                            new-files)))))
@@ -165,7 +165,7 @@
                           {:existing-version exist-pkg-vers
                            :package-name package-name
                            :new-version package-version}))))
-      (let [old-files (group-by :file-class (db/package-files! c exist-pkg-id))
+      (let [old-files (group-by :class (db/package-files! c exist-pkg-id))
             old-config-sums (->> old-files
                                  (:config-file)
                                  (map #(do [(:path %) (:checksum %)]))
@@ -285,7 +285,7 @@
    ^Path
    root-path]
   (let [package-files (db/package-files! c (:id package-info))
-        old-files (group-by :file-class package-files)]
+        old-files (group-by :class package-files)]
     (fs/backup-all! root-path (map :path (:config-file old-files))
                     (str (:name package-info) "." (:version package-info) ".backup"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
@@ -332,7 +332,7 @@
                    package-info
                    root-path))
                 [(dissoc package-info :id)])
-              (throw (ex-info "Dependant packages exist, cannot remove."
+              (throw (ex-info "Packages which depend on the one in question exist, cannot remove."
                               {:enqueued-for-removal
                                remove-packages})))))))))
 
@@ -354,7 +354,7 @@
     (fn [c]
       (let [dependencies-status
             (->> package-dependency
-                 (map (fn [d] [d (db/get-package-id! c d)]))
+                 (map (fn [d] [d (db/package-id c d)]))
                  (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
         (if (seq (:unmet dependencies-status))
           (throw (ex-info "Several dependencies are unmet."
