@@ -2,17 +2,21 @@
  :paths ["src"]
  :deps
  {
+  datalevin/datalevin {:mvn/version "0.6.16"}
   org.clojure/clojure {:mvn/version "1.11.1"}
   cheshire/cheshire {:mvn/version "5.9.0"}
   org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
   buddy/buddy-core {:mvn/version "1.10.1"}
-  com.h2database/h2 {:mvn/version "2.1.214"}
-  seancorfield/next.jdbc {:mvn/version "1.0.10"}
   serovers/serovers {:mvn/version "1.6.2"}
   ;; https://simonrobson.net/2019/04/16/clojure-deps-with-exclusions.html
   onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure org.clojure/clojure]}
   clj-commons/clj-yaml {:mvn/version "0.7.108"}
   }
+ :jvm-opts
+ [
+  "--add-opens=java.base/java.nio=all-unnamed"
+  "--add-opens=java.base/sun.nio.ch=all-unnamed"
+  ]
  :aliases
  {
   ;; Use: run clj -X:test
@@ -28,7 +32,10 @@
   :nrepl
   {
    :paths ["src"]
-   :jvm-opts ["-Djavax.net.ssl.trustStore=test/resources/test.keystore"
+   :jvm-opts [
+              "--add-opens=java.base/java.nio=all-unnamed"
+              "--add-opens=java.base/sun.nio.ch=all-unnamed"
+              "-Djavax.net.ssl.trustStore=test/resources/test.keystore"
               "-Djavax.net.ssl.trustStorePassword=asdfasdf"]
    :main-opts ["-m" "nrepl.cmdline"]
    :extra-deps
@@ -58,9 +65,20 @@
     "-Dclojure.compiler.direct-linking=true"
     "-Dclojure.compiler.elide-meta=[:doc :file :line :added]"
     "-Dclojure.spec.skip-macros=true"
+    "--add-opens=java.base/java.nio=all-unnamed"
+    "--add-opens=java.base/sun.nio.ch=all-unnamed"
     ]
-   :extra-deps
+   :deps
    {
+    org.clojars.huahaiy/datalevin-native {:mvn/version "0.6.16"}
+    org.clojure/clojure {:mvn/version "1.11.1"}
+    cheshire/cheshire {:mvn/version "5.9.0"}
+    org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
+    buddy/buddy-core {:mvn/version "1.10.1"}
+    serovers/serovers {:mvn/version "1.6.2"}
+    ;; https://simonrobson.net/2019/04/16/clojure-deps-with-exclusions.html
+    onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure org.clojure/clojure]}
+    clj-commons/clj-yaml {:mvn/version "0.7.108"}
     com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}
     com.github.clj-easy/graal-config-cheshire
     {
@@ -73,7 +91,7 @@
      :git/url   "https://github.com/clj-easy/graal-config"
      :git/sha   "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
      :deps/root "config/com.h2database/h2"
-    }
+     }
     com.github.clj-easy/next.jdbc
     {
      :git/url "https://github.com/clj-easy/graal-config"

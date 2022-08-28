@@ -10,9 +10,9 @@
             last-tag
             (build/git-process {:git-args
                                 ["rev-list"
-                                (format "%s..HEAD"
-                                        last-tag)
-                                "--count"]}))))
+                                 (format "%s..HEAD"
+                                         last-tag)
+                                 "--count"]}))))
 
 (def class-dir "target/classes")
 (def basis (build/create-basis {:aliases [:uberjar]
@@ -29,18 +29,15 @@
                    :target-dir class-dir})
   (build/compile-clj {:basis basis
                       :src-dirs ["src"]
-                      :compile-opts {
-                                     :disable-locals-clearing true
+                      :compile-opts {:disable-locals-clearing true
                                      :elide-meta [:doc :file :line :added]
-                                     :direct-linking true
-                                     }
-                      :jvm-opts [
-                                 "-Dclojure.spec.skip-macros=true"
-                                 ]
+                                     :direct-linking true}
+                      :jvm-opts ["-Dclojure.spec.skip-macros=true"
+                                 "--add-opens=java.base/java.nio=all-unnamed"
+                                 "--add-opens=java.base/sun.nio.ch=all-unnamed"]
                       :class-dir class-dir
                       :use-cp-file :always})
   (build/uber {:class-dir class-dir
                :uber-file uber-file
                :basis basis
-               :main 'zic.cli
-               }))
+               :main 'zic.cli}))

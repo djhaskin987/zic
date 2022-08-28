@@ -7,8 +7,8 @@
             [lein-licenses "0.2.2"]
             [lein-print "0.1.0"]]
   :jvm-opts [
-             "--add-opens=java.base/java.nio=ALL-UNNAMED"
-             "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
+             "--add-opens=java.base/java.nio=all-unnamed"
+             "--add-opens=java.base/sun.nio.ch=all-unnamed"
              ]
   :dependencies [
                  [datalevin "0.6.16"]
