@@ -285,7 +285,7 @@
    ^Path
    root-path]
   (let [package-files (db/package-files! c (:id package-info))
-        old-files (group-by :file/class package-files)]
+        old-files (group-by :class package-files)]
     (fs/backup-all! root-path (map :path (:config-file old-files))
                     (str (:name package-info) "." (:version package-info) ".backup"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
@@ -332,7 +332,7 @@
                    package-info
                    root-path))
                 [(dissoc package-info :id)])
-              (throw (ex-info "Dependant packages exist, cannot remove."
+              (throw (ex-info "Packages which depend on the one in question exist, cannot remove."
                               {:enqueued-for-removal
                                remove-packages})))))))))
 

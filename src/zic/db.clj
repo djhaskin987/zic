@@ -187,8 +187,8 @@
   (->>
    (d/pull
     (d/db c)
-    '[{:package/dependencies [:db/id]}] pkg-id)
-   :package/dependencies
+    '[{:package/_dependencies [:db/id]}] pkg-id)
+   :package/_dependencies
    (mapv :db/id)))
 
 ;; (dependers-by-id! c (:db/id (d/entity (d/db c) [:package/name "b"]))) => [1 2]
@@ -252,11 +252,6 @@
 
 (defn insert-file!
   [c package-id file]
-  (when-let [file-id (:db/id (d/entity (d/db c) [:file/path (:file/path file)]))]
-    (throw (ex-info "Cannot add a file where another one already exists."
-                    {:file-info  (file-info-by-id! c file-id)
-                     :package-info (package-info-by-id! c package-id)
-                     :file file})))
   (let [datoms (clean-for-insert file)]
     (d/transact! c [(assoc datoms
                            :package/_files package-id)])))
@@ -273,12 +268,6 @@
       :as given-pkg}
    package-files
    dependency-ids]
-  (when-let [package-id (:db/id (d/entity (d/db c) [:package/name package-name]))]
-    (throw (ex-info "Cannot add a package where another one already exists."
-                    {:package-info (package-info-by-id! c package-id)
-                     :given-package given-pkg
-                     :package-file package-files
-                     :dependency-ids dependency-ids})))
   (d/transact! c [(clean-for-insert {:package/name package-name
                                      :package/version package-version
                                      :package/location package-location

@@ -79,7 +79,7 @@ cleanup() {
     set -x
     #cleanup_server
     #cleanup_repl
-    #cleanup_files
+    cleanup_files
 }
 
 # https://unix.stackexchange.com/q/235582/9696
@@ -503,18 +503,13 @@ fi
 
 #  "Option `allow-downgrades` is enabled and downgrade detected."
 # used to be a normal file, is now a directory
-if $execmd \
+$execmd \
     add \
     --json-download-authorizations '{"djhaskin987.me": {"type": "basic", "username": "mode", "password": "code"}}' \
     --set-package-name 'failure' \
     --enable-allow-downgrades \
     --set-package-version 0.1.0 \
     --set-package-location "https://djhaskin987.me:8443/failure-0.1.0.zip"
-then
-    exit 1
-else
-    rm -f failure/directory-to-normal
-fi
 
 $execmd \
     remove \
@@ -887,7 +882,7 @@ $execmd \
     remove \
     --enable-cascade \
     --set-package-name 'c'
-# TODO: THIS IS THE COMMAND THAT IS FAILING
+
 if [ "$($execmd \
     info \
     --set-package-name 'c' | yq '.result')" != "not-found" ]
