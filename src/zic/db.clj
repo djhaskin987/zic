@@ -1,7 +1,6 @@
-(ns zic.db
-  (:require
-   [zic.util :as util]
-   [datalevin.core :as d]))
+ (ns zic.db
+   (:require
+    [datalevin.core :as d]))
 
 (defn- shear [mp]
   (into {}
@@ -13,16 +12,19 @@
   (reduce (fn [c v]
             (dissoc c v))
           (shear pkg)
-          [:id :files :dependencies]))
+          [:files :dependencies]))
 
+#_{:clj-kondo/ignore [:unused-private-var]}
 (defn- present-file [fl] (dissoc (shear fl) :id))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (def clean-pkg-attrs
   '[:package/name
     :package/version
     :package/location
     :package/metadata])
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn file-class?
   [thing]
   (#{:normal-file
@@ -148,8 +150,9 @@
 ;;   ;; TODO: This is broken.
 ;;   ;; TODO: Put all this stuff in a unit test.
 ;;(d/q '[:find (pull ?e [{:package/_files [:package/name]}]) :in $ :where [?e :file/path "c/echo.txt"]] (d/db c))
-;;(util/dbg (map #(dissoc % :db/id)))
+;;(map #(dissoc % :db/id))
    ;;)
+
 
 (defn package-files!
   [c package-id]
@@ -217,16 +220,20 @@
 ;(package-dependers! c "a")
 ;(package-dependees! c "b")
 ;
+(defn file-info-by-id!
+  [c file-id]
+  (when (not (nil? file-id))
+    (present-file
+     (d/pull (d/db c)
+             '[*]
+             file-id))))
+
 (defn package-info-by-id!
   [c pkg-id]
   (when (not (nil? pkg-id))
-    (assoc
-     (present-package
-      (d/pull (d/db c)
-              '[*]
-              pkg-id))
-     :id
-     pkg-id)))
+    (present-package (d/pull (d/db c)
+                             '[*]
+                             pkg-id))))
 
 (defn package-info!
   [c package-name]
@@ -245,6 +252,11 @@
 
 (defn insert-file!
   [c package-id file]
+  (when-let [file-id (:db/id (d/entity (d/db c) [:file/path (:file/path file)]))]
+    (throw (ex-info "Cannot add a file where another one already exists."
+                    {:file-info  (file-info-by-id! c file-id)
+                     :package-info (package-info-by-id! c package-id)
+                     :file file})))
   (let [datoms (clean-for-insert file)]
     (d/transact! c [(assoc datoms
                            :package/_files package-id)])))
@@ -257,14 +269,20 @@
   [c {:keys [package-name
              package-version
              package-location
-             package-metadata]}
+             package-metadata]
+      :as given-pkg}
    package-files
    dependency-ids]
-  (println "Adding a package")
-  (util/dbg (d/transact! c [(clean-for-insert {:package/name package-name
-                                               :package/version package-version
-                                               :package/location package-location
-                                               :package/metadata package-metadata})]))
+  (when-let [package-id (:db/id (d/entity (d/db c) [:package/name package-name]))]
+    (throw (ex-info "Cannot add a package where another one already exists."
+                    {:package-info (package-info-by-id! c package-id)
+                     :given-package given-pkg
+                     :package-file package-files
+                     :dependency-ids dependency-ids})))
+  (d/transact! c [(clean-for-insert {:package/name package-name
+                                     :package/version package-version
+                                     :package/location package-location
+                                     :package/metadata package-metadata})])
 
   (when-let [package-id (:db/id (d/entity (d/db c) [:package/name package-name]))]
     (let [config-files (into #{} (get-in package-metadata [:zic :config-files]))
@@ -291,7 +309,7 @@
   (d/transact! c [[:db.fn/retractEntity package-id]]))
 
 
-;;(d/transact! c [[:db/retract 59 :package/files]])
+;; (d/transact! c [[:db/retract 59 :package/files]])
 
 
 (defn remove-files!

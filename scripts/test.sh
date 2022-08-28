@@ -79,7 +79,7 @@ cleanup() {
     set -x
     #cleanup_server
     #cleanup_repl
-    cleanup_files
+    #cleanup_files
 }
 
 # https://unix.stackexchange.com/q/235582/9696

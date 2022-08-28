@@ -2,8 +2,7 @@
   (:require
    [clj-yaml.core :as yaml]
    [clj-http.lite.client :as client]
-   [clojure.java.io :as io]
-   [zic.util :as util])
+   [clojure.java.io :as io])
   (:import
    (java.nio.file.attribute
     FileAttribute)
@@ -203,8 +202,8 @@
   Verify a path on the filesystem.
   "
   [^Path base {:keys [path size class checksum] :as path-info}]
-  (util/dbg path-info)
-  (let [target-path (.resolve base (util/dbg path))
+  path-info
+  (let [target-path (.resolve base path)
         is-target-dir (Files/isDirectory target-path (into-array LinkOption []))
         target-exists (Files/exists target-path (into-array LinkOption []))]
     (cond

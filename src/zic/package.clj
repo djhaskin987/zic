@@ -1,7 +1,6 @@
 (ns zic.package
   (:require
    [zic.db :as db]
-   [zic.util :as util]
    [zic.fs :as fs]
    [zic.session :as session]
    [clojure.string :as str]
@@ -22,9 +21,9 @@
     db-connection-string
     (fn [c]
       (let [package-id (db/package-id c package-name)]
-        (util/dbg (if (nil? (util/dbg package-id))
-                    nil
-                    (util/dbg (db/package-files! c package-id))))))))
+        (if (nil? package-id)
+          nil
+          (db/package-files! c package-id))))))
 
 (defn
   verify-package-files!
@@ -166,7 +165,7 @@
                           {:existing-version exist-pkg-vers
                            :package-name package-name
                            :new-version package-version}))))
-      (let [old-files (group-by :file-class (db/package-files! c exist-pkg-id))
+      (let [old-files (group-by :class (db/package-files! c exist-pkg-id))
             old-config-sums (->> old-files
                                  (:config-file)
                                  (map #(do [(:path %) (:checksum %)]))
@@ -286,7 +285,7 @@
    ^Path
    root-path]
   (let [package-files (db/package-files! c (:id package-info))
-        old-files (group-by :file-class package-files)]
+        old-files (group-by :file/class package-files)]
     (fs/backup-all! root-path (map :path (:config-file old-files))
                     (str (:name package-info) "." (:version package-info) ".backup"))
     (fs/remove-files! root-path (map :path (:normal-file old-files)))
@@ -349,17 +348,15 @@
            ^Path
            lock-path]
     :as options}]
-  (println "It starts here.")
   (session/with-zic-session
     db-connection-string
     lock-path
     (fn [c]
-      (println "Is this a thing?")
       (let [dependencies-status
-            (util/dbg (->> package-dependency
-                           (map (fn [d] [d (db/package-id c d)]))
-                           (group-by (fn [[_ id]] (if (nil? id) :unmet :met)))))]
-        (if (util/dbg (seq (:unmet dependencies-status)))
+            (->> package-dependency
+                 (map (fn [d] [d (db/package-id c d)]))
+                 (group-by (fn [[_ id]] (if (nil? id) :unmet :met))))]
+        (if (seq (:unmet dependencies-status))
           (throw (ex-info "Several dependencies are unmet."
                           {:unmet-dependencies
                            (map (fn [[d _]] d)
