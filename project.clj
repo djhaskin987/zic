@@ -15,7 +15,7 @@
                  [org.clojure/clojure "1.11.1"]
                  [org.martinklepsch/clj-http-lite "0.4.3"]
                  [buddy/buddy-core "1.10.1"]
-                 [serovers "1.6.2"]
+                 [serovers "1.7.0"]
                  [onecli "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure]]
                  [clj-commons/clj-yaml "0.7.108"]
                  ]

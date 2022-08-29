@@ -135,7 +135,7 @@ do
             args="${args} --add-opens=java.base/sun.nio.ch=ALL-UNNAMED"
             args="${args} -Djavax.net.ssl.trustStore=${keystore}"
             args="${args} -Djavax.net.ssl.trustStorePassword=asdfasdf"
-            args="${args} -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
+            args="${args} -jar ${root_path}/target/${name}-${version}-standalone.jar"
             execmd="${java} ${args}"
             ;;
         --native)
@@ -236,12 +236,16 @@ answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="${t
 }
 ALSO
 )
-
-expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"/home/djhaskin987/Development/src/zic/.zic-db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
+if [ "${native}" -ne 0 ]
+then
+    expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"/home/djhaskin987/Development/src/zic/.zic-db","bfound":true,"output-format":"json","commands":["options","show"],"insecure":true,"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
+else
+    expected='{"one":{"two":238,"three":543},"start-directory":"/home/djhaskin987/Development/src/zic","cascade":false,"anonymous-coward":"I was never here","db-connection-string":"/home/djhaskin987/Development/src/zic/.zic-db","bfound":true,"output-format":"json","commands":["options","show"],"staging-path":"/home/djhaskin987/Development/src/zic/.staging","fart":123,"download-package":true,"ifihadtodoitagain":"i would","root-path":"/home/djhaskin987/Development/src/zic","zed":{"a":true,"b":false},"dry-run":false,"afound":true,"package-metadata":null,"lock-path":"/home/djhaskin987/Development/src/zic/.zic.lock"}'
+fi
 
 if [ ! "${answer}" = "${expected}" ]
 then
-    echo "AAAAH" >&2
+    echo "First commandline check test failed" >&2
     printf "%s" "${answer}" | sed 's|\(.\)|\1\n|g' > "answer"
     printf "%s" "${expected}" | sed 's|\(.\)|\1\n|g' > "expected"
     diff -u answer expected >&2
@@ -252,8 +256,35 @@ answer=$(ZIC_ITEM_ANONYMOUS_COWARD="I was never here" ZIC_LIST_CONFIG_FILES="./a
 ifihadtodoitagain: i would
 ALSO
 )
-
-expected='one:
+if [ "${native}" -ne 0 ]
+then
+    expected='one:
+  two: 238
+  three: 543
+start-directory: /home/djhaskin987/Development/src/zic
+cascade: false
+anonymous-coward: I was never here
+db-connection-string: /home/djhaskin987/Development/src/zic/.zic-db
+bfound: true
+output-format: yaml
+commands:
+ - options
+ - show
+insecure: true
+staging-path: /home/djhaskin987/Development/src/zic/.staging
+fart: 123
+download-package: true
+ifihadtodoitagain: i would
+root-path: /home/djhaskin987/Development/src/zic
+zed:
+  a: true
+  b: false
+dry-run: false
+afound: true
+package-metadata: null
+lock-path: /home/djhaskin987/Development/src/zic/.zic.lock'
+else
+    expected='one:
   two: 238
   three: 543
 start-directory: /home/djhaskin987/Development/src/zic
@@ -277,10 +308,11 @@ dry-run: false
 afound: true
 package-metadata: null
 lock-path: /home/djhaskin987/Development/src/zic/.zic.lock'
+fi
 
 if [ ! "${answer}" = "${expected}" ]
 then
-    echo "AAAAH"
+    echo "Second command line test failed"
     printf "%s" "${answer}" > "answer"
     printf "%s" "${expected}" > "expected"
     diff -u answer expected >&2

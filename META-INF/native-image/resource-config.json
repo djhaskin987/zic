@@ -2,7 +2,7 @@
   "resources":{
   "includes":[
     {
-      "pattern":"\\QMETA-INF/services/java.sql.Driver\\E"
+      "pattern":"\\QMETA-INF/services/jdk.vm.ci.services.JVMCIServiceLocator\\E"
     }, 
     {
       "pattern":"\\Qcheshire/core.clj\\E"
@@ -80,9 +80,6 @@
       "pattern":"\\Qclojure/core/server__init.class\\E"
     }, 
     {
-      "pattern":"\\Qclojure/core/specs/alpha.clj\\E"
-    }, 
-    {
       "pattern":"\\Qclojure/core__init.class\\E"
     }, 
     {
@@ -102,6 +99,12 @@
     }, 
     {
       "pattern":"\\Qclojure/core_proxy__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/data.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/data__init.class\\E"
     }, 
     {
       "pattern":"\\Qclojure/edn.clj\\E"
@@ -126,12 +129,6 @@
     }, 
     {
       "pattern":"\\Qclojure/instant__init.class\\E"
-    }, 
-    {
-      "pattern":"\\Qclojure/java/data.clj\\E"
-    }, 
-    {
-      "pattern":"\\Qclojure/java/data__init.class\\E"
     }, 
     {
       "pattern":"\\Qclojure/java/io.clj\\E"
@@ -212,22 +209,64 @@
       "pattern":"\\Qclojure/spec/gen/alpha__init.class\\E"
     }, 
     {
+      "pattern":"\\Qclojure/stacktrace.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/stacktrace__init.class\\E"
+    }, 
+    {
       "pattern":"\\Qclojure/string.clj\\E"
     }, 
     {
       "pattern":"\\Qclojure/string__init.class\\E"
     }, 
     {
-      "pattern":"\\Qclojure/tools/logging.clj\\E"
+      "pattern":"\\Qclojure/tools/reader.clj\\E"
     }, 
     {
-      "pattern":"\\Qclojure/tools/logging/impl.clj\\E"
+      "pattern":"\\Qclojure/tools/reader/default_data_readers.clj\\E"
     }, 
     {
-      "pattern":"\\Qclojure/tools/logging/impl__init.class\\E"
+      "pattern":"\\Qclojure/tools/reader/default_data_readers__init.class\\E"
     }, 
     {
-      "pattern":"\\Qclojure/tools/logging__init.class\\E"
+      "pattern":"\\Qclojure/tools/reader/edn.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/edn__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/commons.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/commons__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/errors.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/errors__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/inspect.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/inspect__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/utils.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/impl/utils__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/reader_types.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader/reader_types__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qclojure/tools/reader__init.class\\E"
     }, 
     {
       "pattern":"\\Qclojure/uuid.clj\\E"
@@ -245,7 +284,139 @@
       "pattern":"\\Qclojure/walk__init.class\\E"
     }, 
     {
+      "pattern":"\\Qcognitect/transit.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qcognitect/transit__init.class\\E"
+    }, 
+    {
       "pattern":"\\Qdata_readers.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/binding/java.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/binding/java__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/bits.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/bits__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/client.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/client__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/constants.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/constants__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/core.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/core__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/datom.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/datom__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/db.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/db__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/entity.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/entity__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/lmdb.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/lmdb__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/lru.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/lru__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/parser.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/parser__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/protocol.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/protocol__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/pull_api.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/pull_api__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/pull_parser.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/pull_parser__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/query.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/query__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/remote.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/remote__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/scan.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/scan__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/search.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/search__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/sparselist.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/sparselist__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/storage.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/storage__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/util.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qdatalevin/util__init.class\\E"
     }, 
     {
       "pattern":"\\Qflatland/ordered/common.clj\\E"
@@ -266,40 +437,25 @@
       "pattern":"\\Qflatland/ordered/set__init.class\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc.clj\\E"
+      "pattern":"\\Qjni/x86_64-Linux/libjffi-1.2.so\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc/connection.clj\\E"
+      "pattern":"\\Qjnr/constants/ConstantSet.class\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc/connection__init.class\\E"
+      "pattern":"\\Qjnr/constants/platform/linux/Errno.class\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc/prepare.clj\\E"
+      "pattern":"\\Qme/tonsky/persistent_sorted_set.clj\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc/prepare__init.class\\E"
+      "pattern":"\\Qme/tonsky/persistent_sorted_set/arrays.cljc\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc/protocols.clj\\E"
+      "pattern":"\\Qme/tonsky/persistent_sorted_set/arrays__init.class\\E"
     }, 
     {
-      "pattern":"\\Qnext/jdbc/protocols__init.class\\E"
-    }, 
-    {
-      "pattern":"\\Qnext/jdbc/result_set.clj\\E"
-    }, 
-    {
-      "pattern":"\\Qnext/jdbc/result_set__init.class\\E"
-    }, 
-    {
-      "pattern":"\\Qnext/jdbc/transaction.clj\\E"
-    }, 
-    {
-      "pattern":"\\Qnext/jdbc/transaction__init.class\\E"
-    }, 
-    {
-      "pattern":"\\Qnext/jdbc__init.class\\E"
+      "pattern":"\\Qme/tonsky/persistent_sorted_set__init.class\\E"
     }, 
     {
       "pattern":"\\Qonecli/core.clj\\E"
@@ -308,7 +464,7 @@
       "pattern":"\\Qonecli/core__init.class\\E"
     }, 
     {
-      "pattern":"\\Qorg/h2/util/data.zip\\E"
+      "pattern":"\\Qorg/lmdbjava/lmdbjava-native-linux-x86_64.so\\E"
     }, 
     {
       "pattern":"\\Qserovers/core.clj\\E"
@@ -327,6 +483,54 @@
     }, 
     {
       "pattern":"\\Qslingshot/support__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/encore.cljc\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/encore__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/compression.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/compression__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/crypto.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/crypto__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/encryption.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/encryption__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/utils.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy/utils__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/nippy__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/truss.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/truss/impl.clj\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/truss/impl__init.class\\E"
+    }, 
+    {
+      "pattern":"\\Qtaoensso/truss__init.class\\E"
     }, 
     {
       "pattern":"\\Qzic/cli.clj\\E"
@@ -357,12 +561,6 @@
     }, 
     {
       "pattern":"\\Qzic/session__init.class\\E"
-    }, 
-    {
-      "pattern":"\\Qzic/util.clj\\E"
-    }, 
-    {
-      "pattern":"\\Qzic/util__init.class\\E"
     }
   ]},
   "bundles":[]

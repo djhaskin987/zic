@@ -286,7 +286,7 @@
     :setup
     (fn [options]
       (if (not (= (:commands options) ["init"]))
-        (if-let [marking-file
+        (if-let [^java.nio.file.Path marking-file
                  (fs/find-marking-file
                   (Paths/get
                    (:start-directory options)

@@ -7,7 +7,7 @@
   cheshire/cheshire {:mvn/version "5.9.0"}
   org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
   buddy/buddy-core {:mvn/version "1.10.1"}
-  serovers/serovers {:mvn/version "1.6.2"}
+  serovers/serovers {:mvn/version "1.7.0"}
   ;; https://simonrobson.net/2019/04/16/clojure-deps-with-exclusions.html
   onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure org.clojure/clojure]}
   clj-commons/clj-yaml {:mvn/version "0.7.108"}
@@ -19,6 +19,19 @@
   ]
  :aliases
  {
+  :tracing
+  {
+   :jvm-opts [
+              "--add-opens=java.base/java.nio=all-unnamed"
+              "--add-opens=java.base/sun.nio.ch=all-unnamed"
+              "-Djavax.net.ssl.trustStore=test/resources/test.keystore"
+              "-Djavax.net.ssl.trustStorePassword=asdfasdf"
+              "-agentlib:native-image-agent=config-merge-dir=META-INF/native-image"
+              ]
+   :main-opts ["-e" "(set! *warn-on-reflection* true)"
+               "-m" "zic.cli"]
+   }
+
   ;; Use: run clj -X:test
   :test
   {
@@ -75,7 +88,7 @@
     cheshire/cheshire {:mvn/version "5.9.0"}
     org.martinklepsch/clj-http-lite {:mvn/version "0.4.3"}
     buddy/buddy-core {:mvn/version "1.10.1"}
-    serovers/serovers {:mvn/version "1.6.2"}
+    serovers/serovers {:mvn/version "1.7.0"}
     ;; https://simonrobson.net/2019/04/16/clojure-deps-with-exclusions.html
     onecli/onecli {:mvn/version "0.9.0-SNAPSHOT" :exclusions [org.clojure/clojure org.clojure/clojure]}
     clj-commons/clj-yaml {:mvn/version "0.7.108"}
@@ -86,17 +99,18 @@
      :git/sha   "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
      :deps/root "config/cheshire/cheshire"
      }
-    com.github.clj-easy/graal-config-h2
-    {
-     :git/url   "https://github.com/clj-easy/graal-config"
-     :git/sha   "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
-     :deps/root "config/com.h2database/h2"
-     }
-    com.github.clj-easy/next.jdbc
-    {
-     :git/url "https://github.com/clj-easy/graal-config"
-     :git/sha "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
-     :deps/root "config/com.github.seancorfield/next.jdbc"}
+    ;;com.github.clj-easy/graal-config-h2
+    ;;{
+    ;; :git/url   "https://github.com/clj-easy/graal-config"
+    ;; :git/sha   "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
+    ;; :deps/root "config/com.h2database/h2"
+    ;; }
+    ;;com.github.clj-easy/next.jdbc
+    ;;{
+    ;; :git/url "https://github.com/clj-easy/graal-config"
+    ;; :git/sha "0dc2862e1b1c9871eef4c306ef77da3610a2bd93"
+    ;; :deps/root "config/com.github.seancorfield/next.jdbc"
+    ;;}
     }
    }
   }

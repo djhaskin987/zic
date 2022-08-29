@@ -92,16 +92,16 @@
            "-"
            package-version
            ".zip"))
-        download-dest (.resolve staging-path fname)
+        download-dest (.resolve staging-path ^java.lang.String fname)
         auth (:download-authorizations options)]
-    (when (not (Files/exists staging-path (into-array
+    (when (not (Files/exists staging-path ^"[Ljava.nio.file.LinkOption;" (into-array
                                            java.nio.file.LinkOption
                                            [])))
-      (Files/createDirectories staging-path (into-array
+      (Files/createDirectories staging-path ^"[Ljava.nio.file.attribute.FileAttribute;" (into-array
                                              java.nio.file.attribute.FileAttribute
                                              [])))
     (fs/download package-location download-dest auth insecure)
-    (ZipFile. (.toFile download-dest))))
+    (ZipFile. (.toFile ^java.nio.file.Path download-dest))))
 
 (defn decide-config-fate
   [old current nw]
@@ -199,10 +199,10 @@
                :config-sums contig-config-old-sums)))
     {:put-aside
      (->> (get-in package-metadata [:zic :config-files])
-          (filter (fn [p]
+          (filter (fn [^java.lang.String p]
                     (when (Files/exists
                            (.resolve root-path p)
-                           (into-array
+                           ^"[Ljava.nio.file.LinkOption;" (into-array
                             java.nio.file.LinkOption []))
                       p)))
           (into #{}))}))

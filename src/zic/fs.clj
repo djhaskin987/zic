@@ -29,7 +29,7 @@
   (encode [data] (str data))
   (decode [data keywords] data))
 
-(defn new-unique-path [base pathstr]
+(defn new-unique-path [^Path base ^java.lang.String pathstr]
   (loop [n 0]
     (let [new-path (.resolve base
                              (if
@@ -41,8 +41,8 @@
         (recur (inc n))))))
 
 (defn backup-all!
-  [base paths ending]
-  (doseq [path paths]
+  [^Path base paths ending]
+  (doseq [^java.lang.String path paths]
     (let [ppath (.resolve base path)]
       (when (Files/exists ppath (into-array LinkOption []))
         (Files/move ppath (new-unique-path base (str ppath "." ending))
@@ -50,7 +50,7 @@
 
 (defn remove-files!
   [^Path base paths]
-  (doseq [path paths]
+  (doseq [^java.lang.String path paths]
     (let [ppath (.resolve base path)]
       (Files/deleteIfExists ppath))))
 
@@ -59,11 +59,11 @@
   Read the file but don't do anything with the read contents,
   presumably because the stream is part of some checksum operation
   "
-  [stream]
+  [^java.io.InputStream stream]
   (let [buffer (byte-array 4096)]
     (loop [sentry 1]
       (when (>= sentry 0)
-        (recur (.read
+        (recur ^int (.read
                 stream
                 buffer
                 0
@@ -77,7 +77,7 @@
   "
   Compute the SHA 256 of an input stream.
   "
-  [stream]
+  [^java.io.InputStream stream]
   (let [digest (MessageDigest/getInstance "SHA-256")]
     (with-open [digested
                 (DigestInputStream. stream digest)]
@@ -172,11 +172,11 @@
                             (= (:type auth-record) "oauth-token")
                             [[:oauth-token (:oauth-token auth-record)]])))))]
       (with-open
-       [in
+       [^java.io.InputStream in
         (:body (client/get resource basic-args))]
         (Files/copy in
                     dest
-                    (into-array
+                    ^"[Ljava.nio.file.CopyOption;" (into-array
                      CopyOption
                      []))))))
 
@@ -201,7 +201,7 @@
   "
   Verify a path on the filesystem.
   "
-  [^Path base {:keys [path size class checksum] :as path-info}]
+  [^Path base {:keys [^java.lang.String path size class checksum] :as path-info}]
   path-info
   (let [target-path (.resolve base path)
         is-target-dir (Files/isDirectory target-path (into-array LinkOption []))
@@ -295,9 +295,9 @@
               (if-let [exclude-sum (get exclude-sum-pool entry-name)]
                 (assoc base-return :checksum exclude-sum)
                 base-return)
-              (let [dest-path (.resolve dest (if (put-aside entry-name)
-                                               (new-unique-path dest
-                                                                (str entry-name put-aside-ending))
+              (let [dest-path (.resolve dest ^java.lang.String (if (put-aside entry-name)
+                                               (str (new-unique-path dest
+                                                                (str entry-name put-aside-ending)))
                                                entry-name))]
                 (if (.isDirectory entry)
                   (do
@@ -312,7 +312,7 @@
                                   df (DigestInputStream.
                                       sf
                                       digest)]
-                        (Files/copy df dest-path (into-array CopyOption [])))
+                        (Files/copy df ^Path dest-path ^"[Ljava.nio.file.CopyOption;" (into-array CopyOption [])))
                       (assoc base-return :checksum (bytes->hexstr (.digest digest)))))))))))
        (into [])))
 
@@ -322,20 +322,20 @@
     (into [] (iterator-seq (.iterator stream)))))
 
 (defn all-parents
-  ([start-path]
+  ([^Path start-path]
    (let [p (.getParent start-path)]
      (all-parents start-path p)))
-  ([f p] (if (nil? p)
+  ([f ^Path p] (if (nil? p)
            '()
            (cons f (lazy-seq (all-parents p (.getParent p)))))))
 
 (defn find-marking-file
-  [start match]
-  (let [found
+  [start ^Path match]
+  (let [^Path found
         (some
          (fn [a]
            (some
-            #(if (= (str (.getFileName %)) match) % nil)
+            (fn [^Path p] (if (= (str (.getFileName p)) match) p nil))
             (list-files a)))
          (all-parents start))]
     (if (or
