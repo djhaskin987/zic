@@ -115,7 +115,7 @@ do
             tracing=0
             java="java"
             first_java="java"
-            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/${name}-${version}-standalone.jar"
+            args="-Djavax.net.ssl.trustStore=${keystore} -Djavax.net.ssl.trustStorePassword=asdfasdf -jar ${root_path}/target/uberjar/${name}-${version}-standalone.jar"
             execmd="${java} ${args}"
             ;;
         --tracing)

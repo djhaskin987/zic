@@ -1,0 +1,44 @@
+*.bb text
+*.cache binary
+*.calva binary
+*.calva-repl binary
+*.class binary
+*.clj text
+*.clj-kondo binary
+*.conf text
+*.cp binary
+*.cpcache binary
+*.crt binary
+*.csv text
+*.db binary
+*.dot binary
+*.edn text
+*.exp binary
+*.f9b3052741b0ebba612363d6b4cb882c8c8b39aef5e8014d8b3558005b40e7e8 binary
+*.git binary
+.gitattributes text
+.gitignore text
+*.idx binary
+*.jar binary
+*.json text
+*.jvm binary
+*.keystore binary
+*.lein-failures text
+*.lein-repl-history text
+*.libs binary
+*.main binary
+*.manifest binary
+*.md text
+*.mdb binary
+*.nrepl-port text
+*.pack binary
+*.pem text
+*.ps1 text eol=crlf
+*.screen text eol=lf
+*.sh text eol=lf
+*.staging binary
+*.txt text
+*.xml text
+*.yaml text
+*.yml text
+*.zip binary

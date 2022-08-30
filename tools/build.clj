@@ -17,7 +17,7 @@
 (def class-dir "target/classes")
 (def basis (build/create-basis {:aliases [:uberjar]
                                 :project "deps.edn"}))
-(def uber-file (format "target/%s-%s-standalone.jar"
+(def uber-file (format "target/uberjar/%s-%s-standalone.jar"
                        (name lib)
                        version))
 (defn clean [_]
