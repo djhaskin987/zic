@@ -11,6 +11,8 @@
    (java.nio.file
     Paths)))
 
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn
   remove!
   "
@@ -44,6 +46,7 @@
        :dry-run (:dry-run options)
        :removed-packages result})))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn
   add!
   "
@@ -98,6 +101,7 @@
   (package/install-package! options)
   {:result :successful})
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn files!
   "
   Lists the files owned by a particular package.
@@ -116,6 +120,7 @@
       {:result :package-found
        :package-files result})))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn info!
   "
   Print immediate information about a particular package.
@@ -134,6 +139,7 @@
       {:result :package-found
        :package-information result})))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn dependers!
   "
   Print immediate information about a particular package.
@@ -153,6 +159,7 @@
       {:result :package-found
        :package-dependers result})))
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn dependees!
   "
   Print immediate information about a particular package.
@@ -176,6 +183,7 @@
 ;; database is opened. Then it is created if it doesn't exist. This is
 ;; important because then in subsequent commands the file `.zic-db/*` is looked
 ;; for as a marking file to determine the root of the project.
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn init!
   "
   Initialize database in the start directory.
@@ -196,6 +204,7 @@
     db/init-database!)
   {:result :successful})
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn list!
   "
   FIXME
@@ -203,6 +212,7 @@
   [_]
   {:result :noop})
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn orphans!
   "
   FIXME
@@ -210,6 +220,7 @@
   [_]
   {:result :noop})
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn verify!
   "
   Verifies the files on the file system for a given package.

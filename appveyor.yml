@@ -1,113 +1,38 @@
-# This file is a derivative work. It was originally taken from the [datalevin
-# source code](https://github.com/juji-io/zic/blob/master/appveyor.yml).
-# Contributors to that particular file at the time of writing include
-# Hua Hai Yang (@huahaiy on GitHub) and Eric Dallo (@ericdallo on GitHub).
-#
-# The work from which this one is derived is copyrighted to them and licensed
-# under the terms of the [Eclipse Public License version
-# 1.0](https://github.com/juji-io/zic/blob/master/LICENSE).
-#
-# It further derives material from Michiel Borkent's (@borkdude on GitHub)
-# babashka
-# [appveyor](https://github.com/babashka/babashka/blob/master/appveyor.yml)
-# file. He has made his code likewise available under the terms of the [Eclipse
-# Public License
-# v1.0](https://github.com/babashka/babashka/blob/master/LICENSE).
-#
-# I thank the authors of those repositories for their support on Clojure Slack
-# and elsewhere on the internet, for showing me how to build clojure
-# with GraalVM. Without them, I would have abandoned clojure long ago out of
-# frustration that I couldn't compile it to improve its start-up time.
-#
-# -- Daniel Haskin, 2022-08-30
----
+# The docs say you should do <maj>.<min>.<BUILD>, and you should,
 
-version: "v-{build}"
+# This is a garbage version
+version: '0.1.{build}'
+
+# This resets the version programmatically
+init:
+ - ps: scripts\update-appveyor-version.ps1
 
 branches:
   only:
-    - main
+    - master
 
-skip_non_tags: true
+#skip_non_tags: true
 
-image: Visual Studio 2019
+skip_commits:
+  files:
+    - 'docs/*'
+    - '**/*.html'
+    - '**/*.md'
 
-configuration:
-- Release
+max_jobs: 1
 
-clone_folder: C:\projects\
+image: Visual Studios 2019
 
-environment:
-  GRAALVM_HOME: C:\projects\zic\graalvm\graalvm-ce-java11-21.3.0
-  DTVL_NATIVE_EXTRACT_DIR: C:\projects\zic
+clone_folder: C:\projects\zic
 
-clone_script:
-- ps: >-
-    if(-not $env:APPVEYOR_PULL_REQUEST_NUMBER) {
-      git clone -q --branch=$env:APPVEYOR_REPO_BRANCH https://github.com/$env:APPVEYOR_REPO_NAME.git $env:APPVEYOR_BUILD_FOLDER
-      cd $env:APPVEYOR_BUILD_FOLDER
-      git checkout -qf $env:APPVEYOR_REPO_COMMIT
-    } else {
-      git clone -q https://github.com/$env:APPVEYOR_REPO_NAME.git $env:APPVEYOR_BUILD_FOLDER
-      cd $env:APPVEYOR_BUILD_FOLDER
-      git fetch -q origin +refs/pull/$env:APPVEYOR_PULL_REQUEST_NUMBER/merge:
-      git checkout -qf FETCH_HEAD
-    }
-build_script:
+shallow_clone: true
+
+cache:
+  - jar -> target/uberjar/*.jar
+  - exe -> target/native-image/*.exe
+
+install:
 - cmd: >-
-    if not exist build\bin\ (
-      mkdir build
-      mkdir build\bin
-    )
-    if not exist build\bin\bb.exe (
-      del /s /f "%CD%\babashka-0.9.161-windows-amd64.zip"
-      bitsadmin ^
-          /transfer djhaskin987_bb ^
-          /download ^
-          /priority FOREGROUND ^
-          "https://github.com/babashka/babashka/releases/download/v0.9.161/babashka-0.9.161-windows-amd64.zip" ^
-          "%CD%\babashka-0.9.161-windows-amd64.zip"
-      7z x babashka-0.9.161-windows-amd64.zip bb.exe
-      mv bb.exe build\bin
-    )
-    if not exist build\bin\clj.exe (
-      del /s /f "%CD%\deps.clj-0.1.1155-2-windows-amd64.zip"
-      bitsadmin ^
-          /transfer djhaskin987_deps ^
-          /download ^
-          /priority FOREGROUND ^
-          "https://github.com/borkdude/deps.clj/releases/download/v0.1.1155-2/deps.clj-0.1.1155-2-windows-amd64.zip" ^
-          "%CD%\deps.clj-0.1.1155-2-windows-amd64.zip"
-      7z x deps.clj-0.1.1155-2-windows-amd64.zip deps.exe
-      move deps.exe build\bin\clj.exe
-    )
-    if not exist build\graalvm-ce-java11-windows-amd64-21.3.0 (
-      del /s /f "%CD%\graalvm-ce-java11-windows-amd64-21.3.0.zip"
-      bitsadmin ^
-          /transfer djhaskin987_graalvm ^
-          /download ^
-          /priority FOREGROUND ^
-          "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.3.0/graalvm-ce-java11-windows-amd64-21.3.0.zip"
-          "%CD%\graalvm-ce-java11-windows-amd64-21.3.0.zip"
-      7z x graalvm-ce-java11-windows-amd64-21.3.0.zip
-      move graalvm-ce-java11-windows-amd64-21.3.0 build\graalvm-ce-java-11-amd64-21.3.0
-    )
-- cmd: >-
-    set "PATH=%cd%\build\bin;%PATH%"
-    set "JAVA_HOME=%cd%\build\graalvm-ce-java-11-amd64-21.3.0"
+    call scripts\winbuild.bat
     call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
-    clj -T:build uber
-
-    call script\compile.bat
-    7z a dtlv-%APPVEYOR_REPO_TAG_NAME%-windows-amd64.zip dtlv.exe
-artifacts:
-  - path: target\native-image\zic-$(APPVEYOR_REPO_TAG_NAME)-windows-amd64.zip
-
-deploy:
-  #provider: GitHub
-  #auth_token:
-  #  secure:
-  artifact: /.*\.zip/
-  force_update: true
-  on:
-    APPVEYOR_REPO_TAG: true
+    clj -T:build native-image

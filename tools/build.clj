@@ -7,7 +7,7 @@
     [clojure.tools.build.api :as build]
     ))
 
-(defmacro dbg
+#_(defmacro dbg
   [body]
   `(let [x# ~body]
      (binding [*out* *err*]
@@ -16,23 +16,44 @@
        (flush)
        x#)))
 
-(def lib 'zic/zic)
+(def os
+  (let [osstr (System/getProperty "os.name")]
+    (cond (re-find #"^[Ww]indows" osstr)
+          :windows
+          (re-find #"^[Ll]inux" osstr)
+          :linux
+          (re-find #"^([Mm]ac|[Dd]arwin)" osstr)
+          :mac
+          :else
+          :unkown)))
 
-(defn- $
+(defn- shell-out
   "Get output from process"
   [things]
-  (-> (shell/sh things) :out slurp str/trim))
+  (-> (apply shell/sh things) :out str/trim))
 
-;; Get the number of commits reachable since the last tagged commit.
+(def lib 'zic/zic)
+
+
+
+;; Get the number of commits reachable since the last tagged commit,
+;; And the build number.
 (def version
-  (let [last-tag (build/git-process {:git-args "describe --tags --abbrev=0"})]
-    (format "%s.%s"
-            last-tag
-            (build/git-process {:git-args
-                                ["rev-list"
+  (let [last-tag (shell-out ["git" "describe" "--tags" "--abbrev=0"])
+        milestone-number (Integer/parseInt last-tag)
+        since-number (shell-out ["git" "rev-list"
                                  (format "%s..HEAD"
                                          last-tag)
-                                 "--count"]}))))
+                                 "--count"])
+        build-number (if-let [env-build-number
+                             (or (System/getenv "APPVEYOR_BUILD_NUMBER")
+                              (System/getenv "BUILD_NUMBER"))]
+                       (Integer/parseInt env-build-number)
+                       0)]
+    (format "%d.%d.%d"
+            milestone-number
+            since-number
+            build-number)))
 
 (def class-dir "target/classes")
 (def basis (build/create-basis {:aliases [:uberjar]
@@ -80,14 +101,14 @@
   [srcdir]
   (let [java-calls (atom '())]
     (fs/walk-file-tree
-      (path srcdir)
+      (fs/path srcdir)
       :visit-file
       (fn [^java.nio.file.Path fpath
            _]
         (swap!
           java-calls
           concat
-          (->> (read-all-lines fpath)
+          (->> (fs/read-all-lines fpath)
                (map #(re-seq #"^\s*\((java\.\S+)" %))
                (filter #(not (nil? %)))
                (map #(get % 1))))
@@ -99,7 +120,7 @@
   "Get all the uberjar packages to list for native-image"
   []
   (let [discovered-jar-classes
-        (->> ($ ["jar" "-tf" uber-file])
+        (->> (shell-out ["jar" "-tf" uber-file])
              (re-seq #"(?m)^\s*(\S+)\.class$")
              (map #(get % 1))
              (filter #(nil? (re-seq #"^(META-INF|classes)" %)))
@@ -148,7 +169,7 @@
         packages (get-all-buildtime-packages)]
     (println (format "Recognized %s packages" (count packages)))
     (Thread/sleep 2000)
-    (dbg (shell/sh
-           (dbg (reduce into ["native-image"]
+    (shell/sh
+           (reduce into ["native-image"]
                         [verbatim-args
-                         (map #(str "--initialize-at-build-time=" %) packages)]))))))
+                         (map #(str "--initialize-at-build-time=" %) packages)]))))
