@@ -4,10 +4,9 @@
     [babashka.fs :as fs]
     ;[bencode.core :as b]
     [clojure.string :as str]
-    [clojure.tools.build.api :as build]
-    ))
+    [clojure.tools.build.api :as build]))
 
-#_(defmacro dbg
+(defmacro dbg
   [body]
   `(let [x# ~body]
      (binding [*out* *err*]
@@ -30,7 +29,7 @@
 (defn- shell-out
   "Get output from process"
   [things]
-  (-> (apply shell/sh things) :out str/trim))
+  (-> (apply shell/sh (map str things)) :out str/trim))
 
 (def lib 'zic/zic)
 
@@ -41,10 +40,10 @@
 (def version
   (let [last-tag (shell-out ["git" "describe" "--tags" "--abbrev=0"])
         milestone-number (Integer/parseInt last-tag)
-        since-number (shell-out ["git" "rev-list"
+        since-number (Integer/parseInt (shell-out ["git" "rev-list"
                                  (format "%s..HEAD"
                                          last-tag)
-                                 "--count"])
+                                 "--count"]))
         build-number (if-let [env-build-number
                              (or (System/getenv "APPVEYOR_BUILD_NUMBER")
                               (System/getenv "BUILD_NUMBER"))]
@@ -55,12 +54,18 @@
             since-number
             build-number)))
 
-(def class-dir "target/classes")
+(def class-dir (fs/path "target" "classes"))
 (def basis (build/create-basis {:aliases [:uberjar]
                                 :project "deps.edn"}))
-(def uber-file (format "target/uberjar/%s-%s-standalone.jar"
-                       (name lib)
-                       version))
+(def uber-file
+  (fs/path
+    "target"
+    "uberjar"
+    (format
+      "%s-%s-standalone.jar"
+      (name lib)
+      version)))
+
 (defn- clean [_]
   (build/delete {:path "target"}))
 
@@ -70,6 +75,20 @@
   [_]
   (print (name lib)))
 
+; Concerning the project version.
+; It is not semantic versioning. Rich Hickey doesn't like that stuff anyway.
+; The real reason for the format, though, is the following:
+; 1. AppVeyor insists on having a unique version for each build
+; 2. I want the build version to match the actual version
+; 3. We are building for Linux AND Windows.
+; 4. Windows VisualStudio C++ Build Tools insist on a 3-part
+;    version number, with each version part
+;    fitting into a 16-bit integer.
+;
+; So, we make the version number
+; <milestone>.<#of commits since milestone>.<build#>
+; And that's it.
+; I kinda like it anyway.
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn project-version
   [_]
@@ -102,18 +121,18 @@
   (let [java-calls (atom '())]
     (fs/walk-file-tree
       (fs/path srcdir)
-      :visit-file
+      {:visit-file
       (fn [^java.nio.file.Path fpath
            _]
         (swap!
           java-calls
           concat
-          (->> (fs/read-all-lines fpath)
-               (map #(re-seq #"^\s*\((java\.\S+)" %))
-               (filter #(not (nil? %)))
-               (map #(get % 1))))
-        :continue))
-    (sorted-set @java-calls)))
+          (as-> (fs/read-all-lines fpath) it
+                (mapcat #(re-seq #"^\s*\((java\.\S+)" %) it)
+                (filter #(not (nil? %)) it)
+                (map #(get % 1) it)))
+        :continue)})
+    (apply sorted-set @java-calls)))
 
 
 (defn get-all-buildtime-packages
@@ -143,9 +162,9 @@
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn native-image
   [x]
-  (println "Starting native image build...")
   (when (not (fs/exists? uber-file))
     (uber x))
+  (println "Starting native image build...")
   (let [verbatim-args
         ["--verbose"
          "--enable-url-protocols=https,http"
@@ -164,12 +183,14 @@
          "-H:+JNI"
          (format "-H:Name=%s" (name lib))
          "-H:-UseServiceLoaderFeature"
-         (format "-jar target/%s-%s-standalone.jar" (name lib) version)
+         "-jar"
+         uber-file
          "-J-Xmx4G"]
         packages (get-all-buildtime-packages)]
     (println (format "Recognized %s packages" (count packages)))
-    (Thread/sleep 2000)
-    (shell/sh
-           (reduce into ["native-image"]
-                        [verbatim-args
-                         (map #(str "--initialize-at-build-time=" %) packages)]))))
+    (apply shell/sh
+      (reduce
+        into
+        ["native-image"]
+        [verbatim-args
+         (map #(str "--initialize-at-build-time=" %) packages)]))))

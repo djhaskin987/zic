@@ -6,7 +6,6 @@ Zip files In Concert. This is a package manager that aims to be:
 * An "RPM" or "DEB" for project-level, source-code repositories
 * That is based almost completely on plain old zip files
 
-
 Being that this isn't a "YUM" or "APT" for source code repos, it is
 best paired with [Degasolv](https://github.com/djhaskin987/degasolv).
 
@@ -28,7 +27,7 @@ FIXME: listing of options this app accepts.
 
 ## License
 
-Copyright © 2020 Daniel Jay Haskin
+Copyright © 2020-2022 Daniel Jay Haskin.
 
 This program and the accompanying materials are made available under the terms
 of the Eclipse Public License 2.0 which is available at
