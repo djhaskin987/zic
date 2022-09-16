@@ -49,6 +49,7 @@ test/resources/data/all
 /zic-*-standalone
 /zic-*-standalone*.txt
 
+/resources/META-INF/native-image/djhaskin987/zic/native-image.properties
 
 # editor files
 .*.sw[a-z]

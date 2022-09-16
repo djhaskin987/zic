@@ -70,7 +70,10 @@
      :git/sha "0d20256"
      }
     babashka/process {:mvn/version "0.1.2"}
-    babashka/fs {:mvn/version "0.1.11"}
+    babashka/fs {
+                 :git/url "https://github.com/babashka/fs.git"
+                 :git/sha "73210e83808b8bfe664cba7d2148464a2fa38aae"
+                 }
     nrepl/nrepl {:mvn/version "0.5.3"}
     }
    }
@@ -86,7 +89,11 @@
      :git/tag "v0.8.3"
      :git/sha "0d20256"
      }
-    babashka/fs {:mvn/version "0.1.11"}
+    babashka/process {:mvn/version "0.1.2"}
+    babashka/fs {
+                 :git/url "https://github.com/babashka/fs.git"
+                 :git/sha "73210e83808b8bfe664cba7d2148464a2fa38aae"
+                 }
     }
    :ns-default build
    }

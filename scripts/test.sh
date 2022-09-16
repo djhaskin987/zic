@@ -121,7 +121,7 @@ do
         --tracing)
             shift
             tracing=1
-            native_image_config="${root_path}/META-INF/native-image"
+            native_image_config="${root_path}/resources/META-INF/native-image/djhaskin987/zic"
             # https://www.graalvm.org/22.0/reference-manual/native-image/Agent/
             java="java -agentlib:native-image-agent=config-merge-dir=${native_image_config}/"
 

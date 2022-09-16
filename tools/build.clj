@@ -4,7 +4,17 @@
     [babashka.fs :as fs]
     ;[bencode.core :as b]
     [clojure.string :as str]
-    [clojure.tools.build.api :as build]))
+    [clojure.tools.build.api :as build])
+  (:import
+    (java.io InputStreamReader BufferedReader)))
+
+(defmacro dbg-type
+  [body]
+  `(let [x# ~body]
+     (binding [*out* *err*]
+       (println "dbg: type " '~body "=" (pr-str (type x#)))
+       (flush)
+       x#)))
 
 (defmacro dbg
   [body]
@@ -26,6 +36,24 @@
           :else
           :unkown)))
 
+(defn- print-shell-out
+  "Pipe output from process to stdout"
+  [things {:keys [dir env] :or {dir ^java.io.File nil env ^"Ljava.lang.String[;" nil}]
+  (let [proc (.exec ^java.lang.Runtime (Runtime/getRuntime)
+                    ^"Ljava.lang.String[;" (into-array java.lang.String (map str things))
+                    env
+                    dir)
+        pstdout (BufferedReader. (InputStreamReader. (.getInputStream ^Process proc)))]
+    (loop [line (.readLine pstdout)]
+      (if (nil? line)
+        (do
+          (binding [*out* *err*]
+            (print (slurp (.getErrorStream proc))))
+          (.exitValue proc))
+        (do
+          (println line)
+          (recur (.readLine pstdout)))))))
+
 (defn- shell-out
   "Get output from process"
   [things]
@@ -41,12 +69,12 @@
   (let [last-tag (shell-out ["git" "describe" "--tags" "--abbrev=0"])
         milestone-number (Integer/parseInt last-tag)
         since-number (Integer/parseInt (shell-out ["git" "rev-list"
-                                 (format "%s..HEAD"
-                                         last-tag)
-                                 "--count"]))
+                                                   (format "%s..HEAD"
+                                                           last-tag)
+                                                   "--count"]))
         build-number (if-let [env-build-number
-                             (or (System/getenv "APPVEYOR_BUILD_NUMBER")
-                              (System/getenv "BUILD_NUMBER"))]
+                              (or (System/getenv "APPVEYOR_BUILD_NUMBER")
+                                  (System/getenv "BUILD_NUMBER"))]
                        (Integer/parseInt env-build-number)
                        0)]
     (format "%d.%d.%d"
@@ -58,13 +86,20 @@
 (def basis (build/create-basis {:aliases [:uberjar]
                                 :project "deps.edn"}))
 (def uber-file
-  (fs/path
-    "target"
-    "uberjar"
-    (format
-      "%s-%s-standalone.jar"
-      (name lib)
-      version)))
+  (fs/absolutize
+    (fs/path
+      "target"
+      "uberjar"
+      (format
+        "%s-%s-standalone.jar"
+        (name lib)
+        version))))
+
+(def native-image-target-dir
+  (fs/absolutize
+    (fs/path
+      "target"
+      "native-image")))
 
 (defn- clean [_]
   (build/delete {:path "target"}))
@@ -99,7 +134,7 @@
   (println "Building uberjar...")
   (clean nil)
   (build/copy-dir {:src-dirs ["src" "resources"]
-                   :target-dir class-dir})
+                   :target-dir (str class-dir)})
   (build/compile-clj {:basis basis
                       :src-dirs ["src"]
                       :compile-opts {:disable-locals-clearing true
@@ -108,10 +143,10 @@
                       :jvm-opts ["-Dclojure.spec.skip-macros=true"
                                  "--add-opens=java.base/java.nio=all-unnamed"
                                  "--add-opens=java.base/sun.nio.ch=all-unnamed"]
-                      :class-dir class-dir
+                      :class-dir (str class-dir)
                       :use-cp-file :always})
-  (build/uber {:class-dir class-dir
-               :uber-file uber-file
+  (build/uber {:class-dir (str class-dir)
+               :uber-file (str uber-file)
                :basis basis
                :main 'zic.cli}))
 
@@ -122,17 +157,17 @@
     (fs/walk-file-tree
       (fs/path srcdir)
       {:visit-file
-      (fn [^java.nio.file.Path fpath
-           _]
-        (swap!
-          java-calls
-          concat
-          (as-> (fs/read-all-lines fpath) it
-                (mapcat #(re-seq #"^\s*\((java\.\S+)" %) it)
-                (filter #(not (nil? %)) it)
-                (map #(get % 1) it)))
-        :continue)})
-    (apply sorted-set @java-calls)))
+       (fn [^java.nio.file.Path fpath
+            _]
+         (swap!
+           java-calls
+           concat
+           (as-> (fs/read-all-lines fpath) it
+             (mapcat #(re-seq #"^\s*\((java\.\S+)" %) it)
+             (filter #(not (nil? %)) it)
+             (map #(get % 1) it)))
+         :continue)})
+    (set @java-calls)))
 
 
 (defn get-all-buildtime-packages
@@ -143,7 +178,7 @@
              (re-seq #"(?m)^\s*(\S+)\.class$")
              (map #(get % 1))
              (filter #(nil? (re-seq #"^(META-INF|classes)" %)))
-             (apply sorted-set)
+             (set)
              (map #(str/replace % #"/\.class$" ""))
              (map #(str/replace % #"[/]" ".")))
         java-calls (gather-java-calls "src")
@@ -155,25 +190,41 @@
                   "java.math.BigInteger"
                   "java.math.BigDecimal"
                   ]]
-    (reduce into (sorted-set) [discovered-jar-classes
-                               java-calls
-                               verbatim])))
+    (persistent!
+      (reduce (fn [c v] (reduce conj! c v))
+              (transient (set []))
+              [discovered-jar-classes
+               java-calls
+               verbatim]))))
+
+(def resources-path
+  (fs/path
+    "resources"))
+
+(def native-image-basepath
+  (fs/path
+    "META-INF"
+    "native-image"
+    "djhaskin987"
+    "zic"))
+
+(def native-image-properties-file
+  (fs/path
+    native-image-basepath
+    "native-image.properties"))
 
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
-(defn native-image
-  [x]
-  (when (not (fs/exists? uber-file))
-    (uber x))
-  (println "Starting native image build...")
+(defn native-image-properties
+  [_]
+  (fs/create-dirs  (fs/path resources-path native-image-basepath))
   (let [verbatim-args
         ["--verbose"
          "--enable-url-protocols=https,http"
          "--report-unsupported-elements-at-runtime"
          "--allow-incomplete-classpath"
          "--install-exit-handlers"
-         "-H:+ReportExceptionStackTrac"
+         "-H:+ReportExceptionStackTraces"
          "-H:+PrintClassInitialization"
-         "-Dfile.encoding=UTF-8"
          "-J-Dclojure.compiler.direct-linking=true"
          "-J-Dclojure.spec.skip-macros=true"
          "-H:-CheckToolchain"
@@ -183,14 +234,53 @@
          "-H:+JNI"
          (format "-H:Name=%s" (name lib))
          "-H:-UseServiceLoaderFeature"
-         "-jar"
-         uber-file
-         "-J-Xmx4G"]
+         ]
         packages (get-all-buildtime-packages)]
     (println (format "Recognized %s packages" (count packages)))
-    (apply shell/sh
-      (reduce
-        into
-        ["native-image"]
-        [verbatim-args
-         (map #(str "--initialize-at-build-time=" %) packages)]))))
+    (fs/write-lines (fs/path resources-path native-image-properties-file)
+                    (dbg-type (persistent!
+                      (reduce
+                        (fn [c v] (reduce conj! c (map #(str % " \\") v)))
+                        (transient
+                          [(str "ImageName=" (name lib)) 
+                           "JavaArgs=-Dfile.encoding=UTF-8 -Xmx4G"
+                           "Args= \\"])
+                        [verbatim-args
+                         (pmap #(str "--initialize-at-build-time=" %) packages)]))))
+    (doseq [mi-thing (map #(.getFileName %) (fs/list-dir (fs/path
+                           resources-path
+                           native-image-basepath)))]
+      (let [{:keys [out err exit]}
+             (apply
+               shell/sh
+               (dbg
+                 ["jar"
+                  "-uf"
+                  (dbg (str (fs/absolutize uber-file)))
+                  (dbg (str (fs/path native-image-basepath mi-thing)))
+                  :dir (dbg (str (fs/absolutize resources-path)))]))]
+        (when (not (nil? out))
+          (println out))
+        (when (not (nil? err))
+          (binding [*out* *err*]
+            ( println out)))
+        (when (not (= exit 0))
+          (System/exit exit))))))
+
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
+(defn native-image
+  [x]
+  (when (not (fs/exists? uber-file))
+    (uber x))
+  (when (not (fs/which "native-image"))
+    (binding [*out* *err*]
+      (println "Could not find native-image on the path"))
+    (System/exit 1))
+  (when (not (fs/exists? (fs/path (fs/absolutize resources-path) native-image-properties-file)))
+    (native-image-properties x))
+  (when (not (fs/exists? native-image-target-dir))
+    (fs/create-dirs native-image-target-dir))
+  (println "Starting native image build...")
+  (print-shell-out
+    [(fs/which "native-image") "-jar" (str uber-file)]
+    {:dir native-image-target-dir}))
