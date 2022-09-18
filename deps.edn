@@ -61,7 +61,7 @@
   {
    :paths ["tools"]
    :main-opts ["-m" "nrepl.cmdline"]
-   :extra-deps
+   :deps
    {
     io.github.clojure/tools.build
     {

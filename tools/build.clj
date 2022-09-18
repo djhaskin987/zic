@@ -35,18 +35,20 @@
           :mac
           :else
           :unkown)))
-
+(print-shell-out ["build\\graalvm-ce-java11-21.3.0\\bin\\native-image.exe" "-jar" "target\\uberjar\\*.jar"] {:dir (fs/path "resources")})
 (defn- print-shell-out
   "Pipe output from process to stdout"
-  [things {:keys [dir env] :or {dir ^java.io.File nil env ^"Ljava.lang.String[;" nil}]
-  (let [proc (.exec ^java.lang.Runtime (Runtime/getRuntime)
-                    ^"Ljava.lang.String[;" (into-array java.lang.String (map str things))
+  [things {:keys [dir env] :or {dir nil env nil}}]
+  (let [proc (.exec (Runtime/getRuntime)
+                    (into-array java.lang.String (map str things)) 
                     env
-                    dir)
+                    (fs/file dir))
         pstdout (BufferedReader. (InputStreamReader. (.getInputStream ^Process proc)))]
+    (.waitFor proc)
     (loop [line (.readLine pstdout)]
       (if (nil? line)
         (do
+        (println "Line is null!")
           (binding [*out* *err*]
             (print (slurp (.getErrorStream proc))))
           (.exitValue proc))
@@ -61,10 +63,21 @@
 
 (def lib 'zic/zic)
 
-
-
-;; Get the number of commits reachable since the last tagged commit,
-;; And the build number.
+; Concerning the project version.
+; It is not semantic versioning. Rich Hickey doesn't like that stuff anyway.
+; The real reason for the format, though, is the following:
+;
+; 1. AppVeyor insists on having a unique version for each build
+; 2. I want the build version to match the actual version
+; 3. We are building for Linux AND Windows.
+; 4. Windows VisualStudio C++ Build Tools insist on a 3-part
+;    version number, with each version part
+;    fitting into a 16-bit integer.
+;
+; So, we make the version number
+; <milestone>.<#of commits since milestone>.<build#>
+; And that's it.
+; I kinda like it anyway.
 (def version
   (let [last-tag (shell-out ["git" "describe" "--tags" "--abbrev=0"])
         milestone-number (Integer/parseInt last-tag)
@@ -102,6 +115,7 @@
       "native-image")))
 
 (defn- clean [_]
+  (println "Cleaning...")
   (build/delete {:path "target"}))
 
 
@@ -110,20 +124,6 @@
   [_]
   (print (name lib)))
 
-; Concerning the project version.
-; It is not semantic versioning. Rich Hickey doesn't like that stuff anyway.
-; The real reason for the format, though, is the following:
-; 1. AppVeyor insists on having a unique version for each build
-; 2. I want the build version to match the actual version
-; 3. We are building for Linux AND Windows.
-; 4. Windows VisualStudio C++ Build Tools insist on a 3-part
-;    version number, with each version part
-;    fitting into a 16-bit integer.
-;
-; So, we make the version number
-; <milestone>.<#of commits since milestone>.<build#>
-; And that's it.
-; I kinda like it anyway.
 #_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn project-version
   [_]
@@ -133,8 +133,10 @@
 (defn uber [_]
   (println "Building uberjar...")
   (clean nil)
+  (println "- Finished cleaning.")
   (build/copy-dir {:src-dirs ["src" "resources"]
                    :target-dir (str class-dir)})
+  (println "- Finished copying resources.")
   (build/compile-clj {:basis basis
                       :src-dirs ["src"]
                       :compile-opts {:disable-locals-clearing true
@@ -145,10 +147,12 @@
                                  "--add-opens=java.base/sun.nio.ch=all-unnamed"]
                       :class-dir (str class-dir)
                       :use-cp-file :always})
+  (println "- Finished compiling.")
   (build/uber {:class-dir (str class-dir)
                :uber-file (str uber-file)
                :basis basis
-               :main 'zic.cli}))
+               :main 'zic.cli})
+  (println "- Finished ubjerar."))
 
 (defn gather-java-calls
   "Gathers all java calls in the code."
