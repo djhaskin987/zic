@@ -1271,9 +1271,8 @@
   "name":"java.math.BigInteger",
   "allPublicMethods": true,
   "allPublicFields": true,
-  "allPublicConstructors": true,
-  }
-,
+  "allPublicConstructors": true
+},
 {
   "name":"java.net.HttpURLConnection"}
 ,
